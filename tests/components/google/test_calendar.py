@@ -1,7 +1,5 @@
 """The tests for the google calendar platform."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 import datetime
 from http import HTTPStatus
@@ -53,7 +51,11 @@ def mock_test_setup(
 
 def get_events_url(entity: str, start: str, end: str) -> str:
     """Create a url to get events during the specified time range."""
-    return f"/api/calendars/{entity}?start={urllib.parse.quote(start)}&end={urllib.parse.quote(end)}"
+    return (
+        f"/api/calendars/{entity}"
+        f"?start={urllib.parse.quote(start)}"
+        f"&end={urllib.parse.quote(end)}"
+    )
 
 
 def upcoming() -> dict[str, Any]:
@@ -750,7 +752,7 @@ async def test_unique_id_migration(
     config_entry,
     old_unique_id,
 ) -> None:
-    """Test that old unique id format is migrated to the new format that supports multiple accounts."""
+    """Test old unique id format is migrated to new multi-account format."""
     config_entry.add_to_hass(hass)
     # Create an entity using the old unique id format
     entity_registry.async_get_or_create(
@@ -1284,7 +1286,7 @@ async def test_reader_in_progress_event(
 async def test_all_day_event_without_duration(
     hass: HomeAssistant, mock_events_list_items, component_setup
 ) -> None:
-    """Test that an all day event without a duration is adjusted to have a duration of one day."""
+    """Test all day event without duration is adjusted to one day."""
     week_from_today = dt_util.now().date() + datetime.timedelta(days=7)
     event = {
         **TEST_EVENT,
@@ -1379,7 +1381,7 @@ async def test_invalid_rrule_fix(
     mock_events_list_items,
     component_setup,
 ) -> None:
-    """Test that an invalid RRULE returned from Google Calendar API is handled correctly end to end."""
+    """Test invalid RRULE from Google Calendar API is handled."""
     week_from_today = dt_util.now().date() + datetime.timedelta(days=7)
     end_event = week_from_today + datetime.timedelta(days=1)
     event = {
@@ -1451,6 +1453,14 @@ async def test_working_location_ignored(
     assert state.attributes.get("message") == expected_event_message
 
 
+@pytest.mark.parametrize(
+    ("event_type", "expected_event_message"),
+    [
+        ("workingLocation", "Test All Day Event"),
+        ("birthday", None),
+        ("default", None),
+    ],
+)
 @pytest.mark.parametrize("calendar_is_primary", [True])
 async def test_working_location_entity(
     hass: HomeAssistant,
@@ -1458,12 +1468,14 @@ async def test_working_location_entity(
     entity_registry: er.EntityRegistry,
     mock_events_list_items: Callable[[list[dict[str, Any]]], None],
     component_setup: ComponentSetup,
+    event_type: str,
+    expected_event_message: str | None,
 ) -> None:
-    """Test that working location events are registered under a disabled by default entity."""
+    """Test working location events are disabled by default."""
     event = {
         **TEST_EVENT,
         **upcoming(),
-        "eventType": "workingLocation",
+        "eventType": event_type,
     }
     mock_events_list_items([event])
     assert await component_setup()
@@ -1484,7 +1496,7 @@ async def test_working_location_entity(
     state = hass.states.get("calendar.working_location")
     assert state
     assert state.name == "Working location"
-    assert state.attributes.get("message") == "Test All Day Event"
+    assert state.attributes.get("message") == expected_event_message
 
 
 @pytest.mark.parametrize("calendar_is_primary", [False])
@@ -1506,3 +1518,89 @@ async def test_no_working_location_entity(
 
     entity_entry = entity_registry.async_get("calendar.working_location")
     assert not entity_entry
+
+
+@pytest.mark.parametrize(
+    ("event_type", "expected_event_message"),
+    [
+        ("workingLocation", None),
+        ("birthday", "Test All Day Event"),
+        ("default", None),
+    ],
+)
+@pytest.mark.parametrize("calendar_is_primary", [True])
+async def test_birthday_entity(
+    hass: HomeAssistant,
+    hass_client: ClientSessionGenerator,
+    entity_registry: er.EntityRegistry,
+    mock_events_list_items: Callable[[list[dict[str, Any]]], None],
+    component_setup: ComponentSetup,
+    event_type: str,
+    expected_event_message: str | None,
+) -> None:
+    """Test that birthday events appear only on the birthdays calendar."""
+    event = {
+        **TEST_EVENT,
+        **upcoming(),
+        "eventType": event_type,
+    }
+    mock_events_list_items([event])
+    assert await component_setup()
+
+    entity_entry = entity_registry.async_get("calendar.birthdays")
+    assert entity_entry
+    assert entity_entry.disabled_by is None  # Enabled by default
+
+    entity_registry.async_update_entity(
+        entity_id="calendar.birthdays", disabled_by=None
+    )
+    async_fire_time_changed(
+        hass,
+        dt_util.utcnow() + datetime.timedelta(seconds=RELOAD_AFTER_UPDATE_DELAY + 1),
+    )
+    await hass.async_block_till_done()
+
+    state = hass.states.get("calendar.birthdays")
+    assert state
+    assert state.name == "Birthdays"
+    assert state.attributes.get("message") == expected_event_message
+
+
+@pytest.mark.parametrize(
+    ("background_color", "expected_color"),
+    [
+        ("#16a765", "#16a765"),  # Valid color
+        ("not-a-color", None),  # Invalid color
+        (None, None),  # Missing color
+    ],
+)
+async def test_calendar_background_color(
+    hass: HomeAssistant,
+    aioclient_mock: AiohttpClientMocker,
+    mock_calendars_list: ApiResult,
+    mock_events_list_items: Callable[[list[dict[str, Any]]], None],
+    component_setup: ComponentSetup,
+    entity_registry: er.EntityRegistry,
+    background_color: str | None,
+    expected_color: str | None,
+) -> None:
+    """Test backgroundColor from API is stored in entity options only if valid."""
+    aioclient_mock.clear_requests()
+    calendar_item: dict[str, Any] = {
+        "id": CALENDAR_ID,
+        "etag": '"3584134138943410"',
+        "timeZone": "UTC",
+        "accessRole": "owner",
+        "summary": "Test Calendar",
+    }
+    if background_color is not None:
+        calendar_item["backgroundColor"] = background_color
+    mock_calendars_list({"items": [calendar_item]})
+    mock_events_list_items([])
+
+    assert await component_setup()
+
+    # Verify the main calendar entity has the color set
+    entity = entity_registry.async_get("calendar.test_calendar")
+    assert entity is not None
+    assert entity.options.get("calendar", {}).get("color") == expected_color

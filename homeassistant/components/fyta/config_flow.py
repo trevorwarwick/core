@@ -1,10 +1,8 @@
 """Config flow for FYTA integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 import logging
-from typing import Any
+from typing import Any, override
 
 from fyta_cli.fyta_connector import FytaConnector
 from fyta_cli.fyta_exceptions import (
@@ -65,14 +63,15 @@ class FytaConfigFlow(ConfigFlow, domain=DOMAIN):
             return {"base": "invalid_auth"}
         except FytaPasswordError:
             return {"base": "invalid_auth", CONF_PASSWORD: "password_error"}
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error(e)
+        except Exception:
+            _LOGGER.exception("Unexpected exception")
             return {"base": "unknown"}
         finally:
             await fyta.client.close()
 
         return {}
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:

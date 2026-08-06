@@ -1,10 +1,9 @@
 """Sensor platform for the Bring! integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import override
 
 from bring_api import BringList, BringUserSettingsResponse
 from bring_api.const import BRING_SUPPORTED_LOCALES
@@ -63,9 +62,9 @@ SENSOR_DESCRIPTIONS: tuple[BringSensorEntityDescription, ...] = (
         key=BringSensor.LIST_LANGUAGE,
         translation_key=BringSensor.LIST_LANGUAGE,
         value_fn=(
-            lambda lst, settings: x.lower()
-            if (x := list_language(lst.lst.listUuid, settings))
-            else None
+            lambda lst, settings: (
+                x.lower() if (x := list_language(lst.lst.listUuid, settings)) else None
+            )
         ),
         entity_category=EntityCategory.DIAGNOSTIC,
         options=[x.lower() for x in BRING_SUPPORTED_LOCALES],
@@ -88,7 +87,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    coordinator = config_entry.runtime_data
+    coordinator = config_entry.runtime_data.data
     lists_added: set[str] = set()
 
     @callback
@@ -117,6 +116,7 @@ class BringSensorEntity(BringBaseEntity, SensorEntity):
     """A sensor entity."""
 
     entity_description: BringSensorEntityDescription
+    coordinator: BringDataUpdateCoordinator
 
     def __init__(
         self,
@@ -127,9 +127,14 @@ class BringSensorEntity(BringBaseEntity, SensorEntity):
         """Initialize the entity."""
         super().__init__(coordinator, bring_list)
         self.entity_description = entity_description
-        self._attr_unique_id = f"{coordinator.config_entry.unique_id}_{self._list_uuid}_{self.entity_description.key}"
+        self._attr_unique_id = (
+            f"{coordinator.config_entry.unique_id}"
+            f"_{self._list_uuid}"
+            f"_{self.entity_description.key}"
+        )
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
 

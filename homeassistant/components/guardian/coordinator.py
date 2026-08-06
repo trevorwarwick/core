@@ -1,21 +1,21 @@
 """Define Guardian-specific utilities."""
 
-from __future__ import annotations
-
 import asyncio
 from collections.abc import Callable, Coroutine
 from datetime import timedelta
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast, override
 
 from aioguardian import Client
 from aioguardian.errors import GuardianError
 
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import LOGGER
+
+if TYPE_CHECKING:
+    from . import GuardianConfigEntry
 
 DEFAULT_UPDATE_INTERVAL = timedelta(seconds=30)
 
@@ -25,13 +25,13 @@ SIGNAL_REBOOT_REQUESTED = "guardian_reboot_requested_{0}"
 class GuardianDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Define an extended DataUpdateCoordinator with some Guardian goodies."""
 
-    config_entry: ConfigEntry
+    config_entry: GuardianConfigEntry
 
     def __init__(
         self,
         hass: HomeAssistant,
         *,
-        entry: ConfigEntry,
+        entry: GuardianConfigEntry,
         client: Client,
         api_name: str,
         api_coro: Callable[[], Coroutine[Any, Any, dict[str, Any]]],
@@ -55,6 +55,7 @@ class GuardianDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self.config_entry.entry_id
         )
 
+    @override
     async def _async_update_data(self) -> dict[str, Any]:
         """Execute a "locked" API request against the valve controller."""
         async with self._api_lock, self._client:

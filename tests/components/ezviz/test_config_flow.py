@@ -2,7 +2,7 @@
 
 from unittest.mock import AsyncMock
 
-from pyezviz.exceptions import (
+from pyezvizapi.exceptions import (
     EzvizAuthVerificationCode,
     InvalidHost,
     InvalidURL,
@@ -129,6 +129,7 @@ async def test_async_step_reauth(
             CONF_PASSWORD: "test-password",
         },
     )
+    await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
@@ -217,6 +218,7 @@ async def test_async_step_integration_discovery(
     assert result["result"].unique_id == "C666666"
 
 
+@pytest.mark.usefixtures("mock_ezviz_client")
 async def test_options_flow(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry
 ) -> None:
@@ -439,10 +441,10 @@ async def test_user_custom_url_unknown_exception(
     assert result["reason"] == "unknown"
 
 
+@pytest.mark.usefixtures("mock_setup_entry")
 async def test_already_configured(
     hass: HomeAssistant,
     mock_ezviz_client: AsyncMock,
-    mock_setup_entry: AsyncMock,
     mock_config_entry: MockConfigEntry,
 ) -> None:
     """Test the flow when the account is already configured."""
@@ -457,11 +459,11 @@ async def test_already_configured(
     assert result["reason"] == "already_configured_account"
 
 
+@pytest.mark.usefixtures("mock_setup_entry")
 async def test_async_step_integration_discovery_duplicate(
     hass: HomeAssistant,
     mock_ezviz_client: AsyncMock,
     mock_test_rtsp_auth: AsyncMock,
-    mock_setup_entry: AsyncMock,
     mock_config_entry: MockConfigEntry,
     mock_camera_config_entry: MockConfigEntry,
 ) -> None:
@@ -639,6 +641,7 @@ async def test_reauth_errors(
             CONF_PASSWORD: "test-password",
         },
     )
+    await hass.async_block_till_done()
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"

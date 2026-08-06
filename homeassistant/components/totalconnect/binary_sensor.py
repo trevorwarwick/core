@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
+from typing import override
 
 from total_connect_client.location import TotalConnectLocation
 from total_connect_client.zone import TotalConnectZone
@@ -172,17 +173,19 @@ class TotalConnectZoneBinarySensor(TotalConnectZoneEntity, BinarySensorEntity):
         super().__init__(coordinator, zone, location_id, entity_description.key)
         self.entity_description = entity_description
         self._attr_extra_state_attributes = {
-            "zone_id": zone.zoneid,
+            "zone_id": str(zone.zoneid),
             "location_id": location_id,
-            "partition": zone.partition,
+            "partition": str(zone.partition),
         }
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return the state of the entity."""
         return self.entity_description.is_on_fn(self._zone)
 
     @property
+    @override
     def device_class(self) -> BinarySensorDeviceClass | None:
         """Return the class of this zone."""
         if self.entity_description.device_class_fn:
@@ -210,6 +213,7 @@ class TotalConnectAlarmBinarySensor(TotalConnectLocationEntity, BinarySensorEnti
         }
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return the state of the entity."""
         return self.entity_description.is_on_fn(self._location)

@@ -1,19 +1,18 @@
 """Button platform for Teslemetry integration."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from tesla_fleet_api.const import Scope
+from tesla_fleet_api.teslemetry import Vehicle
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import TeslemetryConfigEntry
-from .entity import TeslemetryVehicleEntity
+from .entity import TeslemetryVehicleStreamEntity
 from .helpers import handle_command, handle_vehicle_command
 from .models import TeslemetryVehicleData
 
@@ -50,8 +49,8 @@ DESCRIPTIONS: tuple[TeslemetryButtonEntityDescription, ...] = (
         key="homelink",
         func=lambda self: handle_vehicle_command(
             self.api.trigger_homelink(
-                lat=self.coordinator.data["drive_state_latitude"],
-                lon=self.coordinator.data["drive_state_longitude"],
+                lat=self.hass.config.latitude,
+                lon=self.hass.config.longitude,
             )
         ),
     ),
@@ -73,9 +72,10 @@ async def async_setup_entry(
     )
 
 
-class TeslemetryButtonEntity(TeslemetryVehicleEntity, ButtonEntity):
+class TeslemetryButtonEntity(TeslemetryVehicleStreamEntity, ButtonEntity):
     """Base class for Teslemetry buttons."""
 
+    api: Vehicle
     entity_description: TeslemetryButtonEntityDescription
 
     def __init__(
@@ -90,6 +90,7 @@ class TeslemetryButtonEntity(TeslemetryVehicleEntity, ButtonEntity):
     def _async_update_attrs(self) -> None:
         """Update the attributes of the entity."""
 
+    @override
     async def async_press(self) -> None:
         """Press the button."""
         await self.entity_description.func(self)

@@ -1,7 +1,5 @@
 """Test the repairs websocket API."""
 
-from __future__ import annotations
-
 from http import HTTPStatus
 from typing import Any
 from unittest.mock import ANY, AsyncMock, Mock
@@ -151,10 +149,7 @@ async def mock_repairs_integration(hass: HomeAssistant) -> None:
     )
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    ["component.fake_integration.issues.abc_123.title"],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["fake_integration"])
 async def test_dismiss_issue(
     hass: HomeAssistant, hass_ws_client: WebSocketGenerator
 ) -> None:
@@ -238,10 +233,7 @@ async def test_dismiss_issue(
     }
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    ["component.fake_integration.issues.abc_123.title"],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["fake_integration"])
 async def test_fix_non_existing_issue(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,
@@ -289,19 +281,19 @@ async def test_fix_non_existing_issue(
 
 
 @pytest.mark.parametrize(
-    ("domain", "step", "description_placeholders", "ignore_translations"),
+    (
+        "domain",
+        "step",
+        "description_placeholders",
+        "ignore_translations_for_mock_domains",
+    ),
     [
-        (
-            "fake_integration",
-            "custom_step",
-            None,
-            ["component.fake_integration.issues.abc_123.title"],
-        ),
+        ("fake_integration", "custom_step", None, ["fake_integration"]),
         (
             "fake_integration_default_handler",
             "confirm",
             {"abc": "123"},
-            ["component.fake_integration_default_handler.issues.abc_123.title"],
+            ["fake_integration_default_handler"],
         ),
     ],
 )
@@ -398,10 +390,7 @@ async def test_fix_issue_unauth(
     assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    ["component.fake_integration.issues.abc_123.title"],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["fake_integration"])
 async def test_get_progress_unauth(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,
@@ -433,10 +422,7 @@ async def test_get_progress_unauth(
     assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    ["component.fake_integration.issues.abc_123.title"],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["fake_integration"])
 async def test_step_unauth(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,
@@ -468,16 +454,7 @@ async def test_step_unauth(
     assert resp.status == HTTPStatus.UNAUTHORIZED
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    [
-        [
-            "component.test.issues.even_worse.title",
-            "component.test.issues.even_worse.description",
-            "component.test.issues.abc_123.title",
-        ]
-    ],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["test"])
 @pytest.mark.freeze_time("2022-07-19 07:53:05")
 async def test_list_issues(
     hass: HomeAssistant,
@@ -569,15 +546,7 @@ async def test_list_issues(
     }
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    [
-        [
-            "component.fake_integration.issues.abc_123.title",
-            "component.fake_integration.issues.abc_123.fix_flow.abort.not_given",
-        ]
-    ],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["fake_integration"])
 async def test_fix_issue_aborted(
     hass: HomeAssistant,
     hass_client: ClientSessionGenerator,
@@ -628,7 +597,6 @@ async def test_fix_issue_aborted(
         "handler": "fake_integration",
         "reason": "not_given",
         "description_placeholders": None,
-        "result": None,
     }
 
     await ws_client.send_json({"id": 4, "type": "repairs/list_issues"})
@@ -639,16 +607,7 @@ async def test_fix_issue_aborted(
     assert msg["result"]["issues"][0] == first_issue
 
 
-@pytest.mark.parametrize(
-    "ignore_translations",
-    [
-        [
-            "component.test.issues.abc_123.title",
-            "component.test.issues.even_worse.title",
-            "component.test.issues.even_worse.description",
-        ]
-    ],
-)
+@pytest.mark.parametrize("ignore_translations_for_mock_domains", ["test"])
 @pytest.mark.freeze_time("2022-07-19 07:53:05")
 async def test_get_issue_data(
     hass: HomeAssistant, hass_ws_client: WebSocketGenerator

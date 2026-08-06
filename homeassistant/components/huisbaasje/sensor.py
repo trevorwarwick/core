@@ -1,10 +1,8 @@
 """Platform for sensor integration."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import override
 
 from energyflip.const import (
     SOURCE_TYPE_ELECTRICITY,
@@ -21,7 +19,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_ID,
     UnitOfEnergy,
@@ -31,13 +28,9 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    DATA_COORDINATOR,
     DOMAIN,
     SENSOR_TYPE_RATE,
     SENSOR_TYPE_THIS_DAY,
@@ -45,6 +38,7 @@ from .const import (
     SENSOR_TYPE_THIS_WEEK,
     SENSOR_TYPE_THIS_YEAR,
 )
+from .coordinator import EnergyFlipConfigEntry, EnergyFlipUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -218,13 +212,11 @@ SENSORS_INFO = [
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: EnergyFlipConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
-    coordinator: DataUpdateCoordinator[dict[str, dict[str, Any]]] = hass.data[DOMAIN][
-        config_entry.entry_id
-    ][DATA_COORDINATOR]
+    coordinator = config_entry.runtime_data
     user_id = config_entry.data[CONF_ID]
 
     async_add_entities(
@@ -233,9 +225,7 @@ async def async_setup_entry(
     )
 
 
-class EnergyFlipSensor(
-    CoordinatorEntity[DataUpdateCoordinator[dict[str, dict[str, Any]]]], SensorEntity
-):
+class EnergyFlipSensor(CoordinatorEntity[EnergyFlipUpdateCoordinator], SensorEntity):
     """Defines a EnergyFlip sensor."""
 
     entity_description: EnergyFlipSensorEntityDescription
@@ -243,7 +233,7 @@ class EnergyFlipSensor(
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator[dict[str, dict[str, Any]]],
+        coordinator: EnergyFlipUpdateCoordinator,
         user_id: str,
         description: EnergyFlipSensorEntityDescription,
     ) -> None:
@@ -253,10 +243,11 @@ class EnergyFlipSensor(
         self._source_type = description.key
         self._sensor_type = description.sensor_type
         self._attr_unique_id = (
-            f"{DOMAIN}_{user_id}_{description.key}_{description.sensor_type}"
+            f"{DOMAIN}_{user_id}_{description.key}_{description.sensor_type}"  # pylint: disable=home-assistant-entity-unique-id-redundant-domain
         )
 
     @property
+    @override
     def native_value(self) -> int | float | None:
         """Return the state of the sensor."""
         if (
@@ -268,6 +259,7 @@ class EnergyFlipSensor(
         return None
 
     @property
+    @override
     def available(self) -> bool:
         """Return if entity is available."""
         return bool(

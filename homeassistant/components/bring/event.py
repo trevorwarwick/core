@@ -1,9 +1,8 @@
 """Event platform for Bring integration."""
 
-from __future__ import annotations
-
 from dataclasses import asdict
 from datetime import datetime
+from typing import override
 
 from bring_api import ActivityType, BringList
 
@@ -12,7 +11,7 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
 from . import BringConfigEntry
-from .coordinator import BringDataUpdateCoordinator
+from .coordinator import BringActivityCoordinator
 from .entity import BringBaseEntity
 
 PARALLEL_UPDATES = 0
@@ -32,18 +31,18 @@ async def async_setup_entry(
         """Add event entities."""
         nonlocal lists_added
 
-        if new_lists := {lst.listUuid for lst in coordinator.lists} - lists_added:
+        if new_lists := {lst.listUuid for lst in coordinator.data.lists} - lists_added:
             async_add_entities(
                 BringEventEntity(
-                    coordinator,
+                    coordinator.activity,
                     bring_list,
                 )
-                for bring_list in coordinator.lists
+                for bring_list in coordinator.data.lists
                 if bring_list.listUuid in new_lists
             )
             lists_added |= new_lists
 
-    coordinator.async_add_listener(add_entities)
+    coordinator.data.async_add_listener(add_entities)
     add_entities()
 
 
@@ -51,10 +50,11 @@ class BringEventEntity(BringBaseEntity, EventEntity):
     """An event entity."""
 
     _attr_translation_key = "activities"
+    coordinator: BringActivityCoordinator
 
     def __init__(
         self,
-        coordinator: BringDataUpdateCoordinator,
+        coordinator: BringActivityCoordinator,
         bring_list: BringList,
     ) -> None:
         """Initialize the entity."""
@@ -66,7 +66,8 @@ class BringEventEntity(BringBaseEntity, EventEntity):
 
     def _async_handle_event(self) -> None:
         """Handle the activity event."""
-        bring_list = self.coordinator.data[self._list_uuid]
+        if (bring_list := self.coordinator.data.get(self._list_uuid)) is None:
+            return
         last_event_triggered = self.state
         if bring_list.activity.timeline and (
             last_event_triggered is None
@@ -77,9 +78,12 @@ class BringEventEntity(BringBaseEntity, EventEntity):
             attributes = asdict(activity.content)
 
             attributes["last_activity_by"] = next(
-                x.name
-                for x in bring_list.users.users
-                if x.publicUuid == activity.content.publicUserUuid
+                (
+                    x.name
+                    for x in bring_list.users.users
+                    if x.publicUuid == activity.content.publicUserUuid
+                ),
+                None,
             )
 
             self._trigger_event(
@@ -89,6 +93,7 @@ class BringEventEntity(BringBaseEntity, EventEntity):
             self.async_write_ha_state()
 
     @property
+    @override
     def entity_picture(self) -> str | None:
         """Return the entity picture to use in the frontend, if any."""
 
@@ -98,11 +103,13 @@ class BringEventEntity(BringBaseEntity, EventEntity):
             else super().entity_picture
         )
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Register callbacks with your device API/library."""
         await super().async_added_to_hass()
         self._async_handle_event()
 
+    @override
     def _handle_coordinator_update(self) -> None:
         self._async_handle_event()
         return super()._handle_coordinator_update()

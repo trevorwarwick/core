@@ -1,6 +1,6 @@
 """Sensor platform for the Flipr's pool_sensor."""
 
-from __future__ import annotations
+from typing import override
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -19,7 +19,7 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
         key="chlorine",
         translation_key="chlorine",
-        native_unit_of_measurement=UnitOfElectricPotential.MILLIVOLT,
+        native_unit_of_measurement="mg/L",
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
@@ -73,6 +73,7 @@ class FliprSensor(FliprEntity, SensorEntity):
     """Sensor representing FliprSensor data."""
 
     @property
+    @override
     def native_value(self) -> str:
         """State of the sensor."""
         return self.coordinator.data[self.entity_description.key]

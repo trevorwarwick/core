@@ -1,15 +1,16 @@
 """Base classes for Hydrawise entities."""
 
-from __future__ import annotations
+from typing import override
 
 from pydrawise.schema import Controller, Sensor, Zone
 
 from homeassistant.core import callback
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import EntityDescription
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER
+from .const import DOMAIN, MANUFACTURER, MODEL_ZONE
 from .coordinator import HydrawiseDataUpdateCoordinator
 
 
@@ -40,12 +41,23 @@ class HydrawiseEntity(CoordinatorEntity[HydrawiseDataUpdateCoordinator]):
             identifiers={(DOMAIN, self._device_id)},
             name=self.zone.name if zone_id is not None else controller.name,
             model=(
-                "Zone" if zone_id is not None else controller.hardware.model.description
+                MODEL_ZONE
+                if zone_id is not None
+                else controller.hardware.model.description
             ),
             manufacturer=MANUFACTURER,
         )
-        if zone_id is not None or sensor_id is not None:
-            self._attr_device_info["via_device"] = (DOMAIN, str(controller.id))
+        if zone_id is not None:
+            # Only zones get their own device; sensor entities share the
+            # controller device, so linking them to the controller would create
+            # a self-referential via_device.
+            self._attr_device_info["via_device_id"] = (
+                dr.async_get_device_id_by_identifier(
+                    self.coordinator.hass,
+                    (DOMAIN, str(controller.id)),
+                    config_entry_id=self.coordinator.config_entry.entry_id,
+                )
+            )
         self._update_attrs()
 
     @property
@@ -65,13 +77,19 @@ class HydrawiseEntity(CoordinatorEntity[HydrawiseDataUpdateCoordinator]):
         return  # pragma: no cover
 
     @callback
+    @override
     def _handle_coordinator_update(self) -> None:
         """Get the latest data and updates the state."""
+        # Guard against updates arriving after the controller has been removed
+        # but before the entity has been unsubscribed from the coordinator.
+        if self.controller.id not in self.coordinator.data.controllers:
+            return
         self.controller = self.coordinator.data.controllers[self.controller.id]
         self._update_attrs()
         super()._handle_coordinator_update()
 
     @property
+    @override
     def available(self) -> bool:
         """Set the entity availability."""
         return super().available and self.controller.online

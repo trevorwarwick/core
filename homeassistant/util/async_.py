@@ -1,7 +1,5 @@
 """Asyncio utilities."""
 
-from __future__ import annotations
-
 from asyncio import (
     AbstractEventLoop,
     Future,
@@ -36,8 +34,7 @@ def create_eager_task[_T](
             # If there is no running loop, create_eager_task is being called from
             # the wrong thread.
             # Late import to avoid circular dependencies
-            # pylint: disable-next=import-outside-toplevel
-            from homeassistant.helpers import frame
+            from homeassistant.helpers import frame  # noqa: PLC0415
 
             frame.report_usage("attempted to create an asyncio task from a thread")
             raise
@@ -66,7 +63,7 @@ def run_callback_threadsafe[_T, *_Ts](
         """Run callback and store result."""
         try:
             future.set_result(callback(*args))
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             if future.set_running_or_notify_cancel():
                 future.set_exception(exc)
             else:

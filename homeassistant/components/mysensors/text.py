@@ -1,6 +1,6 @@
 """Provide a text platform for MySensors."""
 
-from __future__ import annotations
+from typing import override
 
 from homeassistant.components.text import TextEntity
 from homeassistant.config_entries import ConfigEntry
@@ -12,7 +12,6 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import setup_mysensors_platform
 from .const import MYSENSORS_DISCOVERY, DiscoveryInfo
 from .entity import MySensorsChildEntity
-from .helpers import on_unload
 
 
 async def async_setup_entry(
@@ -33,9 +32,7 @@ async def async_setup_entry(
             async_add_entities=async_add_entities,
         )
 
-    on_unload(
-        hass,
-        config_entry.entry_id,
+    config_entry.async_on_unload(
         async_dispatcher_connect(
             hass,
             MYSENSORS_DISCOVERY.format(config_entry.entry_id, Platform.TEXT),
@@ -50,10 +47,12 @@ class MySensorsText(MySensorsChildEntity, TextEntity):
     _attr_native_max = 25
 
     @property
+    @override
     def native_value(self) -> str | None:
         """Return the value reported by the text."""
         return self._values.get(self.value_type)
 
+    @override
     async def async_set_value(self, value: str) -> None:
         """Change the value."""
         self.gateway.set_child_value(

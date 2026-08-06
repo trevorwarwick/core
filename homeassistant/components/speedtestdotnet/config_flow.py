@@ -1,12 +1,14 @@
 """Config flow for Speedtest.net."""
 
-from __future__ import annotations
-
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.core import callback
 
 from .const import (
@@ -26,12 +28,14 @@ class SpeedTestFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: SpeedTestConfigEntry,
     ) -> SpeedTestOptionsFlowHandler:
         """Get the options flow for this handler."""
         return SpeedTestOptionsFlowHandler()
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -45,7 +49,7 @@ class SpeedTestFlowHandler(ConfigFlow, domain=DOMAIN):
         return self.async_create_entry(title=DEFAULT_NAME, data=user_input)
 
 
-class SpeedTestOptionsFlowHandler(OptionsFlow):
+class SpeedTestOptionsFlowHandler(OptionsFlowWithReload):
     """Handle SpeedTest options."""
 
     def __init__(self) -> None:

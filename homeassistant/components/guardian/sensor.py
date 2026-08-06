@@ -1,10 +1,8 @@
 """Sensors for the Elexa Guardian integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -12,7 +10,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     EntityCategory,
     UnitOfElectricCurrent,
@@ -25,13 +22,12 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
 
-from . import GuardianData
+from . import GuardianConfigEntry
 from .const import (
     API_SYSTEM_DIAGNOSTICS,
     API_SYSTEM_ONBOARD_SENSOR_STATUS,
     API_VALVE_STATUS,
     CONF_UID,
-    DOMAIN,
     SIGNAL_PAIRED_SENSOR_COORDINATOR_ADDED,
 )
 from .entity import (
@@ -138,11 +134,11 @@ VALVE_CONTROLLER_DESCRIPTIONS = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: GuardianConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Guardian switches based on a config entry."""
-    data: GuardianData = hass.data[DOMAIN][entry.entry_id]
+    data = entry.runtime_data
 
     @callback
     def add_new_paired_sensor(uid: str) -> None:
@@ -187,6 +183,7 @@ class PairedSensorSensor(PairedSensorEntity, SensorEntity):
     entity_description: PairedSensorDescription
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the value reported by the sensor."""
         return self.entity_description.value_fn(self.coordinator.data)
@@ -198,6 +195,7 @@ class ValveControllerSensor(ValveControllerEntity, SensorEntity):
     entity_description: ValveControllerSensorDescription
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the value reported by the sensor."""
         return self.entity_description.value_fn(self.coordinator.data)

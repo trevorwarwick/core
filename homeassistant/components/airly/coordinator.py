@@ -4,6 +4,7 @@ from asyncio import timeout
 from datetime import timedelta
 import logging
 from math import ceil
+from typing import override
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientConnectorError
@@ -90,6 +91,7 @@ class AirlyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, str | float | i
             update_interval=update_interval,
         )
 
+    @override
     async def _async_update_data(self) -> dict[str, str | float | int]:
         """Update data via library."""
         data: dict[str, str | float | int] = {}
@@ -105,7 +107,14 @@ class AirlyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, str | float | i
             try:
                 await measurements.update()
             except (AirlyError, ClientConnectorError) as error:
-                raise UpdateFailed(error) from error
+                raise UpdateFailed(
+                    translation_domain=DOMAIN,
+                    translation_key="update_error",
+                    translation_placeholders={
+                        "entry": self.config_entry.title,
+                        "error": repr(error),
+                    },
+                ) from error
 
         _LOGGER.debug(
             "Requests remaining: %s/%s",
@@ -126,7 +135,11 @@ class AirlyDataUpdateCoordinator(DataUpdateCoordinator[dict[str, str | float | i
         standards = measurements.current["standards"]
 
         if index["description"] == NO_AIRLY_SENSORS:
-            raise UpdateFailed("Can't retrieve data: no Airly sensors in this area")
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="no_station",
+                translation_placeholders={"entry": self.config_entry.title},
+            )
         for value in values:
             data[value["name"]] = value["value"]
         for standard in standards:

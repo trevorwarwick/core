@@ -1,14 +1,12 @@
 """Support for EZVIZ button controls."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
-from pyezviz import EzvizClient
-from pyezviz.constants import SupportExt
-from pyezviz.exceptions import HTTPError, PyEzvizError
+from pyezvizapi import EzvizClient
+from pyezvizapi.constants import SupportExt
+from pyezvizapi.exceptions import HTTPError, PyEzvizError
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.core import HomeAssistant
@@ -103,6 +101,7 @@ class EzvizButtonEntity(EzvizEntity, ButtonEntity):
         self._attr_unique_id = f"{serial}_{description.key}"
         self.entity_description = description
 
+    @override
     def press(self) -> None:
         """Execute the button action."""
         try:

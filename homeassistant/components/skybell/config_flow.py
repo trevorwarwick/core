@@ -1,9 +1,8 @@
 """Config flow for Skybell integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import Any
+import logging
+from typing import Any, override
 
 from aioskybell import Skybell, exceptions
 import voluptuous as vol
@@ -13,6 +12,8 @@ from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 
 class SkybellFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -48,6 +49,7 @@ class SkybellFlowHandler(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -95,6 +97,7 @@ class SkybellFlowHandler(ConfigFlow, domain=DOMAIN):
             return None, "invalid_auth"
         except exceptions.SkybellException:
             return None, "cannot_connect"
-        except Exception:  # noqa: BLE001
+        except Exception:
+            _LOGGER.exception("Unexpected exception")
             return None, "unknown"
         return skybell.user_id, None

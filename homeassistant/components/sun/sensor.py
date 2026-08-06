@@ -1,10 +1,9 @@
 """Sensor platform for Sun integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import override
 
 from homeassistant.components.sensor import (
     DOMAIN as SENSOR_DOMAIN,
@@ -95,13 +94,6 @@ SENSOR_TYPES: tuple[SunSensorEntityDescription, ...] = (
         native_unit_of_measurement=DEGREE,
         signal=SIGNAL_POSITION_CHANGED,
     ),
-    SunSensorEntityDescription(
-        key="solar_rising",
-        translation_key="solar_rising",
-        value_fn=lambda data: data.rising,
-        entity_registry_enabled_default=False,
-        signal=SIGNAL_EVENTS_CHANGED,
-    ),
 )
 
 
@@ -142,13 +134,16 @@ class SunSensor(SensorEntity):
         )
 
     @property
+    @override
     def native_value(self) -> StateType | datetime:
         """Return value of sensor."""
         return self.entity_description.value_fn(self.sun)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Register signal listener when added to hass."""
         await super().async_added_to_hass()
+
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass,

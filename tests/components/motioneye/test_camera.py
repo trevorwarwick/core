@@ -1,6 +1,5 @@
 """Test the motionEye camera."""
 
-from asyncio import AbstractEventLoop
 from collections.abc import Callable
 import copy
 from unittest.mock import AsyncMock, Mock, call
@@ -31,7 +30,6 @@ import voluptuous as vol
 from homeassistant.components.camera import async_get_image, async_get_mjpeg_stream
 from homeassistant.components.motioneye import get_motioneye_device_identifier
 from homeassistant.components.motioneye.const import (
-    CONF_ACTION,
     CONF_STREAM_URL_TEMPLATE,
     CONF_SURVEILLANCE_USERNAME,
     DEFAULT_SCAN_INTERVAL,
@@ -41,7 +39,7 @@ from homeassistant.components.motioneye.const import (
     SERVICE_SET_TEXT_OVERLAY,
     SERVICE_SNAPSHOT,
 )
-from homeassistant.const import ATTR_DEVICE_ID, ATTR_ENTITY_ID, CONF_URL
+from homeassistant.const import ATTR_DEVICE_ID, ATTR_ENTITY_ID, CONF_ACTION, CONF_URL
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr, entity_registry as er
@@ -67,7 +65,6 @@ from tests.common import async_fire_time_changed
 
 @pytest.fixture
 def aiohttp_server(
-    event_loop: AbstractEventLoop,
     aiohttp_server: Callable[[], TestServer],
     socket_enabled: None,
 ) -> Callable[[], TestServer]:

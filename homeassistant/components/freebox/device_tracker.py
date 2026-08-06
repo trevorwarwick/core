@@ -1,27 +1,24 @@
 """Support for Freebox devices (Freebox v6 and Freebox mini 4K)."""
 
-from __future__ import annotations
-
 from datetime import datetime
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.device_tracker import ScannerEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DEFAULT_DEVICE_NAME, DEVICE_ICONS, DOMAIN
-from .router import FreeboxRouter
+from .const import DEFAULT_DEVICE_NAME, DEVICE_ICONS
+from .router import FreeboxConfigEntry, FreeboxRouter
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: FreeboxConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up device tracker for Freebox component."""
-    router: FreeboxRouter = hass.data[DOMAIN][entry.unique_id]
+    router = entry.runtime_data
     tracked: set[str] = set()
 
     @callback
@@ -58,6 +55,7 @@ def add_entities(
 class FreeboxDevice(ScannerEntity):
     """Representation of a Freebox device."""
 
+    _attr_has_entity_name = True
     _attr_should_poll = False
 
     def __init__(self, router: FreeboxRouter, device: dict[str, Any]) -> None:
@@ -88,16 +86,19 @@ class FreeboxDevice(ScannerEntity):
             self._attr_extra_state_attributes = device["attrs"]
 
     @property
+    @override
     def mac_address(self) -> str:
         """Return a unique ID."""
         return self._mac
 
     @property
+    @override
     def name(self) -> str:
         """Return the name."""
         return self._name
 
     @property
+    @override
     def is_connected(self) -> bool:
         """Return true if the device is connected to the network."""
         return self._active
@@ -108,6 +109,7 @@ class FreeboxDevice(ScannerEntity):
         self.async_update_state()
         self.async_write_ha_state()
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Register state update callback."""
         self.async_update_state()

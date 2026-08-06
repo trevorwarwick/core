@@ -1,8 +1,7 @@
 """Data update coordinator for Snapcast server."""
 
-from __future__ import annotations
-
 import logging
+from typing import override
 
 from snapcast.control.server import Snapserver
 
@@ -13,13 +12,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 _LOGGER = logging.getLogger(__name__)
 
+type SnapcastConfigEntry = ConfigEntry[SnapcastUpdateCoordinator]
+
 
 class SnapcastUpdateCoordinator(DataUpdateCoordinator[None]):
     """Data update coordinator for pushed data from Snapcast server."""
 
-    config_entry: ConfigEntry
+    config_entry: SnapcastConfigEntry
 
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: SnapcastConfigEntry) -> None:
         """Initialize coordinator."""
         host = config_entry.data[CONF_HOST]
         port = config_entry.data[CONF_PORT]
@@ -39,6 +40,8 @@ class SnapcastUpdateCoordinator(DataUpdateCoordinator[None]):
         self._server.set_on_connect_callback(self._on_connect)
         self._server.set_on_disconnect_callback(self._on_disconnect)
 
+        self._host_id = f"{host}:{port}"
+
     def _on_update(self) -> None:
         """Snapserver on_update callback."""
         # Assume availability if an update is received.
@@ -54,6 +57,7 @@ class SnapcastUpdateCoordinator(DataUpdateCoordinator[None]):
         """Snapsever on_disconnect callback."""
         self.async_set_update_error(ex)
 
+    @override
     async def _async_setup(self) -> None:
         """Perform async setup for the coordinator."""
         # Start the server
@@ -62,6 +66,7 @@ class SnapcastUpdateCoordinator(DataUpdateCoordinator[None]):
         except OSError as ex:
             raise UpdateFailed from ex
 
+    @override
     async def _async_update_data(self) -> None:
         """Empty update method since data is pushed."""
 
@@ -77,3 +82,8 @@ class SnapcastUpdateCoordinator(DataUpdateCoordinator[None]):
     def server(self) -> Snapserver:
         """Get the Snapserver object."""
         return self._server
+
+    @property
+    def host_id(self) -> str:
+        """Get the host ID."""
+        return self._host_id

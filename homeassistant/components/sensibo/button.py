@@ -1,9 +1,7 @@
 """Button platform for Sensibo integration."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.const import EntityCategory
@@ -46,7 +44,8 @@ async def async_setup_entry(
     def _add_remove_devices() -> None:
         """Handle additions of devices and sensors."""
         nonlocal added_devices
-        new_devices, _, added_devices = coordinator.get_devices(added_devices)
+        new_devices, _, new_added_devices = coordinator.get_devices(added_devices)
+        added_devices = new_added_devices
 
         if new_devices:
             async_add_entities(
@@ -78,6 +77,7 @@ class SensiboDeviceButton(SensiboDeviceBaseEntity, ButtonEntity):
         self.entity_description = entity_description
         self._attr_unique_id = f"{device_id}-{entity_description.key}"
 
+    @override
     async def async_press(self) -> None:
         """Press the button."""
         await self.async_send_api_call(

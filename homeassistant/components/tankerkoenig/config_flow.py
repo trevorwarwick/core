@@ -1,9 +1,7 @@
 """Config flow for Tankerkoenig."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, override
 
 from aiotankerkoenig import (
     GasType,
@@ -15,10 +13,9 @@ from aiotankerkoenig import (
 import voluptuous as vol
 
 from homeassistant.config_entries import (
-    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
-    OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import (
     CONF_API_KEY,
@@ -39,7 +36,8 @@ from homeassistant.helpers.selector import (
     NumberSelectorConfig,
 )
 
-from .const import CONF_FUEL_TYPES, CONF_STATIONS, DEFAULT_RADIUS, DOMAIN, FUEL_TYPES
+from .const import CONF_STATIONS, DEFAULT_RADIUS, DOMAIN
+from .coordinator import TankerkoenigConfigEntry
 
 
 async def async_get_nearby_stations(
@@ -70,12 +68,14 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: TankerkoenigConfigEntry,
     ) -> OptionsFlowHandler:
         """Get the options flow for this handler."""
         return OptionsFlowHandler()
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -169,16 +169,14 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
+                    # Name field is no longer allowed in config flow schemas
+                    # pylint: disable-next=home-assistant-config-flow-name-field
                     vol.Required(
                         CONF_NAME, default=user_input.get(CONF_NAME, "")
                     ): cv.string,
                     vol.Required(
                         CONF_API_KEY, default=user_input.get(CONF_API_KEY, "")
                     ): cv.string,
-                    vol.Required(
-                        CONF_FUEL_TYPES,
-                        default=user_input.get(CONF_FUEL_TYPES, list(FUEL_TYPES)),
-                    ): cv.multi_select(FUEL_TYPES),
                     vol.Required(
                         CONF_LOCATION,
                         default=user_input.get(
@@ -233,7 +231,7 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
 
-class OptionsFlowHandler(OptionsFlow):
+class OptionsFlowHandler(OptionsFlowWithReload):
     """Handle an options flow."""
 
     def __init__(self) -> None:

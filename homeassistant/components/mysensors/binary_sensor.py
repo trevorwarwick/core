@@ -1,10 +1,8 @@
 """Support for MySensors binary sensors."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -20,15 +18,14 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from . import setup_mysensors_platform
 from .const import MYSENSORS_DISCOVERY, DiscoveryInfo
 from .entity import MySensorsChildEntity
-from .helpers import on_unload
 
 
 @dataclass(frozen=True)
 class MySensorsBinarySensorDescription(BinarySensorEntityDescription):
     """Describe a MySensors binary sensor entity."""
 
-    is_on: Callable[[int, dict[int, str]], bool] = (
-        lambda value_type, values: values[value_type] == "1"
+    is_on: Callable[[int, dict[int, str]], bool] = lambda value_type, values: (
+        values[value_type] == "1"
     )
 
 
@@ -86,9 +83,7 @@ async def async_setup_entry(
             async_add_entities=async_add_entities,
         )
 
-    on_unload(
-        hass,
-        config_entry.entry_id,
+    config_entry.async_on_unload(
         async_dispatcher_connect(
             hass,
             MYSENSORS_DISCOVERY.format(config_entry.entry_id, Platform.BINARY_SENSOR),
@@ -109,6 +104,7 @@ class MySensorsBinarySensor(MySensorsChildEntity, BinarySensorEntity):
         self.entity_description = SENSORS[presentation(self.child_type).name]
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return True if the binary sensor is on."""
         return self.entity_description.is_on(self.value_type, self._child.values)

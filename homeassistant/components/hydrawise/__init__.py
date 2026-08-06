@@ -1,14 +1,17 @@
 """Support for Hydrawise cloud."""
 
-from pydrawise import auth, hybrid
+from collections.abc import Iterable
 
-from homeassistant.config_entries import ConfigEntry
+from pydrawise import Controller, auth, hybrid
+
 from homeassistant.const import CONF_API_KEY, CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers import device_registry as dr
 
-from .const import APP_ID, DOMAIN
+from .const import APP_ID, DOMAIN, MANUFACTURER
 from .coordinator import (
+    HydrawiseConfigEntry,
     HydrawiseMainDataUpdateCoordinator,
     HydrawiseUpdateCoordinators,
     HydrawiseWaterUseDataUpdateCoordinator,
@@ -24,7 +27,9 @@ PLATFORMS: list[Platform] = [
 _REQUIRED_AUTH_KEYS = (CONF_USERNAME, CONF_PASSWORD, CONF_API_KEY)
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: HydrawiseConfigEntry
+) -> bool:
     """Set up Hydrawise from a config entry."""
     if any(k not in config_entry.data for k in _REQUIRED_AUTH_KEYS):
         # If we are missing any required authentication keys, trigger a reauth flow.
@@ -44,19 +49,53 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     water_use_coordinator = HydrawiseWaterUseDataUpdateCoordinator(
         hass, config_entry, hydrawise, main_coordinator
     )
+
+    device_registry = dr.async_get(hass)
+
+    @callback
+    def _async_register_controller_devices(controllers: Iterable[Controller]) -> None:
+        """Register controller devices so children can resolve via_device_id.
+
+        Runs as the first new-controller callback so via_device parents are
+        registered before the new-zone callbacks construct zone entities that
+        resolve their via_device_id. Registration must not run before
+        _add_remove_zones computes the previous controllers, or newly discovered
+        controllers would be treated as already-known and their controller-level
+        entities would never be added.
+        """
+        for controller in controllers:
+            device_registry.async_get_or_create(
+                config_entry_id=config_entry.entry_id,
+                identifiers={(DOMAIN, str(controller.id))},
+                manufacturer=MANUFACTURER,
+                model=controller.hardware.model.description,
+                name=controller.name,
+                # Explicitly clear any via_device_id: older versions linked the
+                # controller device to itself via its rain sensor entity.
+                via_device_id=None,
+            )
+
+    # Register the controllers known at setup before the platforms construct
+    # their entities.
+    _async_register_controller_devices(main_coordinator.data.controllers.values())
+    main_coordinator.new_controllers_callbacks.append(
+        _async_register_controller_devices
+    )
+
+    # async_track_zones is registered first on water_use_coordinator,
+    # so the water-use coordinator's data is in sync before
+    # callbacks below construct entities for newly added zones.
+    water_use_coordinator.async_track_zones()
+    main_coordinator.async_track_zones()
     await water_use_coordinator.async_config_entry_first_refresh()
-    hass.data.setdefault(DOMAIN, {})[config_entry.entry_id] = (
-        HydrawiseUpdateCoordinators(
-            main=main_coordinator,
-            water_use=water_use_coordinator,
-        )
+    config_entry.runtime_data = HydrawiseUpdateCoordinators(
+        main=main_coordinator,
+        water_use=water_use_coordinator,
     )
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, entry: HydrawiseConfigEntry) -> bool:
     """Unload a config entry."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unload_ok
+    return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)

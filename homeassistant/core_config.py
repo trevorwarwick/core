@@ -1,7 +1,5 @@
 """Module to help with parsing and generating configuration files."""
 
-from __future__ import annotations
-
 from collections import OrderedDict
 from collections.abc import Sequence
 from contextlib import suppress
@@ -9,7 +7,7 @@ import enum
 import logging
 import os
 import pathlib
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Final, override
 from urllib.parse import urlparse
 
 import voluptuous as vol
@@ -51,7 +49,9 @@ from .const import (
     CONF_UNIT_SYSTEM,
     CONF_URL,
     CONF_USERNAME,
+    DEFAULT_RADIUS,
     EVENT_CORE_CONFIG_UPDATE,
+    KEY_DATA_LOGGING_DISABLED_REASON,
     LEGACY_CONF_WHITELIST_EXTERNAL_DIRS,
     UnitOfLength,
     __version__,
@@ -60,7 +60,6 @@ from .core import DOMAIN as HOMEASSISTANT_DOMAIN, HomeAssistant
 from .generated.currencies import HISTORIC_CURRENCIES
 from .helpers import config_validation as cv, issue_registry as ir
 from .helpers.entity_values import EntityValues
-from .helpers.frame import ReportBehavior, report_usage
 from .helpers.storage import Store
 from .helpers.typing import UNDEFINED, UndefinedType
 from .util import dt as dt_util, location
@@ -250,8 +249,8 @@ def _validate_currency(data: Any) -> Any:
         raise
 
 
-def _validate_stun_or_turn_url(value: Any) -> str:
-    """Validate an URL."""
+def validate_stun_or_turn_url(value: Any) -> str:
+    """Validate a URL."""
     url_in = str(value)
     url = urlparse(url_in)
 
@@ -332,7 +331,7 @@ CORE_CONFIG_SCHEMA = vol.All(
                             vol.Schema(
                                 {
                                     vol.Required(CONF_URL): vol.All(
-                                        cv.ensure_list, [_validate_stun_or_turn_url]
+                                        cv.ensure_list, [validate_stun_or_turn_url]
                                     ),
                                     vol.Optional(CONF_USERNAME): cv.string,
                                     vol.Optional(CONF_CREDENTIAL): cv.string,
@@ -370,9 +369,7 @@ async def async_process_ha_core_config(hass: HomeAssistant, config: dict) -> Non
             [{"type": "totp", "id": "totp", "name": "Authenticator app"}],
         )
 
-        setattr(
-            hass, "auth", await auth.auth_manager_from_config(hass, auth_conf, mfa_conf)
-        )
+        hass.auth = await auth.auth_manager_from_config(hass, auth_conf, mfa_conf)
 
     await hass.config.async_load()
 
@@ -453,7 +450,7 @@ async def async_process_ha_core_config(hass: HomeAssistant, config: dict) -> Non
             set(config[LEGACY_CONF_WHITELIST_EXTERNAL_DIRS])
         )
 
-    # Init whitelist external URL list – make sure to add / to every URL that doesn't
+    # Init whitelist external URL list - make sure to add / to every URL that doesn't
     # already have it so that we can properly test "path ownership"
     if CONF_ALLOWLIST_EXTERNAL_URLS in config:
         hac.allowlist_external_urls.update(
@@ -509,6 +506,7 @@ class _ComponentSet(set[str]):
         self._top_level_components = top_level_components
         self._all_components = all_components
 
+    @override
     def add(self, value: str) -> None:
         """Add a component to the store."""
         if "." not in value:
@@ -520,6 +518,7 @@ class _ComponentSet(set[str]):
                 self._all_components.add(platform)
         return super().add(value)
 
+    @override
     def remove(self, value: str) -> None:
         """Remove a component from the store."""
         if "." in value:
@@ -527,7 +526,8 @@ class _ComponentSet(set[str]):
         self._top_level_components.remove(value)
         return super().remove(value)
 
-    def discard(self, value: str) -> None:
+    @override
+    def discard(self, value: object) -> None:
         """Remove a component from the store."""
         raise NotImplementedError("_ComponentSet does not support discard, use remove")
 
@@ -539,9 +539,6 @@ class Config:
 
     def __init__(self, hass: HomeAssistant, config_dir: str) -> None:
         """Initialize a new config object."""
-        # pylint: disable-next=import-outside-toplevel
-        from .components.zone import DEFAULT_RADIUS
-
         self.hass = hass
 
         self.latitude: float = 0
@@ -572,18 +569,15 @@ class Config:
         self.skip_pip_packages: list[str] = []
 
         # Set of loaded top level components
-        # This set is updated by _ComponentSet
-        # and should not be modified directly
+        # This set is updated by _ComponentSet and should not be modified directly.
         self.top_level_components: set[str] = set()
 
-        # Set of all loaded components including platform
-        # based components
+        # Set of all loaded components including platform based components
+        # This set is updated by _ComponentSet and should not be modified directly.
         self.all_components: set[str] = set()
 
         # Set of loaded components
-        self.components: _ComponentSet = _ComponentSet(
-            self.top_level_components, self.all_components
-        )
+        self.components = _ComponentSet(self.top_level_components, self.all_components)
 
         # API (HTTP) server configuration
         self.api: ApiConfig | None = None
@@ -635,6 +629,16 @@ class Config:
         """
         return os.path.join(self.config_dir, *path)
 
+    def cache_path(self, *path: str) -> str:
+        """Generate path to the file within the cache directory.
+
+        The cache directory is used for temporary data that can be
+        regenerated and is not included in backups.
+
+        Async friendly.
+        """
+        return self.path(".cache", *path)
+
     def is_allowed_external_url(self, url: str) -> bool:
         """Check if an external URL is allowed."""
         parsed_url = f"{yarl.URL(url)!s}/"
@@ -660,7 +664,7 @@ class Config:
                 thepath = thepath.resolve()
             else:
                 thepath = thepath.parent.resolve()
-        except (FileNotFoundError, RuntimeError, PermissionError):
+        except FileNotFoundError, RuntimeError, PermissionError:
             return False
 
         for allowed_path in self.allowlist_external_dirs:
@@ -694,6 +698,11 @@ class Config:
             "language": self.language,
             "latitude": self.latitude,
             "location_name": self.location_name,
+            "logging": {
+                "log_file_disabled_reason": self.hass.data.get(
+                    KEY_DATA_LOGGING_DISABLED_REASON
+                ),
+            },
             "longitude": self.longitude,
             "radius": self.radius,
             "recovery_mode": self.recovery_mode,
@@ -709,26 +718,6 @@ class Config:
     async def async_set_time_zone(self, time_zone_str: str) -> None:
         """Help to set the time zone."""
         if time_zone := await dt_util.async_get_time_zone(time_zone_str):
-            self.time_zone = time_zone_str
-            dt_util.set_default_time_zone(time_zone)
-        else:
-            raise ValueError(f"Received invalid time zone {time_zone_str}")
-
-    def set_time_zone(self, time_zone_str: str) -> None:
-        """Set the time zone.
-
-        This is a legacy method that should not be used in new code.
-        Use async_set_time_zone instead.
-
-        It will be removed in Home Assistant 2025.6.
-        """
-        report_usage(
-            "sets the time zone using set_time_zone instead of async_set_time_zone",
-            core_integration_behavior=ReportBehavior.ERROR,
-            custom_integration_behavior=ReportBehavior.ERROR,
-            breaks_in_ha_version="2025.6",
-        )
-        if time_zone := dt_util.get_time_zone(time_zone_str):
             self.time_zone = time_zone_str
             dt_util.set_default_time_zone(time_zone)
         else:
@@ -860,6 +849,7 @@ class Config:
             )
             self._original_unit_system: str | None = None  # from old store 1.1
 
+        @override
         async def _async_migrate_func(
             self,
             old_major_version: int,
@@ -867,10 +857,6 @@ class Config:
             old_data: dict[str, Any],
         ) -> dict[str, Any]:
             """Migrate to the new version."""
-
-            # pylint: disable-next=import-outside-toplevel
-            from .components.zone import DEFAULT_RADIUS
-
             data = old_data
             if old_major_version == 1 and old_minor_version < 2:
                 # In 1.2, we remove support for "imperial", replaced by "us_customary"
@@ -886,20 +872,21 @@ class Config:
                 try:
                     owner = await self.hass.auth.async_get_owner()
                     if owner is not None:
-                        # pylint: disable-next=import-outside-toplevel
-                        from .components.frontend import storage as frontend_store
+                        from .components.frontend import (  # noqa: PLC0415
+                            storage as frontend_store,
+                        )
 
-                        _, owner_data = await frontend_store.async_user_store(
+                        owner_store = await frontend_store.async_user_store(
                             self.hass, owner.id
                         )
 
                         if (
-                            "language" in owner_data
-                            and "language" in owner_data["language"]
+                            "language" in owner_store.data
+                            and "language" in owner_store.data["language"]
                         ):
                             with suppress(vol.InInvalid):
                                 data["language"] = cv.language(
-                                    owner_data["language"]["language"]
+                                    owner_store.data["language"]["language"]
                                 )
                 # pylint: disable-next=broad-except
                 except Exception:
@@ -912,6 +899,7 @@ class Config:
                 raise NotImplementedError
             return data
 
+        @override
         async def async_save(self, data: dict[str, Any]) -> None:
             if self._original_unit_system:
                 data["unit_system"] = self._original_unit_system

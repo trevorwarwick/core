@@ -1,10 +1,9 @@
 """Support for Electric Kiwi sensors."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import override
 
 from electrickiwi_api.model import AccountSummary, Hop
 
@@ -26,6 +25,8 @@ from .coordinator import (
     ElectricKiwiConfigEntry,
     ElectricKiwiHOPDataCoordinator,
 )
+
+PARALLEL_UPDATES = 0
 
 ATTR_EK_HOP_START = "hop_power_start"
 ATTR_EK_HOP_END = "hop_power_end"
@@ -177,6 +178,7 @@ class ElectricKiwiAccountEntity(
         self.entity_description = description
 
     @property
+    @override
     def native_value(self) -> float | datetime:
         """Return the state of the sensor."""
         return self.entity_description.value_func(self.coordinator.data)
@@ -206,6 +208,7 @@ class ElectricKiwiHOPEntity(
         self.entity_description = description
 
     @property
+    @override
     def native_value(self) -> datetime:
         """Return the state of the sensor."""
         return self.entity_description.value_func(self.coordinator.data)

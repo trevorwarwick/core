@@ -1,10 +1,10 @@
 """EHEIM Digital lights."""
 
-from typing import Any
+from typing import Any, override
 
 from eheimdigital.classic_led_ctrl import EheimDigitalClassicLEDControl
 from eheimdigital.device import EheimDigitalDevice
-from eheimdigital.types import EheimDigitalClientError, LightMode
+from eheimdigital.types import LightMode
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
@@ -15,13 +15,12 @@ from homeassistant.components.light import (
     LightEntityFeature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util.color import brightness_to_value, value_to_brightness
 
 from .const import EFFECT_DAYCL_MODE, EFFECT_TO_LIGHT_MODE
 from .coordinator import EheimDigitalConfigEntry, EheimDigitalUpdateCoordinator
-from .entity import EheimDigitalEntity
+from .entity import EheimDigitalEntity, exception_handler
 
 BRIGHTNESS_SCALE = (1, 100)
 
@@ -34,16 +33,14 @@ async def async_setup_entry(
     entry: EheimDigitalConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
-    """Set up the callbacks for the coordinator so lights can be added as devices are found."""
+    """Set up callbacks for the coordinator to add lights as devices are found."""
     coordinator = entry.runtime_data
 
     def async_setup_device_entities(
-        device_address: str | dict[str, EheimDigitalDevice],
+        device_address: dict[str, EheimDigitalDevice],
     ) -> None:
         """Set up the light entities for one or multiple devices."""
         entities: list[EheimDigitalClassicLEDControlLight] = []
-        if isinstance(device_address, str):
-            device_address = {device_address: coordinator.hub.devices[device_address]}
         for device in device_address.values():
             if isinstance(device, EheimDigitalClassicLEDControl):
                 for channel in range(2):
@@ -86,35 +83,31 @@ class EheimDigitalClassicLEDControlLight(
         self._async_update_attrs()
 
     @property
+    @override
     def available(self) -> bool:
         """Return whether the entity is available."""
         return super().available and self._device.light_level[self._channel] is not None
 
+    @exception_handler
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the light."""
         if ATTR_EFFECT in kwargs:
             await self._device.set_light_mode(EFFECT_TO_LIGHT_MODE[kwargs[ATTR_EFFECT]])
             return
         if ATTR_BRIGHTNESS in kwargs:
-            if self._device.light_mode == LightMode.DAYCL_MODE:
-                await self._device.set_light_mode(LightMode.MAN_MODE)
-            try:
-                await self._device.turn_on(
-                    int(brightness_to_value(BRIGHTNESS_SCALE, kwargs[ATTR_BRIGHTNESS])),
-                    self._channel,
-                )
-            except EheimDigitalClientError as err:
-                raise HomeAssistantError from err
+            await self._device.turn_on(
+                int(brightness_to_value(BRIGHTNESS_SCALE, kwargs[ATTR_BRIGHTNESS])),
+                self._channel,
+            )
 
+    @exception_handler
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the light."""
-        if self._device.light_mode == LightMode.DAYCL_MODE:
-            await self._device.set_light_mode(LightMode.MAN_MODE)
-        try:
-            await self._device.turn_off(self._channel)
-        except EheimDigitalClientError as err:
-            raise HomeAssistantError from err
+        await self._device.turn_off(self._channel)
 
+    @override
     def _async_update_attrs(self) -> None:
         light_level = self._device.light_level[self._channel]
 

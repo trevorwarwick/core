@@ -1,9 +1,7 @@
 """Config flow for Rabbit Air integration."""
 
-from __future__ import annotations
-
 import logging
-from typing import Any
+from typing import Any, override
 
 from rabbitair import UdpClient
 import voluptuous as vol
@@ -57,6 +55,7 @@ class RabbitAirConfigFlow(ConfigFlow, domain=DOMAIN):
 
     _discovered_host: str | None = None
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -74,8 +73,8 @@ class RabbitAirConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "invalid_host"
             except TimeoutConnect:
                 errors["base"] = "timeout_connect"
-            except Exception as err:  # noqa: BLE001
-                _LOGGER.debug("Unexpected exception: %s", err)
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
                 user_input[CONF_MAC] = info["mac"]
@@ -99,6 +98,7 @@ class RabbitAirConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_zeroconf(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:

@@ -1,8 +1,7 @@
 """Support for Tile device trackers."""
 
-from __future__ import annotations
-
 import logging
+from typing import override
 
 from homeassistant.components.device_tracker import TrackerEntity
 from homeassistant.core import HomeAssistant, callback
@@ -51,6 +50,7 @@ class TileDeviceTracker(TileEntity, TrackerEntity):
         self._attr_unique_id = f"{coordinator.username}_{self._tile.uuid}"
 
     @callback
+    @override
     def _handle_coordinator_update(self) -> None:
         """Respond to a DataUpdateCoordinator update."""
         self._update_from_latest_data()
@@ -64,7 +64,7 @@ class TileDeviceTracker(TileEntity, TrackerEntity):
         )
         self._attr_latitude = None if not self._tile.latitude else self._tile.latitude
         self._attr_location_accuracy = (
-            0 if not self._tile.accuracy else int(self._tile.accuracy)
+            0 if not self._tile.accuracy else self._tile.accuracy
         )
 
         self._attr_extra_state_attributes = {
@@ -85,6 +85,7 @@ class TileDeviceTracker(TileEntity, TrackerEntity):
                 timestamp_attr[1]
             )
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()

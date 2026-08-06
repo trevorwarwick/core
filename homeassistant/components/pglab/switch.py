@@ -1,8 +1,6 @@
 """Switch for PG LAB Electronics."""
 
-from __future__ import annotations
-
-from typing import Any
+from typing import Any, override
 
 from pypglab.device import Device as PyPGLabDevice
 from pypglab.relay import Relay as PyPGLabRelay
@@ -12,7 +10,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import PGLABConfigEntry
+from . import PGLabConfigEntry
 from .discovery import PGLabDiscovery
 from .entity import PGLabEntity
 
@@ -21,7 +19,7 @@ PARALLEL_UPDATES = 0
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: PGLABConfigEntry,
+    config_entry: PGLabConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up switches for device."""
@@ -52,9 +50,9 @@ class PGLabSwitch(PGLabEntity, SwitchEntity):
         """Initialize the Switch class."""
 
         super().__init__(
-            discovery=pglab_discovery,
-            device=pglab_device,
-            entity=pglab_relay,
+            pglab_discovery,
+            pglab_device,
+            pglab_relay,
         )
 
         self._attr_unique_id = f"{pglab_device.id}_relay{pglab_relay.id}"
@@ -62,15 +60,18 @@ class PGLabSwitch(PGLabEntity, SwitchEntity):
 
         self._relay = pglab_relay
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the device on."""
         await self._relay.turn_on()
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         await self._relay.turn_off()
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return true if device is on."""
         return self._relay.state

@@ -46,6 +46,7 @@ from homeassistant.exceptions import (
     Unauthorized,
 )
 from homeassistant.helpers import config_validation as cv, recorder, template
+from homeassistant.helpers.http import MIN_COMPRESSED_RESPONSE_SIZE
 from homeassistant.helpers.json import json_dumps, json_fragment
 from homeassistant.helpers.service import async_get_all_descriptions
 from homeassistant.helpers.typing import ConfigType
@@ -59,7 +60,6 @@ ATTR_EXTERNAL_URL = "external_url"
 ATTR_INTERNAL_URL = "internal_url"
 ATTR_LOCATION_NAME = "location_name"
 ATTR_INSTALLATION_TYPE = "installation_type"
-ATTR_REQUIRES_API_PASSWORD = "requires_api_password"
 ATTR_UUID = "uuid"
 ATTR_VERSION = "version"
 
@@ -222,14 +222,16 @@ class APIStatesView(HomeAssistantView):
             states = (
                 state.as_dict_json
                 for state in hass.states.async_all()
-                if entity_perm(state.entity_id, "read")
+                if entity_perm(state.entity_id, POLICY_READ)
             )
+        body = b"".join((b"[", b",".join(states), b"]"))
         response = web.Response(
-            body=b"".join((b"[", b",".join(states), b"]")),
+            body=body,
             content_type=CONTENT_TYPE_JSON,
             zlib_executor_size=32768,
         )
-        response.enable_compression()
+        if len(body) > MIN_COMPRESSED_RESPONSE_SIZE:
+            response.enable_compression()
         return response
 
 
@@ -260,11 +262,18 @@ class APIEntityStateView(HomeAssistantView):
         if not user.is_admin:
             raise Unauthorized(entity_id=entity_id)
         hass = request.app[KEY_HASS]
+
+        body = await request.text()
+
         try:
-            data = await request.json()
+            data: Any = json_loads(body) if body else None
         except ValueError:
             return self.json_message("Invalid JSON specified.", HTTPStatus.BAD_REQUEST)
 
+        if not isinstance(data, dict):
+            return self.json_message(
+                "State data should be a JSON object.", HTTPStatus.BAD_REQUEST
+            )
         if (new_state := data.get("state")) is None:
             return self.json_message("No state specified.", HTTPStatus.BAD_REQUEST)
 
@@ -287,13 +296,16 @@ class APIEntityStateView(HomeAssistantView):
 
         # Read the state back for our response
         status_code = HTTPStatus.CREATED if is_new_state else HTTPStatus.OK
-        state = hass.states.get(entity_id)
-        assert state
-        resp = self.json(state.as_dict(), status_code)
-
-        resp.headers.add("Location", f"/api/states/{entity_id}")
-
-        return resp
+        if (state := hass.states.get(entity_id)) is None:
+            return self.json_message(
+                "Error storing state.", HTTPStatus.INTERNAL_SERVER_ERROR
+            )
+        return web.Response(
+            body=state.as_dict_json,
+            content_type=CONTENT_TYPE_JSON,
+            status=status_code,
+            headers={"Location": f"/api/states/{entity_id}"},
+        )
 
     @ha.callback
     def delete(self, request: web.Request, entity_id: str) -> web.Response:
@@ -399,7 +411,8 @@ class APIDomainServicesView(HomeAssistantView):
                 is ha.SupportsResponse.NONE
             ):
                 return self.json_message(
-                    "Service does not support responses. Remove return_response from request.",
+                    "Service does not support responses."
+                    " Remove return_response from request.",
                     HTTPStatus.BAD_REQUEST,
                 )
         elif (
@@ -477,9 +490,19 @@ class APITemplateView(HomeAssistantView):
     @require_admin
     async def post(self, request: web.Request) -> web.Response:
         """Render a template."""
+        body = await request.text()
+
         try:
-            data = await request.json()
-            tpl = _cached_template(data["template"], request.app[KEY_HASS])
+            data: Any = json_loads(body) if body else None
+        except ValueError:
+            return self.json_message("Invalid JSON specified.", HTTPStatus.BAD_REQUEST)
+
+        if not isinstance(data, dict):
+            return self.json_message(
+                "Template data should be a JSON object.", HTTPStatus.BAD_REQUEST
+            )
+        tpl = _cached_template(data["template"], request.app[KEY_HASS])
+        try:
             return tpl.async_render(variables=data.get("variables"), parse_result=False)  # type: ignore[no-any-return]
         except (ValueError, TemplateError) as ex:
             return self.json_message(

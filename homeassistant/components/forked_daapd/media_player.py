@@ -1,13 +1,10 @@
 """Support forked_daapd media player."""
 
-from __future__ import annotations
-
 import asyncio
 from collections import defaultdict
 import logging
-from typing import Any
+from typing import Any, override
 
-from pyforked_daapd import ForkedDaapdAPI
 from pylibrespot_java import LibrespotJavaAPI
 
 from homeassistant.components import media_source
@@ -28,8 +25,7 @@ from homeassistant.components.spotify import (
     resolve_spotify_media_type,
     spotify_uri_from_media_browser_url,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_PASSWORD, CONF_PORT
+from homeassistant.const import CONF_HOST
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.dispatcher import (
@@ -55,9 +51,7 @@ from .const import (
     DEFAULT_TTS_PAUSE_TIME,
     DEFAULT_TTS_VOLUME,
     DEFAULT_UNMUTE_VOLUME,
-    DOMAIN,
     FD_NAME,
-    HASS_DATA_UPDATER_KEY,
     KNOWN_PIPES,
     PIPE_FUNCTION_MAP,
     SIGNAL_ADD_ZONES,
@@ -74,23 +68,21 @@ from .const import (
     SUPPORTED_FEATURES_ZONE,
     TTS_TIMEOUT,
 )
-from .coordinator import ForkedDaapdUpdater
+from .coordinator import ForkedDaapdConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: ForkedDaapdConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up forked-daapd from a config entry."""
+    forked_daapd_updater = config_entry.runtime_data
+
     host: str = config_entry.data[CONF_HOST]
-    port: int = config_entry.data[CONF_PORT]
-    password: str = config_entry.data[CONF_PASSWORD]
-    forked_daapd_api = ForkedDaapdAPI(
-        async_get_clientsession(hass), host, port, password
-    )
+    forked_daapd_api = forked_daapd_updater.api
     forked_daapd_master = ForkedDaapdMaster(
         clientsession=async_get_clientsession(hass),
         api=forked_daapd_api,
@@ -111,20 +103,12 @@ async def async_setup_entry(
     )
     config_entry.async_on_unload(config_entry.add_update_listener(update_listener))
 
-    if not hass.data.get(DOMAIN):
-        hass.data[DOMAIN] = {config_entry.entry_id: {}}
-
     async_add_entities([forked_daapd_master], False)
-    forked_daapd_updater = ForkedDaapdUpdater(
-        hass, forked_daapd_api, config_entry.entry_id
-    )
-    hass.data[DOMAIN][config_entry.entry_id][HASS_DATA_UPDATER_KEY] = (
-        forked_daapd_updater
-    )
+
     await forked_daapd_updater.async_init()
 
 
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+async def update_listener(hass: HomeAssistant, entry: ForkedDaapdConfigEntry) -> None:
     """Handle options update."""
     async_dispatcher_send(
         hass, SIGNAL_CONFIG_OPTIONS_UPDATE.format(entry.entry_id), entry.options
@@ -145,6 +129,7 @@ class ForkedDaapdZone(MediaPlayerEntity):
         self._available = True
         self._entry_id = entry_id
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Use lifecycle hooks."""
         self.async_on_remove(
@@ -166,10 +151,12 @@ class ForkedDaapdZone(MediaPlayerEntity):
         self.async_write_ha_state()
 
     @property
+    @override
     def unique_id(self):
         """Return unique ID."""
         return f"{self._entry_id}-{self._output_id}"
 
+    @override
     async def async_toggle(self) -> None:
         """Toggle the power on the zone."""
         if self.state == MediaPlayerState.OFF:
@@ -178,24 +165,29 @@ class ForkedDaapdZone(MediaPlayerEntity):
             await self.async_turn_off()
 
     @property
+    @override
     def available(self) -> bool:
         """Return whether the zone is available."""
         return self._available
 
+    @override
     async def async_turn_on(self) -> None:
         """Enable the output."""
         await self._api.change_output(self._output_id, selected=True)
 
+    @override
     async def async_turn_off(self) -> None:
         """Disable the output."""
         await self._api.change_output(self._output_id, selected=False)
 
     @property
+    @override
     def name(self) -> str:
         """Return the name of the zone."""
         return f"{FD_NAME} output ({self._output['name']})"
 
     @property
+    @override
     def state(self) -> MediaPlayerState:
         """State of the zone."""
         if self._output["selected"]:
@@ -203,15 +195,18 @@ class ForkedDaapdZone(MediaPlayerEntity):
         return MediaPlayerState.OFF
 
     @property
+    @override
     def volume_level(self):
         """Volume level of the media player (0..1)."""
         return self._output["volume"] / 100
 
     @property
+    @override
     def is_volume_muted(self) -> bool:
         """Boolean if volume is currently muted."""
         return self._output["volume"] == 0
 
+    @override
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute the volume."""
         if mute:
@@ -223,11 +218,13 @@ class ForkedDaapdZone(MediaPlayerEntity):
             target_volume = self._last_volume  # restore volume level
         await self.async_set_volume_level(volume=target_volume)
 
+    @override
     async def async_set_volume_level(self, volume: float) -> None:
         """Set volume - input range [0,1]."""
         await self._api.set_volume(volume=volume * 100, output_id=self._output_id)
 
     @property
+    @override
     def supported_features(self) -> MediaPlayerEntityFeature:
         """Flag media player features that are supported."""
         return SUPPORTED_FEATURES_ZONE
@@ -273,6 +270,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         self._source = SOURCE_NAME_DEFAULT
         self._max_playlists = None
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Use lifecycle hooks."""
         self.async_on_remove(
@@ -364,7 +362,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
             self._queue["count"] >= 1
             and self._queue["items"][0]["data_kind"] == "pipe"
             and self._queue["items"][0]["title"] in KNOWN_PIPES
-        ):  # if we're playing a pipe, set the source automatically so we can forward controls
+        ):  # if playing a pipe, set source to forward controls
             self._source = f"{self._queue['items'][0]['title']} (pipe)"
         self._update_track_info()
         event.set()
@@ -402,20 +400,23 @@ class ForkedDaapdMaster(MediaPlayerEntity):
                 for track in self._queue["items"]
                 if track["id"] == self._player["item_id"]
             )
-        except (StopIteration, TypeError, KeyError):
+        except StopIteration, TypeError, KeyError:
             _LOGGER.debug("Could not get track info")
             self._track_info = defaultdict(str)
 
     @property
+    @override
     def unique_id(self) -> str:
         """Return unique ID."""
         return self._entry_id
 
     @property
+    @override
     def available(self) -> bool:
         """Return whether the master is available."""
         return self._available
 
+    @override
     async def async_turn_on(self) -> None:
         """Restore the last on outputs state."""
         # restore state
@@ -437,6 +438,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
                 [output["id"] for output in self._outputs]
             )
 
+    @override
     async def async_turn_off(self) -> None:
         """Pause player and store outputs state."""
         await self.async_media_pause()
@@ -444,6 +446,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         if any(output["selected"] for output in self._outputs):
             await self.api.set_enabled_outputs([])
 
+    @override
     async def async_toggle(self) -> None:
         """Toggle the power on the device.
 
@@ -456,11 +459,13 @@ class ForkedDaapdMaster(MediaPlayerEntity):
             await self.async_turn_off()
 
     @property
+    @override
     def name(self) -> str:
         """Return the name of the device."""
         return f"{FD_NAME} server"
 
     @property
+    @override
     def state(self) -> MediaPlayerState | None:
         """State of the player."""
         if self._player["state"] == "play":
@@ -474,41 +479,51 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         return None
 
     @property
+    @override
     def volume_level(self):
         """Volume level of the media player (0..1)."""
         return self._player["volume"] / 100
 
     @property
+    @override
     def is_volume_muted(self):
         """Boolean if volume is currently muted."""
         return self._player["volume"] == 0
 
     @property
-    def media_content_id(self):
+    @override
+    def media_content_id(self) -> str | None:
         """Content ID of current playing media."""
-        return self._player["item_id"]
+        if (item_id := self._player["item_id"]) == 0:
+            return None
+        return str(item_id)
 
     @property
+    @override
     def media_content_type(self):
         """Content type of current playing media."""
         return self._track_info["media_kind"]
 
     @property
+    @override
     def media_duration(self):
         """Duration of current playing media in seconds."""
         return self._player["item_length_ms"] / 1000
 
     @property
+    @override
     def media_position(self):
         """Position of current playing media in seconds."""
         return self._player["item_progress_ms"] / 1000
 
     @property
+    @override
     def media_position_updated_at(self):
         """When was the position of the current playing media valid."""
         return self._player_last_updated
 
     @property
+    @override
     def media_title(self):
         """Title of current playing media."""
         # Use album field when data_kind is url
@@ -518,11 +533,13 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         return self._track_info["title"]
 
     @property
+    @override
     def media_artist(self):
         """Artist of current playing media, music track only."""
         return self._track_info["artist"]
 
     @property
+    @override
     def media_album_name(self):
         """Album name of current playing media, music track only."""
         # Use title field when data_kind is url
@@ -532,35 +549,42 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         return self._track_info["album"]
 
     @property
+    @override
     def media_album_artist(self):
         """Album artist of current playing media, music track only."""
         return self._track_info["album_artist"]
 
     @property
+    @override
     def media_track(self):
         """Track number of current playing media, music track only."""
         return self._track_info["track_number"]
 
     @property
+    @override
     def shuffle(self):
         """Boolean if shuffle is enabled."""
         return self._player["shuffle"]
 
     @property
+    @override
     def supported_features(self) -> MediaPlayerEntityFeature:
         """Flag media player features that are supported."""
         return SUPPORTED_FEATURES
 
     @property
+    @override
     def source(self):
         """Name of the current input source."""
         return self._source
 
     @property
+    @override
     def source_list(self):
         """List of available input sources."""
         return [*self._sources_uris]
 
+    @override
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute the volume."""
         if mute:
@@ -572,10 +596,12 @@ class ForkedDaapdMaster(MediaPlayerEntity):
             target_volume = self._last_volume  # restore volume level
         await self.api.set_volume(volume=target_volume * 100)
 
+    @override
     async def async_set_volume_level(self, volume: float) -> None:
         """Set volume - input range [0,1]."""
         await self.api.set_volume(volume=volume * 100)
 
+    @override
     async def async_media_play(self) -> None:
         """Start playback."""
         if self._use_pipe_control():
@@ -583,6 +609,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         else:
             await self.api.start_playback()
 
+    @override
     async def async_media_pause(self) -> None:
         """Pause playback."""
         if self._use_pipe_control():
@@ -590,6 +617,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         else:
             await self.api.pause_playback()
 
+    @override
     async def async_media_stop(self) -> None:
         """Stop playback."""
         if self._use_pipe_control():
@@ -597,6 +625,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         else:
             await self.api.stop_playback()
 
+    @override
     async def async_media_previous_track(self) -> None:
         """Skip to previous track."""
         if self._use_pipe_control():
@@ -606,6 +635,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         else:
             await self.api.previous_track()
 
+    @override
     async def async_media_next_track(self) -> None:
         """Skip to next track."""
         if self._use_pipe_control():
@@ -613,19 +643,23 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         else:
             await self.api.next_track()
 
+    @override
     async def async_media_seek(self, position: float) -> None:
         """Seek to position."""
         await self.api.seek(position_ms=position * 1000)
 
+    @override
     async def async_clear_playlist(self) -> None:
         """Clear playlist."""
         await self.api.clear_queue()
 
+    @override
     async def async_set_shuffle(self, shuffle: bool) -> None:
         """Enable/disable shuffle mode."""
         await self.api.shuffle(shuffle)
 
     @property
+    @override
     def media_image_url(self):
         """Image url of current playing media."""
         if url := self._track_info.get("artwork_url"):
@@ -659,6 +693,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
             self._pause_requested = False
         self._paused_event.clear()
 
+    @override
     async def async_play_media(
         self, media_type: MediaType | str, media_id: str, **kwargs: Any
     ) -> None:
@@ -790,6 +825,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         if saved_state != MediaPlayerState.PLAYING:
             await self.async_media_stop()
 
+    @override
     async def async_select_source(self, source: str) -> None:
         """Change source.
 
@@ -825,6 +861,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
             return
         _LOGGER.warning("No pipe control available for %s", pipe_name)
 
+    @override
     async def async_browse_media(
         self,
         media_content_type: MediaType | str | None = None,
@@ -862,6 +899,7 @@ class ForkedDaapdMaster(MediaPlayerEntity):
         # media_content_type should only be None if media_content_id is None
         return await get_owntone_content(self, media_content_id)
 
+    @override
     async def async_get_browse_image(
         self,
         media_content_type: MediaType | str,

@@ -1,8 +1,9 @@
 # serializer version: 1
 # name: test_buttons[button.test_flash_lights-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -20,6 +21,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Flash lights',
     'options': dict({
     }),
     'original_device_class': None,
@@ -27,6 +29,7 @@
     'original_name': 'Flash lights',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'flash_lights',
     'unique_id': 'VINVINVIN-flash_lights',
@@ -36,7 +39,7 @@
 # name: test_buttons[button.test_flash_lights-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Flash lights',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Flash lights',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_flash_lights',
@@ -48,8 +51,9 @@
 # ---
 # name: test_buttons[button.test_homelink-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -67,6 +71,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Homelink',
     'options': dict({
     }),
     'original_device_class': None,
@@ -74,6 +79,7 @@
     'original_name': 'Homelink',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'trigger_homelink',
     'unique_id': 'VINVINVIN-trigger_homelink',
@@ -83,7 +89,7 @@
 # name: test_buttons[button.test_homelink-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Homelink',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Homelink',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_homelink',
@@ -95,8 +101,9 @@
 # ---
 # name: test_buttons[button.test_honk_horn-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -114,6 +121,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Honk horn',
     'options': dict({
     }),
     'original_device_class': None,
@@ -121,6 +129,7 @@
     'original_name': 'Honk horn',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'honk',
     'unique_id': 'VINVINVIN-honk',
@@ -130,7 +139,7 @@
 # name: test_buttons[button.test_honk_horn-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Honk horn',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Honk horn',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_honk_horn',
@@ -142,8 +151,9 @@
 # ---
 # name: test_buttons[button.test_keyless_driving-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -161,6 +171,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Keyless driving',
     'options': dict({
     }),
     'original_device_class': None,
@@ -168,6 +179,7 @@
     'original_name': 'Keyless driving',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'enable_keyless_driving',
     'unique_id': 'VINVINVIN-enable_keyless_driving',
@@ -177,7 +189,7 @@
 # name: test_buttons[button.test_keyless_driving-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Keyless driving',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Keyless driving',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_keyless_driving',
@@ -189,8 +201,9 @@
 # ---
 # name: test_buttons[button.test_play_fart-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -208,6 +221,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Play fart',
     'options': dict({
     }),
     'original_device_class': None,
@@ -215,6 +229,7 @@
     'original_name': 'Play fart',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'boombox',
     'unique_id': 'VINVINVIN-boombox',
@@ -224,7 +239,7 @@
 # name: test_buttons[button.test_play_fart-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Play fart',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Play fart',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_play_fart',
@@ -236,8 +251,9 @@
 # ---
 # name: test_buttons[button.test_wake-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -255,6 +271,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wake',
     'options': dict({
     }),
     'original_device_class': None,
@@ -262,6 +279,7 @@
     'original_name': 'Wake',
     'platform': 'tessie',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wake',
     'unique_id': 'VINVINVIN-wake',
@@ -271,7 +289,7 @@
 # name: test_buttons[button.test_wake-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'Test Wake',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Test Wake',
     }),
     'context': <ANY>,
     'entity_id': 'button.test_wake',

@@ -1,7 +1,5 @@
 """Support forked_daapd media player."""
 
-from __future__ import annotations
-
 import asyncio
 from collections.abc import Sequence
 import logging
@@ -9,6 +7,7 @@ from typing import Any
 
 from pyforked_daapd import ForkedDaapdAPI
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_send
@@ -21,6 +20,8 @@ from .const import (
     SIGNAL_UPDATE_PLAYER,
     SIGNAL_UPDATE_QUEUE,
 )
+
+type ForkedDaapdConfigEntry = ConfigEntry[ForkedDaapdUpdater]
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,6 +39,11 @@ class ForkedDaapdUpdater:
         self.websocket_handler: asyncio.Task[None] | None = None
         self._all_output_ids: set[str] = set()
         self._entry_id = entry_id
+
+    @property
+    def api(self) -> ForkedDaapdAPI:
+        """Return the API object."""
+        return self._api
 
     async def async_init(self) -> None:
         """Perform async portion of class initialization."""

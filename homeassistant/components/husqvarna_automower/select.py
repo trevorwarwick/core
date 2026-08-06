@@ -1,7 +1,7 @@
 """Creates a select entity for the headlight of the mower."""
 
 import logging
-from typing import cast
+from typing import cast, override
 
 from aioautomower.model import HeadlightModes
 
@@ -19,10 +19,10 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 1
 
 HEADLIGHT_MODES: list = [
-    HeadlightModes.ALWAYS_OFF.lower(),
-    HeadlightModes.ALWAYS_ON.lower(),
-    HeadlightModes.EVENING_AND_NIGHT.lower(),
-    HeadlightModes.EVENING_ONLY.lower(),
+    HeadlightModes.ALWAYS_OFF,
+    HeadlightModes.ALWAYS_ON,
+    HeadlightModes.EVENING_AND_NIGHT,
+    HeadlightModes.EVENING_ONLY,
 ]
 
 
@@ -63,15 +63,15 @@ class AutomowerSelectEntity(AutomowerControlEntity, SelectEntity):
         self._attr_unique_id = f"{mower_id}_headlight_mode"
 
     @property
+    @override
     def current_option(self) -> str:
         """Return the current option for the entity."""
-        return cast(
-            HeadlightModes, self.mower_attributes.settings.headlight.mode
-        ).lower()
+        return cast(HeadlightModes, self.mower_attributes.settings.headlight.mode)
 
-    @handle_sending_exception()
+    @handle_sending_exception
+    @override
     async def async_select_option(self, option: str) -> None:
         """Change the selected option."""
         await self.coordinator.api.commands.set_headlight_mode(
-            self.mower_id, cast(HeadlightModes, option.upper())
+            self.mower_id, HeadlightModes(option)
         )

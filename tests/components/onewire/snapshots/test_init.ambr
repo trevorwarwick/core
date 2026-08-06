@@ -1,9 +1,39 @@
 # serializer version: 1
+# name: test_registry[01.111111111111-entry]
+  DeviceRegistryEntrySnapshot({
+    'area_id': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'configuration_url': None,
+    'connections': set({
+    }),
+    'disabled_by': None,
+    'entry_type': None,
+    'hw_version': None,
+    'id': <ANY>,
+    'identifiers': set({
+      tuple(
+        'onewire',
+        '01.111111111111',
+      ),
+    }),
+    'labels': set({
+    }),
+    'manufacturer': 'Maxim Integrated',
+    'model': None,
+    'model_id': 'DS2401',
+    'name': '01.111111111111',
+    'name_by_user': None,
+    'serial_number': '111111111111',
+    'sw_version': '3.2',
+    'via_device_id': None,
+  })
+# ---
 # name: test_registry[05.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -17,17 +47,14 @@
         '05.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2405',
+    'model': None,
     'model_id': 'DS2405',
     'name': '05.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -35,8 +62,8 @@
 # name: test_registry[10.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -50,17 +77,14 @@
         '10.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS18S20',
+    'model': None,
     'model_id': 'DS18S20',
     'name': '10.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -68,8 +92,8 @@
 # name: test_registry[12.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -83,17 +107,14 @@
         '12.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2406',
+    'model': None,
     'model_id': 'DS2406',
     'name': '12.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -101,8 +122,8 @@
 # name: test_registry[1D.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -116,17 +137,14 @@
         '1D.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2423',
+    'model': None,
     'model_id': 'DS2423',
     'name': '1D.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': <ANY>,
   })
@@ -134,8 +152,8 @@
 # name: test_registry[1F.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -149,17 +167,14 @@
         '1F.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2409',
+    'model': None,
     'model_id': 'DS2409',
     'name': '1F.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -167,8 +182,8 @@
 # name: test_registry[20.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -182,17 +197,14 @@
         '20.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2450',
+    'model': None,
     'model_id': 'DS2450',
     'name': '20.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -200,8 +212,8 @@
 # name: test_registry[22.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -215,17 +227,14 @@
         '22.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS1822',
+    'model': None,
     'model_id': 'DS1822',
     'name': '22.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -233,8 +242,8 @@
 # name: test_registry[26.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -248,17 +257,14 @@
         '26.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2438',
+    'model': None,
     'model_id': 'DS2438',
     'name': '26.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -266,8 +272,8 @@
 # name: test_registry[28.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -281,17 +287,14 @@
         '28.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS18B20',
+    'model': None,
     'model_id': 'DS18B20',
     'name': '28.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -299,8 +302,8 @@
 # name: test_registry[28.222222222222-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -314,17 +317,14 @@
         '28.222222222222',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS18B20',
+    'model': None,
     'model_id': 'DS18B20',
     'name': '28.222222222222',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '222222222222',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -332,8 +332,8 @@
 # name: test_registry[28.222222222223-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -347,17 +347,14 @@
         '28.222222222223',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS18B20',
+    'model': None,
     'model_id': 'DS18B20',
     'name': '28.222222222223',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '222222222223',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -365,8 +362,8 @@
 # name: test_registry[29.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -380,17 +377,14 @@
         '29.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2408',
+    'model': None,
     'model_id': 'DS2408',
     'name': '29.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -398,8 +392,8 @@
 # name: test_registry[30.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -413,17 +407,14 @@
         '30.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2760',
+    'model': None,
     'model_id': 'DS2760',
     'name': '30.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -431,8 +422,8 @@
 # name: test_registry[3A.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -446,17 +437,14 @@
         '3A.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2413',
+    'model': None,
     'model_id': 'DS2413',
     'name': '3A.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -464,8 +452,8 @@
 # name: test_registry[3B.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -479,17 +467,14 @@
         '3B.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS1825',
+    'model': None,
     'model_id': 'DS1825',
     'name': '3B.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -497,8 +482,8 @@
 # name: test_registry[42.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -512,17 +497,14 @@
         '42.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS28EA00',
+    'model': None,
     'model_id': 'DS28EA00',
     'name': '42.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -530,8 +512,8 @@
 # name: test_registry[7E.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -545,17 +527,14 @@
         '7E.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Embedded Data Systems',
-    'model': 'EDS0068',
+    'model': None,
     'model_id': 'EDS0068',
     'name': '7E.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -563,8 +542,8 @@
 # name: test_registry[7E.222222222222-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -578,17 +557,44 @@
         '7E.222222222222',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Embedded Data Systems',
-    'model': 'EDS0066',
+    'model': None,
     'model_id': 'EDS0066',
     'name': '7E.222222222222',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '222222222222',
-    'suggested_area': None,
+    'sw_version': '3.2',
+    'via_device_id': None,
+  })
+# ---
+# name: test_registry[7E.333333333333-entry]
+  DeviceRegistryEntrySnapshot({
+    'area_id': None,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
+    'configuration_url': None,
+    'connections': set({
+    }),
+    'disabled_by': None,
+    'entry_type': None,
+    'hw_version': None,
+    'id': <ANY>,
+    'identifiers': set({
+      tuple(
+        'onewire',
+        '7E.333333333333',
+      ),
+    }),
+    'labels': set({
+    }),
+    'manufacturer': 'Embedded Data Systems',
+    'model': None,
+    'model_id': 'EDS0065',
+    'name': '7E.333333333333',
+    'name_by_user': None,
+    'serial_number': '333333333333',
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -596,8 +602,8 @@
 # name: test_registry[A6.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -611,17 +617,14 @@
         'A6.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Maxim Integrated',
-    'model': 'DS2438',
+    'model': None,
     'model_id': 'DS2438',
     'name': 'A6.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -629,8 +632,8 @@
 # name: test_registry[EF.111111111111-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -644,17 +647,14 @@
         'EF.111111111111',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Hobby Boards',
-    'model': 'HobbyBoards_EF',
+    'model': None,
     'model_id': 'HobbyBoards_EF',
     'name': 'EF.111111111111',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111111',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -662,8 +662,8 @@
 # name: test_registry[EF.111111111112-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -677,17 +677,14 @@
         'EF.111111111112',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Hobby Boards',
-    'model': 'HB_MOISTURE_METER',
+    'model': None,
     'model_id': 'HB_MOISTURE_METER',
     'name': 'EF.111111111112',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111112',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })
@@ -695,8 +692,8 @@
 # name: test_registry[EF.111111111113-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
     }),
@@ -710,17 +707,14 @@
         'EF.111111111113',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'Hobby Boards',
-    'model': 'HB_HUB',
+    'model': None,
     'model_id': 'HB_HUB',
     'name': 'EF.111111111113',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': '111111111113',
-    'suggested_area': None,
     'sw_version': '3.2',
     'via_device_id': None,
   })

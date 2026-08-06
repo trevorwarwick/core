@@ -1,6 +1,7 @@
 """Config flow for Enigma2."""
 
-from typing import Any, cast
+import logging
+from typing import Any, cast, override
 
 from aiohttp.client_exceptions import ClientError
 from openwebif.api import OpenWebIfDevice
@@ -62,6 +63,8 @@ CONFIG_SCHEMA = vol.Schema(
         ): selector.BooleanSelector(),
     }
 )
+
+_LOGGER = logging.getLogger(__name__)
 
 
 async def get_options_schema(handler: SchemaCommonFlowHandler) -> vol.Schema:
@@ -130,7 +133,8 @@ class Enigma2ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
             errors = {"base": "invalid_auth"}
         except ClientError:
             errors = {"base": "cannot_connect"}
-        except Exception:  # noqa: BLE001
+        except Exception:
+            _LOGGER.exception("Unexpected exception")
             errors = {"base": "unknown"}
         else:
             unique_id = about["info"]["ifaces"][0]["mac"] or self.unique_id
@@ -139,6 +143,7 @@ class Enigma2ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return errors
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -154,6 +159,7 @@ class Enigma2ConfigFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(config_entry: ConfigEntry) -> SchemaOptionsFlowHandler:
         """Get the options flow for this handler."""
         return SchemaOptionsFlowHandler(config_entry, OPTIONS_FLOW)

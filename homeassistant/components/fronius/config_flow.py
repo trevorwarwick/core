@@ -1,10 +1,8 @@
 """Config flow for Fronius integration."""
 
-from __future__ import annotations
-
 import asyncio
 import logging
-from typing import Any, Final
+from typing import Any, Final, override
 
 from pyfronius import Fronius, FroniusError
 import voluptuous as vol
@@ -35,7 +33,7 @@ async def validate_host(
     hass: HomeAssistant, host: str
 ) -> tuple[str, FroniusConfigEntryData]:
     """Validate the user input allows us to connect."""
-    fronius = Fronius(async_get_clientsession(hass), host)
+    fronius = Fronius(async_get_clientsession(hass, verify_ssl=False), host)
 
     try:
         datalogger_info: dict[str, Any]
@@ -71,6 +69,7 @@ class FroniusConfigFlow(ConfigFlow, domain=DOMAIN):
         """Initialize flow."""
         self.info: FroniusConfigEntryData
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -97,6 +96,7 @@ class FroniusConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_dhcp(
         self, discovery_info: DhcpServiceInfo
     ) -> ConfigFlowResult:
@@ -149,7 +149,7 @@ class FroniusConfigFlow(ConfigFlow, domain=DOMAIN):
                 unique_id, info = await validate_host(self.hass, user_input[CONF_HOST])
             except CannotConnect:
                 errors["base"] = "cannot_connect"
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:

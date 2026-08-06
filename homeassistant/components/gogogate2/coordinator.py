@@ -1,7 +1,5 @@
 """Coordinator for GogoGate2 component."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from datetime import timedelta
 import logging
@@ -13,18 +11,20 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.debounce import Debouncer
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
+type GogoGateConfigEntry = ConfigEntry[DeviceDataUpdateCoordinator]
+
 
 class DeviceDataUpdateCoordinator(
     DataUpdateCoordinator[GogoGate2InfoResponse | ISmartGateInfoResponse]
 ):
     """Manages polling for state changes from the device."""
 
-    config_entry: ConfigEntry
+    config_entry: GogoGateConfigEntry
 
     def __init__(
         self,
         hass: HomeAssistant,
-        config_entry: ConfigEntry,
+        config_entry: GogoGateConfigEntry,
         logger: logging.Logger,
         api: AbstractGateApi,
         *,

@@ -1,6 +1,6 @@
 """DataUpdateCoordinator for the LaMatric integration."""
 
-from __future__ import annotations
+from typing import override
 
 from demetriek import Device, LaMetricAuthenticationError, LaMetricDevice, LaMetricError
 
@@ -13,13 +13,15 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .const import DOMAIN, LOGGER, SCAN_INTERVAL
 
+type LaMetricConfigEntry = ConfigEntry[LaMetricDataUpdateCoordinator]
+
 
 class LaMetricDataUpdateCoordinator(DataUpdateCoordinator[Device]):
     """The LaMetric Data Update Coordinator."""
 
-    config_entry: ConfigEntry
+    config_entry: LaMetricConfigEntry
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: LaMetricConfigEntry) -> None:
         """Initialize the LaMatric coordinator."""
         self.lametric = LaMetricDevice(
             host=entry.data[CONF_HOST],
@@ -31,6 +33,7 @@ class LaMetricDataUpdateCoordinator(DataUpdateCoordinator[Device]):
             hass, LOGGER, config_entry=entry, name=DOMAIN, update_interval=SCAN_INTERVAL
         )
 
+    @override
     async def _async_update_data(self) -> Device:
         """Fetch device information of the LaMetric device."""
         try:

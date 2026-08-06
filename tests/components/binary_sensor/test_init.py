@@ -7,7 +7,7 @@ import pytest
 
 from homeassistant.components import binary_sensor
 from homeassistant.config_entries import ConfigEntry, ConfigFlow
-from homeassistant.const import STATE_OFF, STATE_ON, EntityCategory
+from homeassistant.const import STATE_OFF, STATE_ON, EntityCategory, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
@@ -62,7 +62,7 @@ async def test_name(hass: HomeAssistant) -> None:
     ) -> bool:
         """Set up test config entry."""
         await hass.config_entries.async_forward_entry_setups(
-            config_entry, [binary_sensor.DOMAIN]
+            config_entry, [Platform.BINARY_SENSOR]
         )
         return True
 
@@ -142,7 +142,7 @@ async def test_entity_category_config_raises_error(
     ) -> bool:
         """Set up test config entry."""
         await hass.config_entries.async_forward_entry_setups(
-            config_entry, [binary_sensor.DOMAIN]
+            config_entry, [Platform.BINARY_SENSOR]
         )
         return True
 
@@ -193,6 +193,6 @@ async def test_entity_category_config_raises_error(
     state2 = hass.states.get("binary_sensor.test2")
     assert state2 is None
     assert (
-        "Entity binary_sensor.test2 cannot be added as the entity category is set to config"
-        in caplog.text
+        "Entity binary_sensor.test2 cannot be added as the"
+        " entity category is set to config" in caplog.text
     )

@@ -1,9 +1,6 @@
 """Cover entity for Nice G.O."""
 
-from typing import Any
-
-from aiohttp import ClientError
-from nice_go import ApiError
+from typing import Any, override
 
 from homeassistant.components.cover import (
     CoverDeviceClass,
@@ -11,12 +8,11 @@ from homeassistant.components.cover import (
     CoverEntityFeature,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
 from .coordinator import NiceGOConfigEntry
 from .entity import NiceGOEntity
+from .util import retry
 
 DEVICE_CLASSES = {
     "WallStation": CoverDeviceClass.GARAGE,
@@ -47,11 +43,13 @@ class NiceGOCoverEntity(NiceGOEntity, CoverEntity):
     _attr_name = None
 
     @property
+    @override
     def device_class(self) -> CoverDeviceClass:
         """Return the class of this device, from component DEVICE_CLASSES."""
         return DEVICE_CLASSES.get(self.data.type, CoverDeviceClass.GARAGE)
 
     @property
+    @override
     def is_closed(self) -> bool:
         """Return if cover is closed."""
         return self.data.barrier_status == "closed"
@@ -62,39 +60,31 @@ class NiceGOCoverEntity(NiceGOEntity, CoverEntity):
         return self.data.barrier_status == "open"
 
     @property
+    @override
     def is_opening(self) -> bool:
         """Return if cover is opening."""
         return self.data.barrier_status == "opening"
 
     @property
+    @override
     def is_closing(self) -> bool:
         """Return if cover is closing."""
         return self.data.barrier_status == "closing"
 
+    @retry("close_cover_error")
+    @override
     async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the garage door."""
         if self.is_closed:
             return
 
-        try:
-            await self.coordinator.api.close_barrier(self._device_id)
-        except (ApiError, ClientError) as err:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="close_cover_error",
-                translation_placeholders={"exception": str(err)},
-            ) from err
+        await self.coordinator.api.close_barrier(self._device_id)
 
+    @retry("open_cover_error")
+    @override
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the garage door."""
         if self.is_opened:
             return
 
-        try:
-            await self.coordinator.api.open_barrier(self._device_id)
-        except (ApiError, ClientError) as err:
-            raise HomeAssistantError(
-                translation_domain=DOMAIN,
-                translation_key="open_cover_error",
-                translation_placeholders={"exception": str(err)},
-            ) from err
+        await self.coordinator.api.open_barrier(self._device_id)

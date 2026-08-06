@@ -1,4 +1,5 @@
 """Support to embed Plex."""
+# pylint: disable=home-assistant-use-runtime-data  # Uses legacy hass.data[DOMAIN] pattern
 
 from functools import partial
 import logging
@@ -85,7 +86,7 @@ async def async_browse_media(hass, media_content_type, media_content_id, platfor
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Plex component."""
+    """Set up the Plex integration."""
     gdm = GDM()
 
     def gdm_scan():
@@ -105,7 +106,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     )
     hass.data.setdefault(DOMAIN, hass_data)
 
-    await async_setup_services(hass)
+    async_setup_services(hass)
 
     hass.http.register_view(PlexImageView())
 
@@ -245,7 +246,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def get_plex_account(plex_server):
         try:
             return plex_server.account
-        except (plexapi.exceptions.BadRequest, plexapi.exceptions.Unauthorized):
+        except plexapi.exceptions.BadRequest, plexapi.exceptions.Unauthorized:
             return None
 
     await hass.async_add_executor_job(get_plex_account, plex_server)

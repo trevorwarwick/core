@@ -1,9 +1,8 @@
 """Configure number in a device through MQTT topic."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 import logging
+from typing import override
 
 import voluptuous as vol
 
@@ -13,9 +12,11 @@ from homeassistant.components.number import (
     DEFAULT_MIN_VALUE,
     DEFAULT_STEP,
     NumberDeviceClass,
+    NumberEntityCapabilityAttribute,
     NumberMode,
     RestoreNumber,
 )
+from homeassistant.components.sensor import AMBIGUOUS_UNITS
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
@@ -36,8 +37,12 @@ from .config import MQTT_RW_SCHEMA
 from .const import (
     CONF_COMMAND_TEMPLATE,
     CONF_COMMAND_TOPIC,
+    CONF_MAX,
+    CONF_MIN,
     CONF_PAYLOAD_RESET,
     CONF_STATE_TOPIC,
+    CONF_STEP,
+    DEFAULT_PAYLOAD_RESET,
 )
 from .entity import MqttEntity, async_setup_entity_entry_helper
 from .models import (
@@ -52,26 +57,27 @@ _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
 
-CONF_MIN = "min"
-CONF_MAX = "max"
-CONF_STEP = "step"
-
 DEFAULT_NAME = "MQTT Number"
-DEFAULT_PAYLOAD_RESET = "None"
 
 MQTT_NUMBER_ATTRIBUTES_BLOCKED = frozenset(
     {
-        number.ATTR_MAX,
-        number.ATTR_MIN,
-        number.ATTR_STEP,
+        NumberEntityCapabilityAttribute.MAX,
+        NumberEntityCapabilityAttribute.MIN,
+        NumberEntityCapabilityAttribute.STEP,
     }
 )
 
 
 def validate_config(config: ConfigType) -> ConfigType:
     """Validate that the configuration is valid, throws if it isn't."""
-    if config[CONF_MIN] >= config[CONF_MAX]:
-        raise vol.Invalid(f"'{CONF_MAX}' must be > '{CONF_MIN}'")
+    if (
+        CONF_UNIT_OF_MEASUREMENT in config
+        and (unit_of_measurement := config[CONF_UNIT_OF_MEASUREMENT]) in AMBIGUOUS_UNITS
+    ):
+        config[CONF_UNIT_OF_MEASUREMENT] = AMBIGUOUS_UNITS[unit_of_measurement]
+
+    if config[CONF_MIN] > config[CONF_MAX]:
+        raise vol.Invalid(f"{CONF_MAX} must be >= {CONF_MIN}")
 
     return config
 
@@ -135,10 +141,12 @@ class MqttNumber(MqttEntity, RestoreNumber):
     _value_template: Callable[[ReceivePayloadType], ReceivePayloadType]
 
     @staticmethod
+    @override
     def config_schema() -> VolSchemaType:
         """Return the config schema."""
         return DISCOVERY_SCHEMA
 
+    @override
     def _setup_from_config(self, config: ConfigType) -> None:
         """(Re)Setup the entity."""
         self._config = config
@@ -193,6 +201,7 @@ class MqttNumber(MqttEntity, RestoreNumber):
         self._attr_native_value = num_value
 
     @callback
+    @override
     def _prepare_subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         if not self.add_subscription(
@@ -202,6 +211,7 @@ class MqttNumber(MqttEntity, RestoreNumber):
             self._attr_assumed_state = True
             return
 
+    @override
     async def _subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         subscription.async_subscribe_topics_internal(self.hass, self._sub_state)
@@ -211,6 +221,7 @@ class MqttNumber(MqttEntity, RestoreNumber):
         ):
             self._attr_native_value = last_number_data.native_value
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         current_number = value

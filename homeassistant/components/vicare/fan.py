@@ -1,20 +1,13 @@
 """Viessmann ViCare ventilation device."""
 
-from __future__ import annotations
-
 from contextlib import suppress
 import enum
 import logging
-from typing import Any
+from typing import Any, override
 
 from PyViCare.PyViCareDevice import Device as PyViCareDevice
 from PyViCare.PyViCareDeviceConfig import PyViCareDeviceConfig
-from PyViCare.PyViCareUtils import (
-    PyViCareInvalidDataError,
-    PyViCareNotSupportedFeatureError,
-    PyViCareRateLimitError,
-)
-from requests.exceptions import ConnectionError as RequestConnectionError
+from PyViCare.PyViCareUtils import PyViCareNotSupportedFeatureError
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature
 from homeassistant.core import HomeAssistant
@@ -127,6 +120,7 @@ class ViCareFan(ViCareEntity, FanEntity):
 
     _attr_speed_count = len(ORDERED_NAMED_FAN_SPEEDS)
     _attr_translation_key = "ventilation"
+    _attributes: dict[str, Any] = {}
 
     def __init__(
         self,
@@ -155,7 +149,7 @@ class ViCareFan(ViCareEntity, FanEntity):
             self._attr_supported_features |= FanEntityFeature.SET_SPEED
 
         # evaluate quickmodes
-        quickmodes: list[str] = (
+        self._attributes["vicare_quickmodes"] = quickmodes = list[str](
             device.getVentilationQuickmodes()
             if is_supported(
                 "getVentilationQuickmodes",
@@ -170,7 +164,7 @@ class ViCareFan(ViCareEntity, FanEntity):
     def update(self) -> None:
         """Update state of fan."""
         level: str | None = None
-        try:
+        with self.vicare_api_handler():
             with suppress(PyViCareNotSupportedFeatureError):
                 self._attr_preset_mode = VentilationMode.from_vicare_mode(
                     self._api.getActiveVentilationMode()
@@ -184,32 +178,30 @@ class ViCareFan(ViCareEntity, FanEntity):
                 )
             else:
                 self._attr_percentage = 0
-        except RequestConnectionError:
-            _LOGGER.error("Unable to retrieve data from ViCare server")
-        except ValueError:
-            _LOGGER.error("Unable to decode data from ViCare server")
-        except PyViCareRateLimitError as limit_exception:
-            _LOGGER.error("Vicare API rate limit exceeded: %s", limit_exception)
-        except PyViCareInvalidDataError as invalid_data_exception:
-            _LOGGER.error("Invalid data from Vicare server: %s", invalid_data_exception)
 
     @property
+    @override
     def is_on(self) -> bool | None:
         """Return true if the entity is on."""
-        if self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
+        if VentilationQuickmode.STANDBY in self._attributes[
+            "vicare_quickmodes"
+        ] and self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
             return False
 
         return self.percentage is not None and self.percentage > 0
 
+    @override
     def turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
-
         self._api.activateVentilationQuickmode(str(VentilationQuickmode.STANDBY))
 
     @property
+    @override
     def icon(self) -> str | None:
         """Return the icon to use in the frontend."""
-        if self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
+        if VentilationQuickmode.STANDBY in self._attributes[
+            "vicare_quickmodes"
+        ] and self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
             return "mdi:fan-off"
         if hasattr(self, "_attr_preset_mode"):
             if self._attr_preset_mode == VentilationMode.VENTILATION:
@@ -232,19 +224,29 @@ class ViCareFan(ViCareEntity, FanEntity):
                         return f"mdi:fan-speed-{level}"
         return "mdi:fan"
 
+    @override
     def set_percentage(self, percentage: int) -> None:
         """Set the speed of the fan, as a percentage."""
         if self._attr_preset_mode != str(VentilationMode.PERMANENT):
             self.set_preset_mode(VentilationMode.PERMANENT)
-        elif self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
+        elif VentilationQuickmode.STANDBY in self._attributes[
+            "vicare_quickmodes"
+        ] and self._api.getVentilationQuickmode(VentilationQuickmode.STANDBY):
             self._api.deactivateVentilationQuickmode(str(VentilationQuickmode.STANDBY))
 
         level = percentage_to_ordered_list_item(ORDERED_NAMED_FAN_SPEEDS, percentage)
         _LOGGER.debug("changing ventilation level to %s", level)
         self._api.setVentilationLevel(level)
 
+    @override
     def set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         target_mode = VentilationMode.to_vicare_mode(preset_mode)
         _LOGGER.debug("changing ventilation mode to %s", target_mode)
         self._api.activateVentilationMode(target_mode)
+
+    @property
+    @override
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Show Device Attributes."""
+        return self._attributes

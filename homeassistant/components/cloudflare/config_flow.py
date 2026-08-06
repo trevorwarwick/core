@@ -1,15 +1,12 @@
 """Config flow for Cloudflare integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 import logging
-from typing import Any
+from typing import Any, override
 
 import pycfdns
 import voluptuous as vol
 
-from homeassistant.components import persistent_notification
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_API_TOKEN, CONF_ZONE
 from homeassistant.core import HomeAssistant
@@ -114,12 +111,11 @@ class CloudflareConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
         """Handle a flow initiated by the user."""
-        persistent_notification.async_dismiss(self.hass, "cloudflare_setup")
-
         errors: dict[str, str] = {}
 
         if user_input is not None:

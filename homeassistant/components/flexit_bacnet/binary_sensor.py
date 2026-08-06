@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import override
 
 from flexit_bacnet import FlexitBACnet
 
@@ -47,6 +48,10 @@ async def async_setup_entry(
     )
 
 
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
+
+
 class FlexitBinarySensor(FlexitEntity, BinarySensorEntity):
     """Representation of a Flexit binary Sensor."""
 
@@ -66,6 +71,7 @@ class FlexitBinarySensor(FlexitEntity, BinarySensorEntity):
         )
 
     @property
+    @override
     def is_on(self) -> bool:
         """Return value of binary sensor."""
         return self.entity_description.value_fn(self.coordinator.data)

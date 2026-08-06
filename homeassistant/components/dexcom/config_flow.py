@@ -1,16 +1,18 @@
 """Config flow for Dexcom integration."""
 
-from __future__ import annotations
+import logging
+from typing import Any, override
 
-from typing import Any
-
-from pydexcom import AccountError, Dexcom, SessionError
+from pydexcom import Dexcom, Region
+from pydexcom.errors import AccountError, SessionError
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 
 from .const import CONF_SERVER, DOMAIN, SERVER_OUS, SERVER_US
+
+_LOGGER = logging.getLogger(__name__)
 
 DATA_SCHEMA = vol.Schema(
     {
@@ -26,6 +28,7 @@ class DexcomConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -34,16 +37,20 @@ class DexcomConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 await self.hass.async_add_executor_job(
-                    Dexcom,
-                    user_input[CONF_USERNAME],
-                    user_input[CONF_PASSWORD],
-                    user_input[CONF_SERVER] == SERVER_OUS,
+                    lambda: Dexcom(
+                        username=user_input[CONF_USERNAME],
+                        password=user_input[CONF_PASSWORD],
+                        region=Region.OUS
+                        if user_input[CONF_SERVER] == SERVER_OUS
+                        else Region.US,
+                    )
                 )
             except SessionError:
                 errors["base"] = "cannot_connect"
             except AccountError:
                 errors["base"] = "invalid_auth"
-            except Exception:  # noqa: BLE001
+            except Exception:
+                _LOGGER.exception("Unexpected error")
                 errors["base"] = "unknown"
 
             if "base" not in errors:

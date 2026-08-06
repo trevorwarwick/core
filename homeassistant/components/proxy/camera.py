@@ -1,11 +1,10 @@
 """Proxy camera platform that enables image processing of camera data."""
 
-from __future__ import annotations
-
 import asyncio
 from datetime import timedelta
 import io
 import logging
+from typing import override
 
 from PIL import Image
 import voluptuous as vol
@@ -104,6 +103,15 @@ def _resize_image(image, opts):
     new_width = opts.max_width
     (old_width, old_height) = img.size
     old_size = len(image)
+
+    # If no max_width specified, only apply quality changes if requested
+    if new_width is None:
+        if opts.quality is None:
+            return image
+        imgbuf = io.BytesIO()
+        img.save(imgbuf, "JPEG", optimize=True, quality=quality)
+        return imgbuf.getvalue()
+
     if old_width <= new_width:
         if opts.quality is None:
             _LOGGER.debug("Image is smaller-than/equal-to requested width")
@@ -232,6 +240,7 @@ class ProxyCamera(Camera):
         self._last_image = None
         self._mode = config.get(CONF_MODE)
 
+    @override
     def camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
@@ -240,6 +249,7 @@ class ProxyCamera(Camera):
             self.async_camera_image(), self.hass.loop
         ).result()
 
+    @override
     async def async_camera_image(
         self, width: int | None = None, height: int | None = None
     ) -> bytes | None:
@@ -269,6 +279,7 @@ class ProxyCamera(Camera):
             self._last_image = image_bytes
         return image_bytes
 
+    @override
     async def handle_async_mjpeg_stream(self, request):
         """Generate an HTTP MJPEG stream from camera images."""
         if not self._stream_opts:
@@ -281,6 +292,7 @@ class ProxyCamera(Camera):
         )
 
     @property
+    @override
     def name(self):
         """Return the name of this camera."""
         return self._name

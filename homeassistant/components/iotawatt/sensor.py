@@ -1,10 +1,9 @@
 """Support for IoTaWatt Energy monitor."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
+from typing import override
 
 from iotawattpy.sensor import Sensor
 
@@ -14,7 +13,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfApparentPower,
@@ -31,8 +29,8 @@ from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN, VOLT_AMPERE_REACTIVE, VOLT_AMPERE_REACTIVE_HOURS
-from .coordinator import IotawattUpdater
+from .const import VOLT_AMPERE_REACTIVE, VOLT_AMPERE_REACTIVE_HOURS
+from .coordinator import IotawattConfigEntry, IotawattUpdater
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -113,11 +111,11 @@ ENTITY_DESCRIPTION_KEY_MAP: dict[str, IotaWattSensorEntityDescription] = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: IotawattConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Add sensors for passed config_entry in HA."""
-    coordinator: IotawattUpdater = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator = config_entry.runtime_data
     created = set()
 
     @callback
@@ -178,11 +176,13 @@ class IotaWattSensor(CoordinatorEntity[IotawattUpdater], SensorEntity):
         return self.coordinator.data["sensors"][self._key]
 
     @property
+    @override
     def name(self) -> str | None:
         """Return name of the entity."""
         return self._sensor_data.getName()
 
     @property
+    @override
     def device_info(self) -> dr.DeviceInfo:
         """Return device info."""
         return dr.DeviceInfo(
@@ -194,6 +194,7 @@ class IotaWattSensor(CoordinatorEntity[IotawattUpdater], SensorEntity):
         )
 
     @callback
+    @override
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         if self._key not in self.coordinator.data["sensors"]:
@@ -211,6 +212,7 @@ class IotaWattSensor(CoordinatorEntity[IotawattUpdater], SensorEntity):
         super()._handle_coordinator_update()
 
     @property
+    @override
     def extra_state_attributes(self) -> dict[str, str]:
         """Return the extra state attributes of the entity."""
         data = self._sensor_data
@@ -221,6 +223,7 @@ class IotaWattSensor(CoordinatorEntity[IotawattUpdater], SensorEntity):
         return attrs
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         if func := self.entity_description.value:

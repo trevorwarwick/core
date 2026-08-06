@@ -1,11 +1,12 @@
 # serializer version: 1
 # name: test_entities[sensor][sensor.peblar_ev_charger_current-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -22,6 +23,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Current',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -35,6 +37,7 @@
     'original_name': 'Current',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '23-45-A4O-MOF_current_total',
@@ -44,10 +47,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_current-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'current',
-      'friendly_name': 'Peblar EV Charger Current',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'current',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Current',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricCurrent.AMPERE: 'A'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_current',
@@ -59,11 +62,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_1-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -80,6 +84,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Current phase 1',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -93,6 +98,7 @@
     'original_name': 'Current phase 1',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'current_phase_1',
     'unique_id': '23-45-A4O-MOF_current_phase_1',
@@ -102,10 +108,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_1-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'current',
-      'friendly_name': 'Peblar EV Charger Current phase 1',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'current',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Current phase 1',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricCurrent.AMPERE: 'A'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_current_phase_1',
@@ -117,11 +123,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_2-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -138,6 +145,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Current phase 2',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -151,6 +159,7 @@
     'original_name': 'Current phase 2',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'current_phase_2',
     'unique_id': '23-45-A4O-MOF_current_phase_2',
@@ -160,10 +169,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_2-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'current',
-      'friendly_name': 'Peblar EV Charger Current phase 2',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'current',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Current phase 2',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricCurrent.AMPERE: 'A'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_current_phase_2',
@@ -175,11 +184,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_3-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -196,6 +206,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Current phase 3',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 1,
@@ -209,6 +220,7 @@
     'original_name': 'Current phase 3',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'current_phase_3',
     'unique_id': '23-45-A4O-MOF_current_phase_3',
@@ -218,10 +230,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_current_phase_3-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'current',
-      'friendly_name': 'Peblar EV Charger Current phase 3',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricCurrent.AMPERE: 'A'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'current',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Current phase 3',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricCurrent.AMPERE: 'A'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_current_phase_3',
@@ -233,11 +245,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_lifetime_energy-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -254,6 +267,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Lifetime energy',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 2,
@@ -267,6 +281,7 @@
     'original_name': 'Lifetime energy',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'energy_total',
     'unique_id': '23-45-A4O-MOF_energy_total',
@@ -276,10 +291,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_lifetime_energy-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'energy',
-      'friendly_name': 'Peblar EV Charger Lifetime energy',
-      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
-      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'energy',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Lifetime energy',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_lifetime_energy',
@@ -291,11 +306,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_limit_source-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'options': list([
+      <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'charging_cable',
         'current_limiter',
         'dynamic_load_balancing',
@@ -330,6 +346,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Limit source',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
@@ -337,6 +354,7 @@
     'original_name': 'Limit source',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'charge_current_limit_source',
     'unique_id': '23-45-A4O-MOF_charge_current_limit_source',
@@ -346,9 +364,9 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_limit_source-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'enum',
-      'friendly_name': 'Peblar EV Charger Limit source',
-      'options': list([
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'enum',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Limit source',
+      <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'charging_cable',
         'current_limiter',
         'dynamic_load_balancing',
@@ -378,11 +396,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_power-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -399,13 +418,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '23-45-A4O-MOF_power_total',
@@ -415,10 +439,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_power-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'power',
-      'friendly_name': 'Peblar EV Charger Power',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'power',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Power',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfPower.WATT: 'W'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_power',
@@ -430,11 +454,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_1-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -451,13 +476,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power phase 1',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power phase 1',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_phase_1',
     'unique_id': '23-45-A4O-MOF_power_phase_1',
@@ -467,10 +497,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_1-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'power',
-      'friendly_name': 'Peblar EV Charger Power phase 1',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'power',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Power phase 1',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfPower.WATT: 'W'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_power_phase_1',
@@ -482,11 +512,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_2-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -503,13 +534,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power phase 2',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power phase 2',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_phase_2',
     'unique_id': '23-45-A4O-MOF_power_phase_2',
@@ -519,10 +555,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_2-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'power',
-      'friendly_name': 'Peblar EV Charger Power phase 2',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'power',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Power phase 2',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfPower.WATT: 'W'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_power_phase_2',
@@ -534,11 +570,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_3-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -555,13 +592,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Power phase 3',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.POWER: 'power'>,
     'original_icon': None,
     'original_name': 'Power phase 3',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'power_phase_3',
     'unique_id': '23-45-A4O-MOF_power_phase_3',
@@ -571,10 +613,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_power_phase_3-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'power',
-      'friendly_name': 'Peblar EV Charger Power phase 3',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfPower.WATT: 'W'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'power',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Power phase 3',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfPower.WATT: 'W'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_power_phase_3',
@@ -586,11 +628,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_session_energy-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -607,6 +650,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Session energy',
     'options': dict({
       'sensor': dict({
         'suggested_display_precision': 2,
@@ -620,6 +664,7 @@
     'original_name': 'Session energy',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'energy_session',
     'unique_id': '23-45-A4O-MOF_energy_session',
@@ -629,10 +674,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_session_energy-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'energy',
-      'friendly_name': 'Peblar EV Charger Session energy',
-      'state_class': <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
-      'unit_of_measurement': <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'energy',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Session energy',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.TOTAL_INCREASING: 'total_increasing'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfEnergy.KILO_WATT_HOUR: 'kWh'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_session_energy',
@@ -644,11 +689,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_state-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'options': list([
+      <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'suspended',
         'charging',
         'charging',
@@ -673,6 +719,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'State',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.ENUM: 'enum'>,
@@ -680,6 +727,7 @@
     'original_name': 'State',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'cp_state',
     'unique_id': '23-45-A4O-MOF_cp_state',
@@ -689,9 +737,9 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_state-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'enum',
-      'friendly_name': 'Peblar EV Charger State',
-      'options': list([
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'enum',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger State',
+      <SensorEntityCapabilityAttribute.OPTIONS: 'options'>: list([
         'suspended',
         'charging',
         'charging',
@@ -711,8 +759,9 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_uptime-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -730,6 +779,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Uptime',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -737,6 +787,7 @@
     'original_name': 'Uptime',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'uptime',
     'unique_id': '23-45-A4O-MOF_uptime',
@@ -746,8 +797,8 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_uptime-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'timestamp',
-      'friendly_name': 'Peblar EV Charger Uptime',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Uptime',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_uptime',
@@ -759,11 +810,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_1-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -780,13 +832,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voltage phase 1',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
     'original_icon': None,
     'original_name': 'Voltage phase 1',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voltage_phase_1',
     'unique_id': '23-45-A4O-MOF_voltage_phase_1',
@@ -796,10 +853,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_1-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'voltage',
-      'friendly_name': 'Peblar EV Charger Voltage phase 1',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'voltage',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Voltage phase 1',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricPotential.VOLT: 'V'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_voltage_phase_1',
@@ -811,11 +868,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_2-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -832,13 +890,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voltage phase 2',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
     'original_icon': None,
     'original_name': 'Voltage phase 2',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voltage_phase_2',
     'unique_id': '23-45-A4O-MOF_voltage_phase_2',
@@ -848,10 +911,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_2-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'voltage',
-      'friendly_name': 'Peblar EV Charger Voltage phase 2',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'voltage',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Voltage phase 2',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricPotential.VOLT: 'V'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_voltage_phase_2',
@@ -863,11 +926,12 @@
 # ---
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_3-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -884,13 +948,18 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voltage phase 3',
     'options': dict({
+      'sensor': dict({
+        'suggested_display_precision': 0,
+      }),
     }),
     'original_device_class': <SensorDeviceClass.VOLTAGE: 'voltage'>,
     'original_icon': None,
     'original_name': 'Voltage phase 3',
     'platform': 'peblar',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voltage_phase_3',
     'unique_id': '23-45-A4O-MOF_voltage_phase_3',
@@ -900,10 +969,10 @@
 # name: test_entities[sensor][sensor.peblar_ev_charger_voltage_phase_3-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'voltage',
-      'friendly_name': 'Peblar EV Charger Voltage phase 3',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': <UnitOfElectricPotential.VOLT: 'V'>,
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'voltage',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Peblar EV Charger Voltage phase 3',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: <UnitOfElectricPotential.VOLT: 'V'>,
     }),
     'context': <ANY>,
     'entity_id': 'sensor.peblar_ev_charger_voltage_phase_3',

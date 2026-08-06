@@ -1,11 +1,9 @@
 """Helper to track the current http request."""
 
-from __future__ import annotations
-
-import asyncio
 from collections.abc import Awaitable, Callable
 from contextvars import ContextVar
 from http import HTTPStatus
+import inspect
 import logging
 from typing import Any, Final
 
@@ -29,6 +27,10 @@ from .json import find_paths_unserializable_data, json_bytes, json_dumps
 
 _LOGGER = logging.getLogger(__name__)
 
+# Responses smaller than this fit within a single network packet, so
+# compressing them wastes event-loop CPU without reducing round-trips.
+MIN_COMPRESSED_RESPONSE_SIZE: Final = 1024
+
 
 type AllowCorsType = Callable[[AbstractRoute | AbstractResource], None]
 KEY_AUTHENTICATED: Final = "ha_authenticated"
@@ -45,7 +47,7 @@ def request_handler_factory(
     hass: HomeAssistant, view: HomeAssistantView, handler: Callable
 ) -> Callable[[web.Request], Awaitable[web.StreamResponse]]:
     """Wrap the handler classes."""
-    is_coroutinefunction = asyncio.iscoroutinefunction(handler)
+    is_coroutinefunction = inspect.iscoroutinefunction(handler)
     assert is_coroutinefunction or is_callback(handler), (
         "Handler should be a coroutine or a callback."
     )
@@ -58,7 +60,24 @@ def request_handler_factory(
         authenticated = request.get(KEY_AUTHENTICATED, False)
 
         if view.requires_auth and not authenticated:
-            raise HTTPUnauthorized
+            # Import here to avoid circular dependency with network.py
+            from .network import NoURLAvailableError, get_url  # noqa: PLC0415
+
+            # Get the current request header to include as resource metadata
+            # endpoint for RFC9728.
+            try:
+                url_prefix = get_url(hass, require_current_request=True)
+            except NoURLAvailableError:
+                # Omit header to avoid leaking configured URLs
+                raise HTTPUnauthorized from None
+            raise HTTPUnauthorized(
+                headers={
+                    "WWW-Authenticate": (
+                        f'Bearer resource_metadata="{url_prefix}'
+                        '/.well-known/oauth-protected-resource"'
+                    )
+                }
+            )
 
         if _LOGGER.isEnabledFor(logging.DEBUG):
             _LOGGER.debug(
@@ -145,7 +164,8 @@ class HomeAssistantView:
             headers=headers,
             zlib_executor_size=32768,
         )
-        response.enable_compression()
+        if len(msg) > MIN_COMPRESSED_RESPONSE_SIZE:
+            response.enable_compression()
         return response
 
     def json_message(

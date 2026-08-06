@@ -1,9 +1,7 @@
 """Config flow for Threshold integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 
@@ -80,15 +78,20 @@ OPTIONS_FLOW = {
 class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
     """Handle a config or options flow for Threshold."""
 
+    MINOR_VERSION = 2
+
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
+    options_flow_reloads = True
 
+    @override
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
         name: str = options[CONF_NAME]
         return name
 
     @staticmethod
+    @override
     async def async_setup_preview(hass: HomeAssistant) -> None:
         """Set up preview WS API."""
         websocket_api.async_register_command(hass, ws_start_preview)
@@ -131,13 +134,13 @@ def ws_start_preview(
         )
 
     preview_entity = ThresholdSensor(
-        entity_id,
-        name,
-        msg["user_input"].get(CONF_LOWER),
-        msg["user_input"].get(CONF_UPPER),
-        msg["user_input"].get(CONF_HYSTERESIS),
-        None,
-        None,
+        entity_id=entity_id,
+        name=name,
+        lower=msg["user_input"].get(CONF_LOWER),
+        upper=msg["user_input"].get(CONF_UPPER),
+        hysteresis=msg["user_input"].get(CONF_HYSTERESIS, DEFAULT_HYSTERESIS),
+        device_class=None,
+        unique_id=None,
     )
     preview_entity.hass = hass
 

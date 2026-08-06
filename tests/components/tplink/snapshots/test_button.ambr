@@ -1,8 +1,9 @@
 # serializer version: 1
 # name: test_states[button.my_device_pair_new_device-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -20,6 +21,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Pair new device',
     'options': dict({
     }),
     'original_device_class': None,
@@ -27,6 +29,7 @@
     'original_name': 'Pair new device',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'pair',
     'unique_id': '123456789ABCDEFGH_pair',
@@ -36,7 +39,7 @@
 # name: test_states[button.my_device_pair_new_device-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Pair new device',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Pair new device',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_pair_new_device',
@@ -48,8 +51,9 @@
 # ---
 # name: test_states[button.my_device_pan_left-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -67,6 +71,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Pan left',
     'options': dict({
     }),
     'original_device_class': None,
@@ -74,6 +79,7 @@
     'original_name': 'Pan left',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'pan_left',
     'unique_id': '123456789ABCDEFGH_pan_left',
@@ -83,7 +89,7 @@
 # name: test_states[button.my_device_pan_left-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Pan left',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Pan left',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_pan_left',
@@ -95,8 +101,9 @@
 # ---
 # name: test_states[button.my_device_pan_right-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -114,6 +121,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Pan right',
     'options': dict({
     }),
     'original_device_class': None,
@@ -121,6 +129,7 @@
     'original_name': 'Pan right',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'pan_right',
     'unique_id': '123456789ABCDEFGH_pan_right',
@@ -130,7 +139,7 @@
 # name: test_states[button.my_device_pan_right-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Pan right',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Pan right',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_pan_right',
@@ -142,8 +151,9 @@
 # ---
 # name: test_states[button.my_device_reset_charging_contacts_consumable-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -161,6 +171,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Reset charging contacts consumable',
     'options': dict({
     }),
     'original_device_class': None,
@@ -168,6 +179,7 @@
     'original_name': 'Reset charging contacts consumable',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'charging_contacts_reset',
     'unique_id': '123456789ABCDEFGH_charging_contacts_reset',
@@ -176,8 +188,9 @@
 # ---
 # name: test_states[button.my_device_reset_filter_consumable-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -195,6 +208,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Reset filter consumable',
     'options': dict({
     }),
     'original_device_class': None,
@@ -202,6 +216,7 @@
     'original_name': 'Reset filter consumable',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'filter_reset',
     'unique_id': '123456789ABCDEFGH_filter_reset',
@@ -210,8 +225,9 @@
 # ---
 # name: test_states[button.my_device_reset_main_brush_consumable-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -229,6 +245,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Reset main brush consumable',
     'options': dict({
     }),
     'original_device_class': None,
@@ -236,6 +253,7 @@
     'original_name': 'Reset main brush consumable',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'main_brush_reset',
     'unique_id': '123456789ABCDEFGH_main_brush_reset',
@@ -244,8 +262,9 @@
 # ---
 # name: test_states[button.my_device_reset_sensor_consumable-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -263,6 +282,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Reset sensor consumable',
     'options': dict({
     }),
     'original_device_class': None,
@@ -270,6 +290,7 @@
     'original_name': 'Reset sensor consumable',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'sensor_reset',
     'unique_id': '123456789ABCDEFGH_sensor_reset',
@@ -278,8 +299,9 @@
 # ---
 # name: test_states[button.my_device_reset_side_brush_consumable-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -297,6 +319,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Reset side brush consumable',
     'options': dict({
     }),
     'original_device_class': None,
@@ -304,6 +327,7 @@
     'original_name': 'Reset side brush consumable',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'side_brush_reset',
     'unique_id': '123456789ABCDEFGH_side_brush_reset',
@@ -312,8 +336,9 @@
 # ---
 # name: test_states[button.my_device_restart-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -331,6 +356,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Restart',
     'options': dict({
     }),
     'original_device_class': <ButtonDeviceClass.RESTART: 'restart'>,
@@ -338,6 +364,7 @@
     'original_name': 'Restart',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'reboot',
     'unique_id': '123456789ABCDEFGH_reboot',
@@ -346,8 +373,9 @@
 # ---
 # name: test_states[button.my_device_stop_alarm-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -365,6 +393,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Stop alarm',
     'options': dict({
     }),
     'original_device_class': None,
@@ -372,6 +401,7 @@
     'original_name': 'Stop alarm',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'stop_alarm',
     'unique_id': '123456789ABCDEFGH_stop_alarm',
@@ -381,7 +411,7 @@
 # name: test_states[button.my_device_stop_alarm-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Stop alarm',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Stop alarm',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_stop_alarm',
@@ -393,8 +423,9 @@
 # ---
 # name: test_states[button.my_device_test_alarm-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -412,6 +443,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Test alarm',
     'options': dict({
     }),
     'original_device_class': None,
@@ -419,6 +451,7 @@
     'original_name': 'Test alarm',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'test_alarm',
     'unique_id': '123456789ABCDEFGH_test_alarm',
@@ -428,7 +461,7 @@
 # name: test_states[button.my_device_test_alarm-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Test alarm',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Test alarm',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_test_alarm',
@@ -440,8 +473,9 @@
 # ---
 # name: test_states[button.my_device_tilt_down-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -459,6 +493,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Tilt down',
     'options': dict({
     }),
     'original_device_class': None,
@@ -466,6 +501,7 @@
     'original_name': 'Tilt down',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'tilt_down',
     'unique_id': '123456789ABCDEFGH_tilt_down',
@@ -475,7 +511,7 @@
 # name: test_states[button.my_device_tilt_down-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Tilt down',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Tilt down',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_tilt_down',
@@ -487,8 +523,9 @@
 # ---
 # name: test_states[button.my_device_tilt_up-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -506,6 +543,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Tilt up',
     'options': dict({
     }),
     'original_device_class': None,
@@ -513,6 +551,7 @@
     'original_name': 'Tilt up',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'tilt_up',
     'unique_id': '123456789ABCDEFGH_tilt_up',
@@ -522,7 +561,7 @@
 # name: test_states[button.my_device_tilt_up-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'friendly_name': 'my_device Tilt up',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'my_device Tilt up',
     }),
     'context': <ANY>,
     'entity_id': 'button.my_device_tilt_up',
@@ -534,8 +573,9 @@
 # ---
 # name: test_states[button.my_device_unpair_device-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -553,6 +593,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Unpair device',
     'options': dict({
     }),
     'original_device_class': None,
@@ -560,6 +601,7 @@
     'original_name': 'Unpair device',
     'platform': 'tplink',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'unpair',
     'unique_id': '123456789ABCDEFGH_unpair',
@@ -569,8 +611,8 @@
 # name: test_states[my_device-entry]
   DeviceRegistryEntrySnapshot({
     'area_id': None,
-    'config_entries': <ANY>,
-    'config_entries_subentries': <ANY>,
+    'config_entry_id': <ANY>,
+    'config_subentry_id': <ANY>,
     'configuration_url': None,
     'connections': set({
       tuple(
@@ -588,7 +630,6 @@
         '123456789ABCDEFGH',
       ),
     }),
-    'is_new': False,
     'labels': set({
     }),
     'manufacturer': 'TP-Link',
@@ -596,9 +637,7 @@
     'model_id': None,
     'name': 'my_device',
     'name_by_user': None,
-    'primary_config_entry': <ANY>,
     'serial_number': None,
-    'suggested_area': None,
     'sw_version': '1.0.0',
     'via_device_id': None,
   })

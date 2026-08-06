@@ -1,7 +1,5 @@
 """Set up the demo environment that mimics interaction with devices."""
 
-from __future__ import annotations
-
 import asyncio
 
 from homeassistant import config_entries, core as ha, setup
@@ -39,6 +37,7 @@ COMPONENTS_WITH_CONFIG_ENTRY_DEMO_PLATFORM = [
     Platform.MEDIA_PLAYER,
     Platform.NOTIFY,
     Platform.NUMBER,
+    Platform.REMOTE,
     Platform.SELECT,
     Platform.SENSOR,
     Platform.SIREN,
@@ -48,11 +47,13 @@ COMPONENTS_WITH_CONFIG_ENTRY_DEMO_PLATFORM = [
     Platform.TIME,
     Platform.UPDATE,
     Platform.VACUUM,
+    Platform.VALVE,
     Platform.WATER_HEATER,
     Platform.WEATHER,
 ]
 
 COMPONENTS_WITH_DEMO_PLATFORM = [
+    Platform.GEO_LOCATION,
     Platform.TTS,
     Platform.IMAGE_PROCESSING,
     Platform.DEVICE_TRACKER,

@@ -1,6 +1,6 @@
 """Support for Nexia / Trane XL Thermostats."""
 
-from __future__ import annotations
+from typing import override
 
 from nexia.const import UNIT_CELSIUS
 from nexia.thermostat import NexiaThermostat
@@ -114,6 +114,35 @@ async def async_setup_entry(
                     percent_conv,
                 )
             )
+        # Heating Humidification Setpoint
+        if thermostat.has_humidify_support():
+            entities.append(
+                NexiaThermostatSensor(
+                    coordinator,
+                    thermostat,
+                    "get_humidify_setpoint",
+                    "get_humidify_setpoint",
+                    SensorDeviceClass.HUMIDITY,
+                    PERCENTAGE,
+                    SensorStateClass.MEASUREMENT,
+                    percent_conv,
+                )
+            )
+
+        # Cooling Dehumidification Setpoint
+        if thermostat.has_dehumidify_support():
+            entities.append(
+                NexiaThermostatSensor(
+                    coordinator,
+                    thermostat,
+                    "get_dehumidify_setpoint",
+                    "get_dehumidify_setpoint",
+                    SensorDeviceClass.HUMIDITY,
+                    PERCENTAGE,
+                    SensorStateClass.MEASUREMENT,
+                    percent_conv,
+                )
+            )
 
         # Zone Sensors
         for zone_id in thermostat.get_zone_ids():
@@ -186,6 +215,7 @@ class NexiaThermostatSensor(NexiaThermostatEntity, SensorEntity):
             self._attr_translation_key = translation_key
 
     @property
+    @override
     def native_value(self):
         """Return the state of the sensor."""
         val = getattr(self._thermostat, self._call)()
@@ -226,6 +256,7 @@ class NexiaThermostatZoneSensor(NexiaThermostatZoneEntity, SensorEntity):
             self._attr_translation_key = translation_key
 
     @property
+    @override
     def native_value(self):
         """Return the state of the sensor."""
         val = getattr(self._zone, self._call)()

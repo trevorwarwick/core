@@ -1,12 +1,10 @@
 """Support for Honeywell Lyric sensor platform."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
+from typing import override
 
-from aiolyric import Lyric
 from aiolyric.objects.device import LyricDevice
 from aiolyric.objects.location import LyricLocation
 from aiolyric.objects.priority import LyricAccessory, LyricRoom
@@ -17,22 +15,20 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import StateType
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.util import dt as dt_util
 
 from .const import (
-    DOMAIN,
     PRESET_HOLD_UNTIL,
     PRESET_NO_HOLD,
     PRESET_PERMANENT_HOLD,
     PRESET_TEMPORARY_HOLD,
     PRESET_VACATION_HOLD,
 )
+from .coordinator import LyricConfigEntry, LyricDataUpdateCoordinator
 from .entity import LyricAccessoryEntity, LyricDeviceEntity
 
 LYRIC_SETPOINT_STATUS_NAMES = {
@@ -137,6 +133,14 @@ ACCESSORY_SENSORS: list[LyricSensorAccessoryEntityDescription] = [
         value_fn=lambda room, _: room.room_avg_humidity,
         suitable_fn=lambda _, accessory: accessory.type == "IndoorAirSensor",
     ),
+    LyricSensorAccessoryEntityDescription(
+        key="room_average_temperature",
+        translation_key="room_average_temperature",
+        device_class=SensorDeviceClass.TEMPERATURE,
+        state_class=SensorStateClass.MEASUREMENT,
+        value_fn=lambda room, _: room.room_avg_temp,
+        suitable_fn=lambda _, accessory: accessory.type == "IndoorAirSensor",
+    ),
 ]
 
 
@@ -147,11 +151,13 @@ def get_setpoint_status(status: str, time: str) -> str | None:
     return LYRIC_SETPOINT_STATUS_NAMES.get(status)
 
 
-def get_datetime_from_future_time(time_str: str) -> datetime:
+def get_datetime_from_future_time(time_str: str | None) -> datetime | None:
     """Get datetime from future time provided."""
+    if time_str is None:
+        return None
     time = dt_util.parse_time(time_str)
     if time is None:
-        raise ValueError(f"Unable to parse time {time_str}")
+        return None
     now = dt_util.utcnow()
     if time <= now.time():
         now = now + timedelta(days=1)
@@ -160,11 +166,11 @@ def get_datetime_from_future_time(time_str: str) -> datetime:
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: LyricConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the Honeywell Lyric sensor platform based on a config entry."""
-    coordinator: DataUpdateCoordinator[Lyric] = hass.data[DOMAIN][entry.entry_id]
+    coordinator = entry.runtime_data
 
     async_add_entities(
         LyricSensor(
@@ -199,7 +205,7 @@ class LyricSensor(LyricDeviceEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator[Lyric],
+        coordinator: LyricDataUpdateCoordinator,
         description: LyricSensorEntityDescription,
         location: LyricLocation,
         device: LyricDevice,
@@ -219,6 +225,7 @@ class LyricSensor(LyricDeviceEntity, SensorEntity):
                 self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
     @property
+    @override
     def native_value(self) -> StateType | datetime:
         """Return the state."""
         return self.entity_description.value_fn(self.device)
@@ -231,7 +238,7 @@ class LyricAccessorySensor(LyricAccessoryEntity, SensorEntity):
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator[Lyric],
+        coordinator: LyricDataUpdateCoordinator,
         description: LyricSensorAccessoryEntityDescription,
         location: LyricLocation,
         parentDevice: LyricDevice,
@@ -255,6 +262,7 @@ class LyricAccessorySensor(LyricAccessoryEntity, SensorEntity):
                 self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
 
     @property
+    @override
     def native_value(self) -> StateType | datetime:
         """Return the state."""
         return self.entity_description.value_fn(self.room, self.accessory)

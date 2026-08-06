@@ -1,9 +1,7 @@
 """Config flow for chacon_dio integration."""
 
-from __future__ import annotations
-
 import logging
-from typing import Any
+from typing import Any, override
 
 from dio_chacon_wifi_api import DIOChaconAPIClient
 from dio_chacon_wifi_api.exceptions import DIOChaconAPIError, DIOChaconInvalidAuthError
@@ -27,6 +25,7 @@ DATA_SCHEMA = vol.Schema(
 class ChaconDioConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for chacon_dio."""
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -44,7 +43,7 @@ class ChaconDioConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             except DIOChaconInvalidAuthError:
                 errors["base"] = "invalid_auth"
-            except Exception:  # pylint: disable=broad-except
+            except Exception:
                 _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
 

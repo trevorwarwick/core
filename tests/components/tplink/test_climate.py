@@ -109,6 +109,26 @@ async def test_states(
     )
 
 
+async def test_device_does_not_link_via_self(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    device_registry: dr.DeviceRegistry,
+    caplog: pytest.LogCaptureFixture,
+    mocked_hub: Device,
+) -> None:
+    """Test a child sharing its parent's device_id does not link to itself."""
+    await setup_platform_for_device(
+        hass, mock_config_entry, Platform.CLIMATE, mocked_hub
+    )
+
+    devices = dr.async_entries_for_config_entry(
+        device_registry, mock_config_entry.entry_id
+    )
+    assert devices
+    for device in devices:
+        assert device.via_device_id != device.id
+
+
 async def test_set_temperature(
     hass: HomeAssistant, mock_config_entry: MockConfigEntry, mocked_hub: Device
 ) -> None:
@@ -161,7 +181,7 @@ async def test_set_hvac_mode(
     )
     therm_module.set_state.assert_called_with(True)
 
-    msg = "Tried to set unsupported mode: dry"
+    msg = "HVAC mode dry is not valid. Valid HVAC modes are: heat, off"
     with pytest.raises(ServiceValidationError, match=msg):
         await hass.services.async_call(
             CLIMATE_DOMAIN,
@@ -224,6 +244,14 @@ async def test_unknown_mode(
     state = hass.states.get(ENTITY_ID)
     assert state.attributes[ATTR_HVAC_ACTION] == HVACAction.OFF
     assert "Unknown thermostat state, defaulting to OFF" in caplog.text
+
+    # Second update, make sure the warning is not logged again
+    caplog.clear()
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=30))
+    await hass.async_block_till_done()
+    state = hass.states.get(ENTITY_ID)
+    assert state.attributes[ATTR_HVAC_ACTION] == HVACAction.OFF
+    assert "Unknown thermostat state, defaulting to OFF" not in caplog.text
 
 
 async def test_missing_feature_attributes(

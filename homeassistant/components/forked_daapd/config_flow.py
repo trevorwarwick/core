@@ -2,17 +2,12 @@
 
 from contextlib import suppress
 import logging
-from typing import Any
+from typing import Any, override
 
 from pyforked_daapd import ForkedDaapdAPI
 import voluptuous as vol
 
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-    OptionsFlow,
-)
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_NAME, CONF_PASSWORD, CONF_PORT
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -28,6 +23,7 @@ from .const import (
     DEFAULT_TTS_VOLUME,
     DOMAIN,
 )
+from .coordinator import ForkedDaapdConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,8 +110,9 @@ class ForkedDaapdFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: ForkedDaapdConfigEntry,
     ) -> ForkedDaapdOptionsFlowHandler:
         """Return options flow handler."""
         return ForkedDaapdOptionsFlowHandler()
@@ -134,6 +131,7 @@ class ForkedDaapdFlowHandler(ConfigFlow, domain=DOMAIN):
         )
         return validate_result
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -163,6 +161,7 @@ class ForkedDaapdFlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="user", data_schema=vol.Schema(DATA_SCHEMA_DICT), errors={}
         )
 
+    @override
     async def async_step_zeroconf(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:

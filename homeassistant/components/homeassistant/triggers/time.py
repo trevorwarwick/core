@@ -9,13 +9,15 @@ import voluptuous as vol
 
 from homeassistant.components import sensor
 from homeassistant.const import (
-    ATTR_DEVICE_CLASS,
     CONF_AT,
     CONF_ENTITY_ID,
     CONF_OFFSET,
     CONF_PLATFORM,
+    CONF_WEEKDAY,
     STATE_UNAVAILABLE,
     STATE_UNKNOWN,
+    WEEKDAYS,
+    EntityStateAttribute,
 )
 from homeassistant.core import (
     CALLBACK_TYPE,
@@ -65,7 +67,8 @@ _TIME_TRIGGER_SCHEMA = vol.Any(
     valid_at_template,
     msg=(
         "Expected HH:MM, HH:MM:SS, an Entity ID with domain 'input_datetime' or "
-        "'sensor', a combination of a timestamp sensor entity and an offset, or Limited Template"
+        "'sensor', a combination of a timestamp sensor entity"
+        " and an offset, or Limited Template"
     ),
 )
 
@@ -74,6 +77,10 @@ TRIGGER_SCHEMA = cv.TRIGGER_BASE_SCHEMA.extend(
     {
         vol.Required(CONF_PLATFORM): "time",
         vol.Required(CONF_AT): vol.All(cv.ensure_list, [_TIME_TRIGGER_SCHEMA]),
+        vol.Optional(CONF_WEEKDAY): vol.Any(
+            vol.In(WEEKDAYS),
+            vol.All(cv.ensure_list, [vol.In(WEEKDAYS)]),
+        ),
     }
 )
 
@@ -85,7 +92,7 @@ class TrackEntity(NamedTuple):
     callback: Callable
 
 
-async def async_attach_trigger(
+async def async_attach_trigger(  # noqa: C901
     hass: HomeAssistant,
     config: ConfigType,
     action: TriggerActionType,
@@ -103,6 +110,18 @@ async def async_attach_trigger(
         description: str, now: datetime, *, entity_id: str | None = None
     ) -> None:
         """Listen for time changes and calls action."""
+        # Check weekday filter if configured
+        if CONF_WEEKDAY in config:
+            weekday_config = config[CONF_WEEKDAY]
+            current_weekday = WEEKDAYS[now.weekday()]
+
+            # Check if current weekday matches the configuration
+            if isinstance(weekday_config, str):
+                if current_weekday != weekday_config:
+                    return
+            elif current_weekday not in weekday_config:
+                return
+
         hass.async_run_hass_job(
             job,
             {
@@ -205,8 +224,8 @@ async def async_attach_trigger(
                 )
         elif (
             new_state.domain == "sensor"
-            and new_state.attributes.get(ATTR_DEVICE_CLASS)
-            == sensor.SensorDeviceClass.TIMESTAMP
+            and new_state.attributes.get(EntityStateAttribute.DEVICE_CLASS)
+            in (sensor.SensorDeviceClass.TIMESTAMP, sensor.SensorDeviceClass.UPTIME)
             and new_state.state not in (STATE_UNAVAILABLE, STATE_UNKNOWN)
         ):
             trigger_dt = dt_util.parse_datetime(new_state.state)
@@ -238,17 +257,19 @@ async def async_attach_trigger(
                 at_time = _TIME_AT_SCHEMA(render)
             except vol.Invalid as exc:
                 raise HomeAssistantError(
-                    f"Limited Template for 'at' rendered a unexpected value '{render}', expected HH:MM, "
-                    f"HH:MM:SS or Entity ID with domain 'input_datetime' or 'sensor'"
+                    f"Limited Template for 'at' rendered a"
+                    f" unexpected value '{render}', expected"
+                    " HH:MM, HH:MM:SS or Entity ID with domain"
+                    " 'input_datetime' or 'sensor'"
                 ) from exc
 
         if isinstance(at_time, str):
             # entity
             update_entity_trigger(at_time, new_state=hass.states.get(at_time))
             to_track.append(TrackEntity(at_time, update_entity_trigger_event))
-        elif isinstance(at_time, dict) and CONF_OFFSET in at_time:
-            # entity with offset
-            entity_id: str = at_time.get(CONF_ENTITY_ID, "")
+        elif isinstance(at_time, dict):
+            # entity with optional offset
+            entity_id: str = at_time[CONF_ENTITY_ID]
             offset: timedelta = at_time.get(CONF_OFFSET, timedelta(0))
             update_entity_trigger(
                 entity_id, new_state=hass.states.get(entity_id), offset=offset

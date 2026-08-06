@@ -1,14 +1,12 @@
 """Deprecation helpers for Home Assistant."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from contextlib import suppress
 from enum import EnumType, IntEnum, IntFlag, StrEnum, _EnumDict
 import functools
 import inspect
 import logging
-from typing import Any, NamedTuple
+from typing import Any, NamedTuple, cast, override
 
 
 def deprecated_substitute[_ObjectT: object](
@@ -45,7 +43,7 @@ def deprecated_substitute[_ObjectT: object](
                         inspect.getfile(self.__class__),
                     )
                     warnings[module_name] = True
-                    setattr(func, "_deprecated_substitute_warnings", warnings)
+                    setattr(func, "_deprecated_substitute_warnings", warnings)  # noqa: B010
 
                 # Return the old property
                 return getattr(self, substitute_name)
@@ -88,27 +86,44 @@ def get_deprecated(
     return config.get(new_name, default)
 
 
-def deprecated_class[**_P, _R](
+def deprecated_class[_T](
     replacement: str, *, breaks_in_ha_version: str | None = None
-) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+) -> Callable[[type[_T]], type[_T]]:
     """Mark class as deprecated and provide a replacement class to be used instead.
 
     If the deprecated function was called from a custom integration, ask the user to
     report an issue.
     """
 
-    def deprecated_decorator(cls: Callable[_P, _R]) -> Callable[_P, _R]:
+    def deprecated_decorator(cls: type[_T]) -> type[_T]:
         """Decorate class as deprecated."""
+        base_meta = type(cls)
 
-        @functools.wraps(cls)
-        def deprecated_cls(*args: _P.args, **kwargs: _P.kwargs) -> _R:
-            """Wrap for the original class."""
+        def __call__(self: type[Any], *args: Any, **kwargs: Any) -> Any:
             _print_deprecation_warning(
                 cls, replacement, "class", "instantiated", breaks_in_ha_version
             )
-            return cls(*args, **kwargs)
+            return base_meta.__call__(self, *args, **kwargs)
 
-        return deprecated_cls
+        deprecated_meta = type(
+            f"Deprecated{base_meta.__name__}",
+            (base_meta,),
+            {"__call__": __call__},
+        )
+
+        deprecated_cls = deprecated_meta(
+            cls.__name__,
+            (cls,),
+            {
+                "__module__": cls.__module__,
+                "__qualname__": cls.__qualname__,
+                "__doc__": cls.__doc__,
+                "__slots__": (),
+                "__wrapped__": cls,
+            },
+        )
+
+        return cast(type[_T], deprecated_cls)
 
     return deprecated_decorator
 
@@ -136,6 +151,41 @@ def deprecated_function[**_P, _R](
         return deprecated_func
 
     return deprecated_decorator
+
+
+def deprecated_hass_argument[**_P, _T](
+    breaks_in_ha_version: str | None = None,
+) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
+    """Decorate function to indicate that first argument hass will be ignored."""
+
+    def _decorator(func: Callable[_P, _T]) -> Callable[_P, _T]:
+        @functools.wraps(func)
+        def _inner(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+            from homeassistant.core import HomeAssistant  # noqa: PLC0415
+
+            in_arg = len(args) > 0 and isinstance(args[0], HomeAssistant)
+            in_kwarg = "hass" in kwargs and isinstance(kwargs["hass"], HomeAssistant)
+
+            if in_arg or in_kwarg:
+                _print_deprecation_warning_internal(
+                    "hass",
+                    func.__module__,
+                    f"{func.__name__} without hass argument",
+                    "argument",
+                    f"passed to {func.__name__}",
+                    breaks_in_ha_version,
+                    log_when_no_integration_is_found=True,
+                )
+                if in_arg:
+                    args = args[1:]  # type: ignore[assignment]
+                if in_kwarg:
+                    kwargs.pop("hass")
+
+            return func(*args, **kwargs)
+
+        return _inner
+
+    return _decorator
 
 
 def _print_deprecation_warning(
@@ -190,15 +240,14 @@ def _print_deprecation_warning_internal_impl(
     *,
     log_when_no_integration_is_found: bool,
 ) -> None:
-    # pylint: disable=import-outside-toplevel
-    from homeassistant.core import async_get_hass_or_none
-    from homeassistant.loader import async_suggest_report_issue
+    from homeassistant.core import async_get_hass_or_none  # noqa: PLC0415
+    from homeassistant.loader import async_suggest_report_issue  # noqa: PLC0415
 
-    from .frame import MissingIntegrationFrame, get_integration_frame
+    from .frame import MissingIntegrationFrame, get_integration_frame  # noqa: PLC0415
 
     logger = logging.getLogger(module_name)
     if breaks_in_ha_version:
-        breaks_in = f" which will be removed in HA Core {breaks_in_ha_version}"
+        breaks_in = f" It will be removed in HA Core {breaks_in_ha_version}."
     else:
         breaks_in = ""
     try:
@@ -206,9 +255,10 @@ def _print_deprecation_warning_internal_impl(
     except MissingIntegrationFrame:
         if log_when_no_integration_is_found:
             logger.warning(
-                "%s is a deprecated %s%s. Use %s instead",
-                obj_name,
+                "The deprecated %s %s was %s.%s Use %s instead",
                 description,
+                obj_name,
+                verb,
                 breaks_in,
                 replacement,
             )
@@ -220,25 +270,22 @@ def _print_deprecation_warning_internal_impl(
                 module=integration_frame.module,
             )
             logger.warning(
-                (
-                    "%s was %s from %s, this is a deprecated %s%s. Use %s instead,"
-                    " please %s"
-                ),
+                ("The deprecated %s %s was %s from %s.%s Use %s instead, please %s"),
+                description,
                 obj_name,
                 verb,
                 integration_frame.integration,
-                description,
                 breaks_in,
                 replacement,
                 report_issue,
             )
         else:
             logger.warning(
-                "%s was %s from %s, this is a deprecated %s%s. Use %s instead",
+                "The deprecated %s %s was %s from %s.%s Use %s instead",
+                description,
                 obj_name,
                 verb,
                 integration_frame.integration,
-                description,
                 breaks_in,
                 replacement,
             )
@@ -369,7 +416,7 @@ class EnumWithDeprecatedMembers(EnumType):
     """Enum with deprecated members."""
 
     def __new__(
-        mcs,  # noqa: N804  ruff bug, ruff does not understand this is a metaclass
+        mcs,
         cls: str,
         bases: tuple[type, ...],
         classdict: _EnumDict,
@@ -381,6 +428,7 @@ class EnumWithDeprecatedMembers(EnumType):
         classdict["__deprecated__"] = deprecated
         return super().__new__(mcs, cls, bases, classdict, **kwds)
 
+    @override
     def __getattribute__(cls, name: str) -> Any:
         """Warn if accessing a deprecated member."""
         deprecated = super().__getattribute__("__deprecated__")

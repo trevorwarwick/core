@@ -1,14 +1,17 @@
 """Config flow for 1-Wire component."""
 
-from __future__ import annotations
-
 from copy import deepcopy
-from typing import Any
+from typing import Any, override
 
-from pyownet import protocol
+from aio_ownet.exceptions import OWServerConnectionError
+from aio_ownet.proxy import OWServerStatelessProxy
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import config_validation as cv, device_registry as dr
@@ -41,11 +44,10 @@ async def validate_input(
     hass: HomeAssistant, data: dict[str, Any], errors: dict[str, str]
 ) -> None:
     """Validate the user input allows us to connect."""
+    proxy = OWServerStatelessProxy(data[CONF_HOST], data[CONF_PORT])
     try:
-        await hass.async_add_executor_job(
-            protocol.proxy, data[CONF_HOST], data[CONF_PORT]
-        )
-    except protocol.ConnError:
+        await proxy.validate()
+    except OWServerConnectionError:
         errors["base"] = "cannot_connect"
 
 
@@ -55,6 +57,7 @@ class OneWireFlowHandler(ConfigFlow, domain=DOMAIN):
     VERSION = 1
     _discovery_data: dict[str, Any]
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -103,6 +106,7 @@ class OneWireFlowHandler(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_hassio(
         self, discovery_info: HassioServiceInfo
     ) -> ConfigFlowResult:
@@ -116,6 +120,7 @@ class OneWireFlowHandler(ConfigFlow, domain=DOMAIN):
         }
         return await self.async_step_discovery_confirm()
 
+    @override
     async def async_step_zeroconf(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:
@@ -153,6 +158,7 @@ class OneWireFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: OneWireConfigEntry,
     ) -> OnewireOptionsFlowHandler:
@@ -160,7 +166,7 @@ class OneWireFlowHandler(ConfigFlow, domain=DOMAIN):
         return OnewireOptionsFlowHandler(config_entry)
 
 
-class OnewireOptionsFlowHandler(OptionsFlow):
+class OnewireOptionsFlowHandler(OptionsFlowWithReload):
     """Handle OneWire Config options."""
 
     configurable_devices: dict[str, str]
@@ -234,12 +240,7 @@ class OnewireOptionsFlowHandler(OptionsFlow):
                         INPUT_ENTRY_DEVICE_SELECTION,
                         default=self._get_current_configured_sensors(),
                         description="Multiselect with list of devices to choose from",
-                    ): cv.multi_select(
-                        {
-                            friendly_name: False
-                            for friendly_name in self.configurable_devices
-                        }
-                    ),
+                    ): cv.multi_select(dict.fromkeys(self.configurable_devices, False)),
                 }
             ),
             errors=errors,

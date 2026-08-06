@@ -1,9 +1,7 @@
 """Support for the SamsungTV remote."""
 
-from __future__ import annotations
-
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, override
 
 from homeassistant.components.remote import ATTR_NUM_REPEATS, RemoteEntity
 from homeassistant.core import HomeAssistant, callback
@@ -12,6 +10,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import LOGGER
 from .coordinator import SamsungTVConfigEntry
 from .entity import SamsungTVEntity
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -30,15 +31,13 @@ class SamsungTVRemote(SamsungTVEntity, RemoteEntity):
     _attr_name = None
 
     @callback
+    @override
     def _handle_coordinator_update(self) -> None:
         """Handle data update."""
         self._attr_is_on = self.coordinator.is_on
         self.async_write_ha_state()
 
-    async def async_turn_off(self, **kwargs: Any) -> None:
-        """Turn the device off."""
-        await super()._async_turn_off()
-
+    @override
     async def async_send_command(self, command: Iterable[str], **kwargs: Any) -> None:
         """Send a command to a device.
 
@@ -54,7 +53,3 @@ class SamsungTVRemote(SamsungTVEntity, RemoteEntity):
 
         for _ in range(num_repeats):
             await self._bridge.async_send_keys(command_list)
-
-    async def async_turn_on(self, **kwargs: Any) -> None:
-        """Turn the remote on."""
-        await super()._async_turn_on()

@@ -1,27 +1,33 @@
 """Support for Vodafone Station routers."""
 
-from __future__ import annotations
+from typing import override
 
 from homeassistant.components.device_tracker import ScannerEntity
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import _LOGGER, DOMAIN
-from .coordinator import VodafoneStationDeviceInfo, VodafoneStationRouter
+from .const import LOGGER
+from .coordinator import (
+    VodafoneConfigEntry,
+    VodafoneStationDeviceInfo,
+    VodafoneStationRouter,
+)
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: VodafoneConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up device tracker for Vodafone Station component."""
 
-    _LOGGER.debug("Start device trackers setup")
-    coordinator: VodafoneStationRouter = hass.data[DOMAIN][entry.entry_id]
+    LOGGER.debug("Start device trackers setup")
+    coordinator = entry.runtime_data
 
     tracked: set = set()
 
@@ -48,11 +54,11 @@ def async_add_new_tracked_entities(
     """Add new tracker entities from the router."""
     new_tracked = []
 
-    _LOGGER.debug("Adding device trackers entities")
+    LOGGER.debug("Adding device trackers entities")
     for mac, device_info in coordinator.data.devices.items():
         if mac in tracked:
             continue
-        _LOGGER.debug("New device tracker: %s", device_info.device.name)
+        LOGGER.debug("New device tracker: %s", device_info.device.name)
         new_tracked.append(VodafoneStationTracker(coordinator, device_info))
         tracked.add(mac)
 
@@ -85,11 +91,13 @@ class VodafoneStationTracker(CoordinatorEntity[VodafoneStationRouter], ScannerEn
         return self.coordinator.data.devices[self.mac_address]
 
     @property
+    @override
     def is_connected(self) -> bool:
         """Return true if the device is connected to the network."""
         return self._device_info.home
 
     @property
+    @override
     def ip_address(self) -> str | None:
         """Return the primary ip address of the device."""
         return self._device_info.device.ip_address

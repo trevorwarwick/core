@@ -1,7 +1,5 @@
 """Support for recording details."""
 
-from __future__ import annotations
-
 import logging
 from typing import Any
 
@@ -25,7 +23,6 @@ from homeassistant.helpers.integration_platform import (
 )
 from homeassistant.helpers.recorder import DATA_INSTANCE
 from homeassistant.helpers.typing import ConfigType
-from homeassistant.loader import bind_hass
 from homeassistant.util.event_type import EventType
 
 # Pre-import backup to avoid it being imported
@@ -33,6 +30,7 @@ from homeassistant.util.event_type import EventType
 # startup
 from . import (
     backup,  # noqa: F401
+    entity_options,
     entity_registry,
     websocket_api,
 )
@@ -45,7 +43,8 @@ from .const import (  # noqa: F401
     SupportedDialect,
 )
 from .core import Recorder
-from .services import async_register_services
+from .entity_options import is_entity_recorded  # noqa: F401
+from .services import async_setup_services
 from .tasks import AddRecorderPlatformTask
 from .util import get_instance
 
@@ -128,16 +127,6 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-@bind_hass
-def is_entity_recorded(hass: HomeAssistant, entity_id: str) -> bool:
-    """Check if an entity is being recorded.
-
-    Async friendly.
-    """
-    instance = get_instance(hass)
-    return instance.entity_filter is None or instance.entity_filter(entity_id)
-
-
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the recorder."""
     conf = config[DOMAIN]
@@ -149,9 +138,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     commit_interval = conf[CONF_COMMIT_INTERVAL]
     db_max_retries = conf[CONF_DB_MAX_RETRIES]
     db_retry_wait = conf[CONF_DB_RETRY_WAIT]
-    db_url = conf.get(CONF_DB_URL) or DEFAULT_URL.format(
-        hass_config_path=hass.config.path(DEFAULT_DB_FILE)
-    )
+    db_url = conf.get(CONF_DB_URL) or get_default_url(hass)
     exclude = conf[CONF_EXCLUDE]
     exclude_event_types: set[EventType[Any] | str] = set(
         exclude.get(CONF_EVENT_TYPES, [])
@@ -172,12 +159,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         exclude_event_types=exclude_event_types,
     )
     get_instance.cache_clear()
+    entity_registry.async_setup(hass)
+    entity_options.async_setup(hass)
     instance.async_initialize()
     instance.async_register()
     instance.start()
-    async_register_services(hass, instance)
+    async_setup_services(hass)
     websocket_api.async_setup(hass)
-    entity_registry.async_setup(hass)
 
     await _async_setup_integration_platform(hass, instance)
 
@@ -200,3 +188,8 @@ async def _async_setup_integration_platform(
             instance.queue_task(AddRecorderPlatformTask(domain, platform))
 
     await async_process_integration_platforms(hass, DOMAIN, _process_recorder_platform)
+
+
+def get_default_url(hass: HomeAssistant) -> str:
+    """Return the default URL."""
+    return DEFAULT_URL.format(hass_config_path=hass.config.path(DEFAULT_DB_FILE))

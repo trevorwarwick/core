@@ -1,8 +1,6 @@
 """Config flow to configure the Whois integration."""
 
-from __future__ import annotations
-
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 import whois
@@ -11,6 +9,8 @@ from whois.exceptions import (
     UnknownDateFormat,
     UnknownTld,
     WhoisCommandFailed,
+    WhoisPrivateRegistry,
+    WhoisQuotaExceeded,
 )
 
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
@@ -26,6 +26,7 @@ class WhoisFlowHandler(ConfigFlow, domain=DOMAIN):
 
     imported_name: str | None = None
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -48,6 +49,10 @@ class WhoisFlowHandler(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "unexpected_response"
             except UnknownDateFormat:
                 errors["base"] = "unknown_date_format"
+            except WhoisPrivateRegistry:
+                errors["base"] = "private_registry"
+            except WhoisQuotaExceeded:
+                errors["base"] = "quota_exceeded"
             else:
                 return self.async_create_entry(
                     title=self.imported_name or user_input[CONF_DOMAIN],

@@ -1,12 +1,10 @@
 """Support for the Xiaomi IR Remote (Chuangmi IR)."""
 
-from __future__ import annotations
-
 import asyncio
 from datetime import timedelta
 import logging
 import time
-from typing import Any
+from typing import Any, override
 
 from miio import ChuangmiIr, DeviceException
 import voluptuous as vol
@@ -187,23 +185,13 @@ class XiaomiMiioRemote(RemoteEntity):
 
     def __init__(self, friendly_name, device, unique_id, slot, timeout, commands):
         """Initialize the remote."""
-        self._name = friendly_name
+        self._attr_name = friendly_name
         self._device = device
-        self._unique_id = unique_id
+        self._attr_unique_id = unique_id
         self._slot = slot
         self._timeout = timeout
         self._state = False
         self._commands = commands
-
-    @property
-    def unique_id(self):
-        """Return an unique ID."""
-        return self._unique_id
-
-    @property
-    def name(self):
-        """Return the name of the remote."""
-        return self._name
 
     @property
     def device(self):
@@ -221,7 +209,8 @@ class XiaomiMiioRemote(RemoteEntity):
         return self._timeout
 
     @property
-    def is_on(self):
+    @override
+    def is_on(self) -> bool:
         """Return False if device is unreachable, else True."""
         try:
             self.device.info()
@@ -229,6 +218,7 @@ class XiaomiMiioRemote(RemoteEntity):
             return False
         return True
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the device on."""
         _LOGGER.error(
@@ -236,6 +226,7 @@ class XiaomiMiioRemote(RemoteEntity):
             "please use 'remote.send_command' to send commands"
         )
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
         _LOGGER.error(
@@ -253,6 +244,7 @@ class XiaomiMiioRemote(RemoteEntity):
                 "Transmit of IR command failed, %s, exception: %s", payload, ex
             )
 
+    @override
     def send_command(self, command, **kwargs):
         """Send a command."""
         num_repeats = kwargs.get(ATTR_NUM_REPEATS)

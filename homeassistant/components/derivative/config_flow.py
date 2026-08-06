@@ -1,21 +1,14 @@
 """Config flow for Derivative integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import Any, cast
+from typing import Any, cast, override
 
 import voluptuous as vol
 
 from homeassistant.components.counter import DOMAIN as COUNTER_DOMAIN
 from homeassistant.components.input_number import DOMAIN as INPUT_NUMBER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
-from homeassistant.const import (
-    ATTR_UNIT_OF_MEASUREMENT,
-    CONF_NAME,
-    CONF_SOURCE,
-    UnitOfTime,
-)
+from homeassistant.const import CONF_NAME, CONF_SOURCE, EntityStateAttribute, UnitOfTime
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.schema_config_entry_flow import (
@@ -26,6 +19,7 @@ from homeassistant.helpers.schema_config_entry_flow import (
 )
 
 from .const import (
+    CONF_MAX_SUB_INTERVAL,
     CONF_ROUND_DIGITS,
     CONF_TIME_WINDOW,
     CONF_UNIT_PREFIX,
@@ -35,7 +29,7 @@ from .const import (
 
 UNIT_PREFIXES = [
     selector.SelectOptionDict(value="n", label="n (nano)"),
-    selector.SelectOptionDict(value="µ", label="µ (micro)"),
+    selector.SelectOptionDict(value="μ", label="μ (micro)"),
     selector.SelectOptionDict(value="m", label="m (milli)"),
     selector.SelectOptionDict(value="k", label="k (kilo)"),
     selector.SelectOptionDict(value="M", label="M (mega)"),
@@ -60,13 +54,16 @@ def entity_selector_compatible(
     """Return an entity selector which compatible entities."""
     current = handler.hass.states.get(handler.options[CONF_SOURCE])
     unit_of_measurement = (
-        current.attributes.get(ATTR_UNIT_OF_MEASUREMENT) if current else None
+        current.attributes.get(EntityStateAttribute.UNIT_OF_MEASUREMENT)
+        if current
+        else None
     )
 
     entities = [
         ent.entity_id
         for ent in handler.hass.states.async_all(ALLOWED_DOMAINS)
-        if ent.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == unit_of_measurement
+        if ent.attributes.get(EntityStateAttribute.UNIT_OF_MEASUREMENT)
+        == unit_of_measurement
         and ent.domain in ALLOWED_DOMAINS
     ]
 
@@ -93,6 +90,7 @@ async def _get_options_dict(handler: SchemaCommonFlowHandler | None) -> dict:
                 max=6,
                 mode=selector.NumberSelectorMode.BOX,
                 unit_of_measurement="decimals",
+                translation_key="round",
             ),
         ),
         vol.Required(CONF_TIME_WINDOW): selector.DurationSelector(),
@@ -103,6 +101,9 @@ async def _get_options_dict(handler: SchemaCommonFlowHandler | None) -> dict:
             selector.SelectSelectorConfig(
                 options=TIME_UNITS, translation_key="time_unit"
             ),
+        ),
+        vol.Optional(CONF_MAX_SUB_INTERVAL): selector.DurationSelector(
+            selector.DurationSelectorConfig(allow_negative=False)
         ),
     }
 
@@ -135,7 +136,12 @@ class ConfigFlowHandler(SchemaConfigFlowHandler, domain=DOMAIN):
 
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW
+    options_flow_reloads = True
 
+    VERSION = 1
+    MINOR_VERSION = 4
+
+    @override
     def async_config_entry_title(self, options: Mapping[str, Any]) -> str:
         """Return config entry title."""
         return cast(str, options[CONF_NAME])

@@ -1,11 +1,9 @@
 """Binary Sensor platform for Sensibo integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, override
 
 from pysensibo.model import MotionSensor, SensiboDevice
 
@@ -130,9 +128,10 @@ async def async_setup_entry(
         """Handle additions of devices and sensors."""
         entities: list[SensiboMotionSensor | SensiboDeviceSensor] = []
         nonlocal added_devices
-        new_devices, remove_devices, added_devices = coordinator.get_devices(
+        new_devices, remove_devices, new_added_devices = coordinator.get_devices(
             added_devices
         )
+        added_devices = new_added_devices
 
         if LOGGER.isEnabledFor(logging.DEBUG):
             LOGGER.debug(
@@ -168,8 +167,7 @@ async def async_setup_entry(
                     device_data.model, DEVICE_SENSOR_TYPES
                 )
             )
-
-        async_add_entities(entities)
+            async_add_entities(entities)
 
     entry.async_on_unload(coordinator.async_add_listener(_add_remove_devices))
     _add_remove_devices()
@@ -199,6 +197,7 @@ class SensiboMotionSensor(SensiboMotionBaseEntity, BinarySensorEntity):
         self._attr_unique_id = f"{sensor_id}-{entity_description.key}"
 
     @property
+    @override
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         if TYPE_CHECKING:
@@ -226,6 +225,7 @@ class SensiboDeviceSensor(SensiboDeviceBaseEntity, BinarySensorEntity):
         self._attr_unique_id = f"{device_id}-{entity_description.key}"
 
     @property
+    @override
     def is_on(self) -> bool | None:
         """Return true if the binary sensor is on."""
         return self.entity_description.value_fn(self.device_data)

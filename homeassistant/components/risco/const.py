@@ -24,15 +24,16 @@ CONF_RISCO_STATES_TO_HA = "risco_states_to_ha"
 CONF_HA_STATES_TO_RISCO = "ha_states_to_risco"
 CONF_COMMUNICATION_DELAY = "communication_delay"
 CONF_CONCURRENCY = "concurrency"
+CONF_MORE_OPTIONS = "more_options"
 
 RISCO_GROUPS = ["A", "B", "C", "D"]
 RISCO_ARM = "arm"
 RISCO_PARTIAL_ARM = "partial_arm"
 RISCO_STATES = [RISCO_ARM, RISCO_PARTIAL_ARM, *RISCO_GROUPS]
 
-DEFAULT_RISCO_GROUPS_TO_HA = {
-    group: AlarmControlPanelState.ARMED_HOME for group in RISCO_GROUPS
-}
+DEFAULT_RISCO_GROUPS_TO_HA = dict.fromkeys(
+    RISCO_GROUPS, AlarmControlPanelState.ARMED_HOME
+)
 DEFAULT_RISCO_STATES_TO_HA = {
     RISCO_ARM: AlarmControlPanelState.ARMED_AWAY,
     RISCO_PARTIAL_ARM: AlarmControlPanelState.ARMED_HOME,
@@ -55,3 +56,5 @@ DEFAULT_ADVANCED_OPTIONS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_CONCURRENCY: DEFAULT_CONCURRENCY,
 }
+
+SERVICE_SET_TIME = "set_time"

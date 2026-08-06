@@ -1,11 +1,9 @@
 """Get WHOIS information for a given host."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import cast
+from typing import cast, override
 
 from whois import Domain
 
@@ -14,18 +12,22 @@ from homeassistant.components.sensor import (
     SensorEntity,
     SensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DOMAIN, EntityCategory, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.update_coordinator import (
-    CoordinatorEntity,
-    DataUpdateCoordinator,
-)
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import dt as dt_util
 
-from .const import ATTR_EXPIRES, ATTR_NAME_SERVERS, ATTR_REGISTRAR, ATTR_UPDATED, DOMAIN
+from .const import (
+    ATTR_EXPIRES,
+    ATTR_NAME_SERVERS,
+    ATTR_REGISTRAR,
+    ATTR_UPDATED,
+    DOMAIN,
+    STATUS_TYPES,
+)
+from .coordinator import WhoisConfigEntry, WhoisCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -56,6 +58,26 @@ def _ensure_timezone(timestamp: datetime | None) -> datetime | None:
         return timestamp.replace(tzinfo=UTC)
 
     return timestamp
+
+
+def _get_status_type(status: str | None) -> str | None:
+    """Get the status type from the status string.
+
+    Return the status type in snake_case for translations.
+
+    E.g: "clientDeleteProhibited https://icann.org/epp#clientDeleteProhibited"
+    -> "client_delete_prohibited".
+    """
+    if status is None:
+        return None
+
+    # If the status is not in the STATUS_TYPES, return the status as is.
+    for icann_status, hass_status in STATUS_TYPES.items():
+        if icann_status in status:
+            return hass_status
+
+    # If the status is not in the STATUS_TYPES, return None.
+    return None
 
 
 SENSORS: tuple[WhoisSensorEntityDescription, ...] = (
@@ -112,7 +134,7 @@ SENSORS: tuple[WhoisSensorEntityDescription, ...] = (
         translation_key="registrar",
         entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
-        value_fn=lambda domain: domain.registrar if domain.registrar else None,
+        value_fn=lambda domain: domain.registrar or None,
     ),
     WhoisSensorEntityDescription(
         key="reseller",
@@ -121,18 +143,25 @@ SENSORS: tuple[WhoisSensorEntityDescription, ...] = (
         entity_registry_enabled_default=False,
         value_fn=lambda domain: getattr(domain, "reseller", None),
     ),
+    WhoisSensorEntityDescription(
+        key="status",
+        translation_key="status",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        device_class=SensorDeviceClass.ENUM,
+        options=list(STATUS_TYPES.values()),
+        entity_registry_enabled_default=False,
+        value_fn=lambda domain: _get_status_type(domain.status),
+    ),
 )
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: WhoisConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the platform from config_entry."""
-    coordinator: DataUpdateCoordinator[Domain | None] = hass.data[DOMAIN][
-        entry.entry_id
-    ]
+    coordinator = entry.runtime_data
     async_add_entities(
         [
             WhoisSensorEntity(
@@ -145,9 +174,7 @@ async def async_setup_entry(
     )
 
 
-class WhoisSensorEntity(
-    CoordinatorEntity[DataUpdateCoordinator[Domain | None]], SensorEntity
-):
+class WhoisSensorEntity(CoordinatorEntity[WhoisCoordinator], SensorEntity):
     """Implementation of a WHOIS sensor."""
 
     entity_description: WhoisSensorEntityDescription
@@ -155,7 +182,7 @@ class WhoisSensorEntity(
 
     def __init__(
         self,
-        coordinator: DataUpdateCoordinator[Domain | None],
+        coordinator: WhoisCoordinator,
         description: WhoisSensorEntityDescription,
         domain: str,
     ) -> None:
@@ -171,6 +198,7 @@ class WhoisSensorEntity(
         self._domain = domain
 
     @property
+    @override
     def native_value(self) -> datetime | int | str | None:
         """Return the state of the sensor."""
         if self.coordinator.data is None:
@@ -178,6 +206,7 @@ class WhoisSensorEntity(
         return self.entity_description.value_fn(self.coordinator.data)
 
     @property
+    @override
     def extra_state_attributes(self) -> dict[str, int | float | None] | None:
         """Return the state attributes of the monitored installation."""
 

@@ -2,6 +2,7 @@
 
 from asyncio import timeout
 import logging
+from typing import override
 
 from brother import Brother, BrotherSensors, SnmpError, UnsupportedModelError
 
@@ -26,6 +27,7 @@ class BrotherDataUpdateCoordinator(DataUpdateCoordinator[BrotherSensors]):
     ) -> None:
         """Initialize."""
         self.brother = brother
+        self.device_name = config_entry.title
 
         super().__init__(
             hass,
@@ -35,11 +37,19 @@ class BrotherDataUpdateCoordinator(DataUpdateCoordinator[BrotherSensors]):
             update_interval=UPDATE_INTERVAL,
         )
 
+    @override
     async def _async_update_data(self) -> BrotherSensors:
         """Update data via library."""
         try:
             async with timeout(20):
                 data = await self.brother.async_update()
         except (ConnectionError, SnmpError, UnsupportedModelError) as error:
-            raise UpdateFailed(error) from error
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_error",
+                translation_placeholders={
+                    "device": self.device_name,
+                    "error": repr(error),
+                },
+            ) from error
         return data

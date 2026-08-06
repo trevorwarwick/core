@@ -1,7 +1,5 @@
 """Manifest validation."""
 
-from __future__ import annotations
-
 from enum import StrEnum, auto
 import json
 from pathlib import Path
@@ -19,8 +17,9 @@ from voluptuous.humanize import humanize_error
 
 from homeassistant.const import Platform
 from homeassistant.helpers import config_validation as cv
+from script.util import sort_manifest as util_sort_manifest
 
-from .model import Config, Integration, ScaledQualityScaleTiers
+from .model import Config, Integration, IntegrationType, ScaledQualityScaleTiers
 
 DOCUMENTATION_URL_SCHEMA = "https"
 DOCUMENTATION_URL_HOST = "www.home-assistant.io"
@@ -60,7 +59,9 @@ NO_IOT_CLASS = [
     "application_credentials",
     "auth",
     "automation",
+    "battery",
     "blueprint",
+    "brands",
     "color_extractor",
     "config",
     "configurator",
@@ -69,19 +70,26 @@ NO_IOT_CLASS = [
     "device_automation",
     "device_tracker",
     "diagnostics",
+    "door",
+    "doorbell",
     "downloader",
     "ffmpeg",
     "file_upload",
     "frontend",
+    "garage_door",
+    "gate",
     "hardkernel",
     "hardware",
     "history",
     "homeassistant",
     "homeassistant_alerts",
+    "homeassistant_connect_zbt2",
     "homeassistant_green",
     "homeassistant_hardware",
     "homeassistant_sky_connect",
     "homeassistant_yellow",
+    "humidity",
+    "illuminance",
     "image_upload",
     "input_boolean",
     "input_button",
@@ -95,10 +103,14 @@ NO_IOT_CLASS = [
     "logger",
     "lovelace",
     "media_source",
+    "moisture",
+    "motion",
     "my",
+    "occupancy",
     "onboarding",
     "panel_custom",
     "plant",
+    "power",
     "profiler",
     "proxy",
     "python_script",
@@ -111,10 +123,14 @@ NO_IOT_CLASS = [
     "system_health",
     "system_log",
     "tag",
+    "temperature",
     "timer",
     "trace",
+    "vibration",
+    "web_rtc",
     "webhook",
     "websocket_api",
+    "window",
     "zone",
 ]
 
@@ -190,15 +206,7 @@ INTEGRATION_MANIFEST_SCHEMA = vol.Schema(
         vol.Required("domain"): str,
         vol.Required("name"): str,
         vol.Optional("integration_type", default="hub"): vol.In(
-            [
-                "device",
-                "entity",
-                "hardware",
-                "helper",
-                "hub",
-                "service",
-                "system",
-            ]
+            [t.value for t in IntegrationType if t != IntegrationType.VIRTUAL]
         ),
         vol.Optional("config_flow"): bool,
         vol.Optional("mqtt"): [str],
@@ -277,6 +285,17 @@ INTEGRATION_MANIFEST_SCHEMA = vol.Schema(
         vol.Optional("disabled"): str,
         vol.Optional("iot_class"): vol.In(SUPPORTED_IOT_CLASSES),
         vol.Optional("single_config_entry"): bool,
+        vol.Optional("preview_features"): vol.Schema(
+            {
+                cv.slug: vol.Schema(
+                    {
+                        vol.Optional("feedback_url"): vol.Url(),
+                        vol.Optional("learn_more_url"): vol.Url(),
+                        vol.Optional("report_issue_url"): vol.Url(),
+                    }
+                )
+            }
+        ),
     }
 )
 
@@ -284,7 +303,7 @@ VIRTUAL_INTEGRATION_MANIFEST_SCHEMA = vol.Schema(
     {
         vol.Required("domain"): str,
         vol.Required("name"): str,
-        vol.Required("integration_type"): "virtual",
+        vol.Required("integration_type"): IntegrationType.VIRTUAL.value,
         vol.Exclusive("iot_standards", "virtual_integration"): [
             vol.Any("homekit", "zigbee", "zwave")
         ],
@@ -295,7 +314,7 @@ VIRTUAL_INTEGRATION_MANIFEST_SCHEMA = vol.Schema(
 
 def manifest_schema(value: dict[str, Any]) -> vol.Schema:
     """Validate integration manifest."""
-    if value.get("integration_type") == "virtual":
+    if value.get("integration_type") == IntegrationType.VIRTUAL:
         return VIRTUAL_INTEGRATION_MANIFEST_SCHEMA(value)
     return INTEGRATION_MANIFEST_SCHEMA(value)
 
@@ -346,12 +365,12 @@ def validate_manifest(integration: Integration, core_components_dir: Path) -> No
     if (
         domain not in NO_IOT_CLASS
         and "iot_class" not in integration.manifest
-        and integration.manifest.get("integration_type") != "virtual"
+        and integration.integration_type != IntegrationType.VIRTUAL
     ):
         integration.add_error("manifest", "Domain is missing an IoT Class")
 
     if (
-        integration.manifest.get("integration_type") == "virtual"
+        integration.integration_type == IntegrationType.VIRTUAL
         and (supported_by := integration.manifest.get("supported_by"))
         and not (core_components_dir / supported_by).exists()
     ):
@@ -376,20 +395,20 @@ def validate_manifest(integration: Integration, core_components_dir: Path) -> No
         validate_version(integration)
 
 
-_SORT_KEYS = {"domain": ".domain", "name": ".name"}
-
-
-def _sort_manifest_keys(key: str) -> str:
-    return _SORT_KEYS.get(key, key)
-
-
 def sort_manifest(integration: Integration, config: Config) -> bool:
     """Sort manifest."""
-    keys = list(integration.manifest.keys())
-    if (keys_sorted := sorted(keys, key=_sort_manifest_keys)) != keys:
-        manifest = {key: integration.manifest[key] for key in keys_sorted}
+    if integration.manifest_path is None:
+        integration.add_error(
+            "manifest",
+            "Manifest path not set, unable to sort manifest keys",
+        )
+        return False
+
+    if util_sort_manifest(integration.manifest):
         if config.action == "generate":
-            integration.manifest_path.write_text(json.dumps(manifest, indent=2))
+            integration.manifest_path.write_text(
+                json.dumps(integration.manifest, indent=2) + "\n"
+            )
             text = "have been sorted"
         else:
             text = "are not sorted correctly"
@@ -413,7 +432,7 @@ def validate(integrations: dict[str, Integration], config: Config) -> None:
     if config.action == "generate" and manifests_resorted:
         subprocess.run(
             [
-                "pre-commit",
+                "prek",
                 "run",
                 "--hook-stage",
                 "manual",

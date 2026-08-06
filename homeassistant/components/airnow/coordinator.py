@@ -2,13 +2,13 @@
 
 from datetime import timedelta
 import logging
-from typing import Any
+from typing import Any, override
 
 from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientConnectorError
 from pyairnow import WebServiceAPI
 from pyairnow.conv import aqi_to_concentration
-from pyairnow.errors import AirNowError
+from pyairnow.errors import AirNowError, InvalidJsonError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -51,13 +51,11 @@ class AirNowDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         api_key: str,
         latitude: float,
         longitude: float,
-        distance: int,
         update_interval: timedelta,
     ) -> None:
         """Initialize."""
         self.latitude = latitude
         self.longitude = longitude
-        self.distance = distance
 
         self.airnow = WebServiceAPI(api_key, session=session)
 
@@ -69,17 +67,17 @@ class AirNowDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=update_interval,
         )
 
+    @override
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library."""
-        data = {}
+        data: dict[str, Any] = {}
         try:
             obs = await self.airnow.observations.latLong(
                 self.latitude,
                 self.longitude,
-                distance=self.distance,
             )
 
-        except (AirNowError, ClientConnectorError) as error:
+        except (AirNowError, ClientConnectorError, InvalidJsonError) as error:
             raise UpdateFailed(error) from error
 
         if not obs:

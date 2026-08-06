@@ -1,11 +1,9 @@
 """Flo device object."""
 
-from __future__ import annotations
-
 import asyncio
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Any
+from typing import Any, override
 
 from aioflo.api import API
 from aioflo.errors import RequestError
@@ -16,7 +14,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
-from .const import DOMAIN as FLO_DOMAIN, LOGGER
+from .const import DOMAIN, LOGGER
 
 type FloConfigEntry = ConfigEntry[FloRuntimeData]
 
@@ -55,10 +53,11 @@ class FloDeviceDataUpdateCoordinator(DataUpdateCoordinator):
             hass,
             LOGGER,
             config_entry=config_entry,
-            name=f"{FLO_DOMAIN}-{device_id}",
+            name=f"{DOMAIN}-{device_id}",
             update_interval=timedelta(seconds=60),
         )
 
+    @override
     async def _async_update_data(self):
         """Update data via library."""
         try:
@@ -190,7 +189,7 @@ class FloDeviceDataUpdateCoordinator(DataUpdateCoordinator):
         return bool(
             self.pending_info_alerts_count
             or self.pending_warning_alerts_count
-            or self.pending_warning_alerts_count
+            or self.pending_critical_alerts_count
         )
 
     @property

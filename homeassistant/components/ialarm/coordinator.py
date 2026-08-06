@@ -1,9 +1,8 @@
 """Coordinator for the iAlarm integration."""
 
-from __future__ import annotations
-
 import asyncio
 import logging
+from typing import override
 
 from pyialarm import IAlarm
 
@@ -19,14 +18,20 @@ from .const import DOMAIN, IALARM_TO_HASS
 
 _LOGGER = logging.getLogger(__name__)
 
+type IAlarmConfigEntry = ConfigEntry[IAlarmDataUpdateCoordinator]
+
 
 class IAlarmDataUpdateCoordinator(DataUpdateCoordinator[None]):
     """Class to manage fetching iAlarm data."""
 
-    config_entry: ConfigEntry
+    config_entry: IAlarmConfigEntry
 
     def __init__(
-        self, hass: HomeAssistant, config_entry: ConfigEntry, ialarm: IAlarm, mac: str
+        self,
+        hass: HomeAssistant,
+        config_entry: IAlarmConfigEntry,
+        ialarm: IAlarm,
+        mac: str,
     ) -> None:
         """Initialize global iAlarm data updater."""
         self.ialarm = ialarm
@@ -49,6 +54,7 @@ class IAlarmDataUpdateCoordinator(DataUpdateCoordinator[None]):
 
         self.state = IALARM_TO_HASS.get(status)
 
+    @override
     async def _async_update_data(self) -> None:
         """Fetch data from iAlarm."""
         try:

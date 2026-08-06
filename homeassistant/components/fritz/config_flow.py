@@ -1,12 +1,9 @@
 """Config flow to configure the FRITZ!Box Tools integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
 import ipaddress
-import logging
 import socket
-from typing import Any, Self
+from typing import Any, Self, override
 from urllib.parse import ParseResult, urlparse
 
 from fritzconnection import FritzConnection
@@ -17,7 +14,11 @@ from homeassistant.components.device_tracker import (
     CONF_CONSIDER_HOME,
     DEFAULT_CONSIDER_HOME,
 )
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import (
     CONF_HOST,
     CONF_PASSWORD,
@@ -32,10 +33,11 @@ from homeassistant.helpers.service_info.ssdp import (
     ATTR_UPNP_UDN,
     SsdpServiceInfo,
 )
-from homeassistant.helpers.typing import VolDictType
 
 from .const import (
+    CONF_FEATURE_DEVICE_TRACKING,
     CONF_OLD_DISCOVERY,
+    DEFAULT_CONF_FEATURE_DEVICE_TRACKING,
     DEFAULT_CONF_OLD_DISCOVERY,
     DEFAULT_HOST,
     DEFAULT_HTTP_PORT,
@@ -47,10 +49,9 @@ from .const import (
     ERROR_UNKNOWN,
     ERROR_UPNP_NOT_CONFIGURED,
     FRITZ_AUTH_EXCEPTIONS,
+    LOGGER,
 )
 from .coordinator import FritzConfigEntry
-
-_LOGGER = logging.getLogger(__name__)
 
 
 class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
@@ -62,6 +63,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: FritzConfigEntry,
     ) -> FritzBoxToolsOptionsFlowHandler:
@@ -72,7 +74,8 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         """Initialize FRITZ!Box Tools flow."""
         self._name: str = ""
         self._password: str = ""
-        self._use_tls: bool = False
+        self._use_tls: bool = DEFAULT_SSL
+        self._feature_device_discovery: bool = DEFAULT_CONF_FEATURE_DEVICE_TRACKING
         self._port: int | None = None
         self._username: str = ""
         self._model: str = ""
@@ -93,13 +96,14 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
                 use_tls=self._use_tls,
                 timeout=60.0,
                 pool_maxsize=30,
+                redact_debug_log=True,
             )
         except FRITZ_AUTH_EXCEPTIONS:
             return ERROR_AUTH_INVALID
         except FritzConnectionException:
             return ERROR_CANNOT_CONNECT
-        except Exception:
-            _LOGGER.exception("Unexpected exception")
+        except Exception:  # noqa: BLE001
+            LOGGER.exception("Unexpected exception")
             return ERROR_UNKNOWN
 
         self._model = connection.call_action("DeviceInfo:1", "GetInfo")["NewModelName"]
@@ -141,6 +145,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
             options={
                 CONF_CONSIDER_HOME: DEFAULT_CONSIDER_HOME.total_seconds(),
                 CONF_OLD_DISCOVERY: DEFAULT_CONF_OLD_DISCOVERY,
+                CONF_FEATURE_DEVICE_TRACKING: self._feature_device_discovery,
             },
         )
 
@@ -150,6 +155,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
             return int(port)
         return DEFAULT_HTTPS_PORT if user_input[CONF_SSL] else DEFAULT_HTTP_PORT
 
+    @override
     async def async_step_ssdp(
         self, discovery_info: SsdpServiceInfo
     ) -> ConfigFlowResult:
@@ -188,9 +194,10 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
 
         return await self.async_step_confirm()
 
+    @override
     def is_matching(self, other_flow: Self) -> bool:
         """Return True if other_flow is matching this flow."""
-        return other_flow._host == self._host  # noqa: SLF001
+        return other_flow._host == self._host
 
     async def async_step_confirm(
         self, user_input: dict[str, Any] | None = None
@@ -204,6 +211,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         self._username = user_input[CONF_USERNAME]
         self._password = user_input[CONF_PASSWORD]
         self._use_tls = user_input[CONF_SSL]
+        self._feature_device_discovery = user_input[CONF_FEATURE_DEVICE_TRACKING]
         self._port = self._determine_port(user_input)
 
         error = await self.async_fritz_tools_init()
@@ -218,22 +226,19 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         self, errors: dict[str, str] | None = None
     ) -> ConfigFlowResult:
         """Show the setup form to the user."""
-
-        advanced_data_schema: VolDictType = {}
-        if self.show_advanced_options:
-            advanced_data_schema = {
-                vol.Optional(CONF_PORT): vol.Coerce(int),
-            }
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
                     vol.Optional(CONF_HOST, default=DEFAULT_HOST): str,
-                    **advanced_data_schema,
+                    vol.Optional(CONF_PORT): vol.Coerce(int),
                     vol.Required(CONF_USERNAME): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Optional(CONF_SSL, default=DEFAULT_SSL): bool,
+                    vol.Required(
+                        CONF_FEATURE_DEVICE_TRACKING,
+                        default=DEFAULT_CONF_FEATURE_DEVICE_TRACKING,
+                    ): bool,
                 }
             ),
             errors=errors or {},
@@ -250,12 +255,17 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
                     vol.Required(CONF_USERNAME): str,
                     vol.Required(CONF_PASSWORD): str,
                     vol.Optional(CONF_SSL, default=DEFAULT_SSL): bool,
+                    vol.Required(
+                        CONF_FEATURE_DEVICE_TRACKING,
+                        default=DEFAULT_CONF_FEATURE_DEVICE_TRACKING,
+                    ): bool,
                 }
             ),
             description_placeholders={"name": self._name},
             errors=errors or {},
         )
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -266,6 +276,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         self._username = user_input[CONF_USERNAME]
         self._password = user_input[CONF_PASSWORD]
         self._use_tls = user_input[CONF_SSL]
+        self._feature_device_discovery = user_input[CONF_FEATURE_DEVICE_TRACKING]
 
         self._port = self._determine_port(user_input)
 
@@ -341,18 +352,14 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any], errors: dict[str, str] | None = None
     ) -> ConfigFlowResult:
         """Show the reconfigure form to the user."""
-        advanced_data_schema: VolDictType = {}
-        if self.show_advanced_options:
-            advanced_data_schema = {
-                vol.Optional(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(int),
-            }
-
         return self.async_show_form(
             step_id="reconfigure",
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_HOST, default=user_input[CONF_HOST]): str,
-                    **advanced_data_schema,
+                    vol.Optional(CONF_PORT, default=user_input[CONF_PORT]): vol.Coerce(
+                        int
+                    ),
                     vol.Required(CONF_SSL, default=user_input[CONF_SSL]): bool,
                 }
             ),
@@ -366,11 +373,23 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         """Handle reconfigure flow."""
         if user_input is None:
             reconfigure_entry_data = self._get_reconfigure_entry().data
+            port = reconfigure_entry_data[CONF_PORT]
+            ssl = reconfigure_entry_data.get(CONF_SSL, DEFAULT_SSL)
+
+            if (port == DEFAULT_HTTP_PORT and not ssl) or (
+                port == DEFAULT_HTTPS_PORT and ssl
+            ):
+                # don't show default ports in reconfigure flow,
+                # as they are determined by ssl value
+                # this allows the user to toggle ssl
+                # without having to change the port
+                port = vol.UNDEFINED
+
             return self._show_setup_form_reconfigure(
                 {
                     CONF_HOST: reconfigure_entry_data[CONF_HOST],
-                    CONF_PORT: reconfigure_entry_data[CONF_PORT],
-                    CONF_SSL: reconfigure_entry_data.get(CONF_SSL, DEFAULT_SSL),
+                    CONF_PORT: port,
+                    CONF_SSL: ssl,
                 }
             )
 
@@ -396,7 +415,7 @@ class FritzBoxToolsFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
 
-class FritzBoxToolsOptionsFlowHandler(OptionsFlow):
+class FritzBoxToolsOptionsFlowHandler(OptionsFlowWithReload):
     """Handle an options flow."""
 
     async def async_step_init(
@@ -405,7 +424,7 @@ class FritzBoxToolsOptionsFlowHandler(OptionsFlow):
         """Handle options flow."""
 
         if user_input is not None:
-            return self.async_create_entry(title="", data=user_input)
+            return self.async_create_entry(data=user_input)
 
         options = self.config_entry.options
         data_schema = vol.Schema(
@@ -419,6 +438,13 @@ class FritzBoxToolsOptionsFlowHandler(OptionsFlow):
                 vol.Optional(
                     CONF_OLD_DISCOVERY,
                     default=options.get(CONF_OLD_DISCOVERY, DEFAULT_CONF_OLD_DISCOVERY),
+                ): bool,
+                vol.Optional(
+                    CONF_FEATURE_DEVICE_TRACKING,
+                    default=options.get(
+                        CONF_FEATURE_DEVICE_TRACKING,
+                        DEFAULT_CONF_FEATURE_DEVICE_TRACKING,
+                    ),
                 ): bool,
             }
         )

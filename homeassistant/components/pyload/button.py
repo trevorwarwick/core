@@ -1,13 +1,11 @@
 """Support for monitoring pyLoad."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from enum import StrEnum
-from typing import Any
+from typing import Any, override
 
-from pyloadapi.api import CannotConnect, InvalidAuth, PyLoadAPI
+from pyloadapi import CannotConnect, InvalidAuth, PyLoadAPI
 
 from homeassistant.components.button import ButtonEntity, ButtonEntityDescription
 from homeassistant.core import HomeAssistant
@@ -17,6 +15,8 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from .const import DOMAIN
 from .coordinator import PyLoadConfigEntry
 from .entity import BasePyLoadEntity
+
+PARALLEL_UPDATES = 1
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -80,6 +80,7 @@ class PyLoadBinarySensor(BasePyLoadEntity, ButtonEntity):
 
     entity_description: PyLoadButtonEntityDescription
 
+    @override
     async def async_press(self) -> None:
         """Handle the button press."""
         try:

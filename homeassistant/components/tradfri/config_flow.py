@@ -1,9 +1,7 @@
 """Config flow for Tradfri."""
 
-from __future__ import annotations
-
 import asyncio
-from typing import Any
+from typing import Any, cast, override
 from uuid import uuid4
 
 from pytradfri import Gateway, RequestError
@@ -35,12 +33,13 @@ class AuthError(Exception):
 class FlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
-    VERSION = 1
+    VERSION = 2
 
     def __init__(self) -> None:
         """Initialize flow."""
         self._host: str | None = None
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -54,7 +53,7 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
 
         if user_input is not None:
-            host = user_input.get(CONF_HOST, self._host)
+            host = cast(str, user_input.get(CONF_HOST, self._host))
             try:
                 auth = await authenticate(
                     self.hass, host, user_input[KEY_SECURITY_CODE]
@@ -80,6 +79,7 @@ class FlowHandler(ConfigFlow, domain=DOMAIN):
             step_id="auth", data_schema=vol.Schema(fields), errors=errors
         )
 
+    @override
     async def async_step_homekit(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:

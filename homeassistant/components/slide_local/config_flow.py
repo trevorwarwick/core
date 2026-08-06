@@ -1,9 +1,7 @@
 """Config flow for slide_local integration."""
 
-from __future__ import annotations
-
 import logging
-from typing import Any
+from typing import Any, override
 
 from goslideapi.goslideapi import (
     AuthenticationFailed,
@@ -14,7 +12,11 @@ from goslideapi.goslideapi import (
 )
 import voluptuous as vol
 
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_API_VERSION, CONF_HOST, CONF_MAC, CONF_PASSWORD
 from homeassistant.core import callback
 from homeassistant.helpers.device_registry import format_mac
@@ -38,6 +40,7 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: SlideConfigEntry,
     ) -> SlideOptionsFlowHandler:
@@ -59,9 +62,9 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
 
         try:
             result = await slide.slide_info(user_input[CONF_HOST])
-        except (ClientConnectionError, ClientTimeoutError):
+        except ClientConnectionError, ClientTimeoutError:
             return {"base": "cannot_connect"}
-        except (AuthenticationFailed, DigestAuthCalcError):
+        except AuthenticationFailed, DigestAuthCalcError:
             return {"base": "invalid_auth"}
         except Exception:
             _LOGGER.exception("Exception occurred during connection test")
@@ -81,9 +84,9 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
 
         try:
             result = await slide.slide_info(user_input[CONF_HOST])
-        except (ClientConnectionError, ClientTimeoutError):
+        except ClientConnectionError, ClientTimeoutError:
             return {"base": "cannot_connect"}
-        except (AuthenticationFailed, DigestAuthCalcError):
+        except AuthenticationFailed, DigestAuthCalcError:
             return {"base": "invalid_auth"}
         except Exception:
             _LOGGER.exception("Exception occurred during connection test")
@@ -98,6 +101,7 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return {}
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -174,6 +178,7 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
+    @override
     async def async_step_zeroconf(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:
@@ -232,7 +237,7 @@ class SlideConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
 
-class SlideOptionsFlowHandler(OptionsFlow):
+class SlideOptionsFlowHandler(OptionsFlowWithReload):
     """Handle a options flow for slide_local."""
 
     async def async_step_init(

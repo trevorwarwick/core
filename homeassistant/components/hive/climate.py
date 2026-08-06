@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 import logging
-from typing import Any
+from typing import Any, override
 
 from apyhiveapi import Hive
 import voluptuous as vol
@@ -15,19 +15,13 @@ from homeassistant.components.climate import (
     HVACAction,
     HVACMode,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_TEMPERATURE, UnitOfTemperature
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import refresh_system
-from .const import (
-    ATTR_TIME_PERIOD,
-    DOMAIN,
-    SERVICE_BOOST_HEATING_OFF,
-    SERVICE_BOOST_HEATING_ON,
-)
+from . import HiveConfigEntry, refresh_system
+from .const import ATTR_TIME_PERIOD, SERVICE_BOOST_HEATING_OFF, SERVICE_BOOST_HEATING_ON
 from .entity import HiveEntity
 
 HIVE_TO_HASS_STATE = {
@@ -59,15 +53,17 @@ _LOGGER = logging.getLogger()
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: HiveConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Hive thermostat based on a config entry."""
 
-    hive = hass.data[DOMAIN][entry.entry_id]
+    hive = entry.runtime_data
     devices = hive.session.deviceList.get("climate")
     if devices:
-        async_add_entities((HiveClimateEntity(hive, dev) for dev in devices), True)
+        async_add_entities(
+            (HiveClimateEntity(hass, entry, hive, dev) for dev in devices), True
+        )
 
     platform = entity_platform.async_get_current_platform()
 
@@ -103,19 +99,27 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
         | ClimateEntityFeature.TURN_ON
     )
 
-    def __init__(self, hive: Hive, hive_device: dict[str, Any]) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: HiveConfigEntry,
+        hive: Hive,
+        hive_device: dict[str, Any],
+    ) -> None:
         """Initialize the Climate device."""
-        super().__init__(hive, hive_device)
+        super().__init__(hass, entry, hive, hive_device)
         self.thermostat_node_id = hive_device["device_id"]
         self._attr_temperature_unit = TEMP_UNIT[hive_device["temperatureunit"]]
 
     @refresh_system
+    @override
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
         new_mode = HASS_TO_HIVE_STATE[hvac_mode]
         await self.hive.heating.setMode(self.device, new_mode)
 
     @refresh_system
+    @override
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         new_temperature = kwargs.get(ATTR_TEMPERATURE)
@@ -123,6 +127,7 @@ class HiveClimateEntity(HiveEntity, ClimateEntity):
             await self.hive.heating.setTargetTemperature(self.device, new_temperature)
 
     @refresh_system
+    @override
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set new preset mode."""
         if preset_mode == PRESET_NONE and self.preset_mode == PRESET_BOOST:

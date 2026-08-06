@@ -2,6 +2,7 @@
 
 from datetime import timedelta
 import logging
+from typing import override
 
 from melnor_bluetooth.device import Device
 
@@ -11,15 +12,17 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+type MelnorConfigEntry = ConfigEntry[MelnorDataUpdateCoordinator]
+
 
 class MelnorDataUpdateCoordinator(DataUpdateCoordinator[Device]):
     """Melnor data update coordinator."""
 
-    config_entry: ConfigEntry
+    config_entry: MelnorConfigEntry
     _device: Device
 
     def __init__(
-        self, hass: HomeAssistant, config_entry: ConfigEntry, device: Device
+        self, hass: HomeAssistant, config_entry: MelnorConfigEntry, device: Device
     ) -> None:
         """Initialize my coordinator."""
         super().__init__(
@@ -31,6 +34,7 @@ class MelnorDataUpdateCoordinator(DataUpdateCoordinator[Device]):
         )
         self._device = device
 
+    @override
     async def _async_update_data(self):
         """Update the device state."""
 

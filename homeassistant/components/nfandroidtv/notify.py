@@ -1,12 +1,10 @@
 """Notifications for Android TV notification service."""
 
-from __future__ import annotations
-
 from io import BufferedReader
 import logging
-from typing import Any
+from typing import Any, override
 
-from notifications_android_tv import Notifications
+from notifications_android_tv.notifications import ConnectError, Notifications
 import requests
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 import voluptuous as vol
@@ -16,18 +14,22 @@ from homeassistant.components.notify import (
     ATTR_TITLE,
     ATTR_TITLE_DEFAULT,
     BaseNotificationService,
+    NotifyEntity,
+    NotifyEntityFeature,
 )
-from homeassistant.const import CONF_HOST
+from homeassistant.const import ATTR_ICON, CONF_HOST, CONF_NAME
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ServiceValidationError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
+from . import NFAndroidTVConfigEntry
 from .const import (
     ATTR_COLOR,
     ATTR_DURATION,
     ATTR_FONTSIZE,
-    ATTR_ICON,
     ATTR_ICON_AUTH,
     ATTR_ICON_AUTH_DIGEST,
     ATTR_ICON_PASSWORD,
@@ -51,6 +53,49 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: NFAndroidTVConfigEntry,
+    async_add_entities: AddConfigEntryEntitiesCallback,
+) -> None:
+    """Set up the notify platform."""
+    async_add_entities([NFAndroidTVNotifyEntity(config_entry)])
+
+
+class NFAndroidTVNotifyEntity(NotifyEntity):
+    """Representation of a notify entity."""
+
+    _attr_supported_features = NotifyEntityFeature.TITLE
+    _attr_translation_key = "notify"
+    _attr_has_entity_name = True
+    _attr_name = None
+
+    def __init__(self, entry: NFAndroidTVConfigEntry) -> None:
+        """Initialize the entity."""
+        self._attr_unique_id = entry.entry_id
+        self._attr_device_info = DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            name=entry.title,
+            model="Notifications",
+            manufacturer="dream apps",
+            identifiers={(DOMAIN, entry.entry_id)},
+        )
+        self.entry = entry
+        self.client = entry.runtime_data
+
+    @override
+    def send_message(self, message: str, title: str | None = None) -> None:
+        """Send a message via notify.send_message action."""
+        try:
+            self.client.send(message=message, title=title)
+        except ConnectError as e:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="notify_connection_error",
+                translation_placeholders={CONF_NAME: self.entry.title},
+            ) from e
+
+
 async def async_get_service(
     hass: HomeAssistant,
     config: ConfigType,
@@ -59,9 +104,9 @@ async def async_get_service(
     """Get the NFAndroidTV notification service."""
     if discovery_info is None:
         return None
-    notify = await hass.async_add_executor_job(Notifications, discovery_info[CONF_HOST])
+
     return NFAndroidTVNotificationService(
-        notify,
+        discovery_info[CONF_HOST],
         hass.config.is_allowed_path,
     )
 
@@ -71,15 +116,28 @@ class NFAndroidTVNotificationService(BaseNotificationService):
 
     def __init__(
         self,
-        notify: Notifications,
+        host: str,
         is_allowed_path: Any,
     ) -> None:
         """Initialize the service."""
-        self.notify = notify
+        self.host = host
         self.is_allowed_path = is_allowed_path
+        self.notify: Notifications | None = None
 
+    @override
     def send_message(self, message: str, **kwargs: Any) -> None:
-        """Send a message to a Android TV device."""
+        """Send a message to an Android TV device."""
+        if self.notify is None:
+            try:
+                self.notify = Notifications(self.host)
+            except ConnectError as err:
+                _LOGGER.debug("Full exception:", exc_info=True)
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN,
+                    translation_key="connection_failed",
+                    translation_placeholders={CONF_HOST: self.host},
+                ) from err
+
         data: dict | None = kwargs.get(ATTR_DATA)
         title = kwargs.get(ATTR_TITLE, ATTR_TITLE_DEFAULT)
         duration = None
@@ -96,6 +154,7 @@ class NFAndroidTVNotificationService(BaseNotificationService):
                     duration = int(
                         data.get(ATTR_DURATION, Notifications.DEFAULT_DURATION)
                     )
+                # pylint: disable-next=home-assistant-action-swallowed-exception
                 except ValueError:
                     _LOGGER.warning(
                         "Invalid duration-value: %s", data.get(ATTR_DURATION)
@@ -151,7 +210,6 @@ class NFAndroidTVNotificationService(BaseNotificationService):
                     )
                 else:
                     raise ServiceValidationError(
-                        "Invalid image provided",
                         translation_domain=DOMAIN,
                         translation_key="invalid_notification_image",
                         translation_placeholders={"type": type(imagedata).__name__},
@@ -173,23 +231,31 @@ class NFAndroidTVNotificationService(BaseNotificationService):
                     )
                 else:
                     raise ServiceValidationError(
-                        "Invalid Icon provided",
                         translation_domain=DOMAIN,
                         translation_key="invalid_notification_icon",
                         translation_placeholders={"type": type(icondata).__name__},
                     )
-        self.notify.send(
-            message,
-            title=title,
-            duration=duration,
-            fontsize=fontsize,
-            position=position,
-            bkgcolor=bkgcolor,
-            transparency=transparency,
-            interrupt=interrupt,
-            icon=icon,
-            image_file=image_file,
-        )
+
+        try:
+            self.notify.send(
+                message,
+                title=title,
+                duration=duration,
+                fontsize=fontsize,
+                position=position,
+                bkgcolor=bkgcolor,
+                transparency=transparency,
+                interrupt=interrupt,
+                icon=icon,
+                image_file=image_file,
+            )
+        except ConnectError as err:
+            _LOGGER.debug("Full exception:", exc_info=True)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="connection_failed",
+                translation_placeholders={CONF_HOST: self.host},
+            ) from err
 
     def load_file(
         self,

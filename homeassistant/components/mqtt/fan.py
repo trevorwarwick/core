@@ -1,11 +1,9 @@
 """Support for MQTT fans."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 import logging
 import math
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 
@@ -16,7 +14,9 @@ from homeassistant.components.fan import (
     ATTR_PERCENTAGE,
     ATTR_PRESET_MODE,
     FanEntity,
+    FanEntityCapabilityAttribute,
     FanEntityFeature,
+    FanEntityStateAttribute,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -43,8 +43,38 @@ from .config import MQTT_RW_SCHEMA
 from .const import (
     CONF_COMMAND_TEMPLATE,
     CONF_COMMAND_TOPIC,
+    CONF_DIRECTION_COMMAND_TEMPLATE,
+    CONF_DIRECTION_COMMAND_TOPIC,
+    CONF_DIRECTION_STATE_TOPIC,
+    CONF_DIRECTION_VALUE_TEMPLATE,
+    CONF_OSCILLATION_COMMAND_TEMPLATE,
+    CONF_OSCILLATION_COMMAND_TOPIC,
+    CONF_OSCILLATION_STATE_TOPIC,
+    CONF_OSCILLATION_VALUE_TEMPLATE,
+    CONF_PAYLOAD_OSCILLATION_OFF,
+    CONF_PAYLOAD_OSCILLATION_ON,
+    CONF_PAYLOAD_RESET_PERCENTAGE,
+    CONF_PAYLOAD_RESET_PRESET_MODE,
+    CONF_PERCENTAGE_COMMAND_TEMPLATE,
+    CONF_PERCENTAGE_COMMAND_TOPIC,
+    CONF_PERCENTAGE_STATE_TOPIC,
+    CONF_PERCENTAGE_VALUE_TEMPLATE,
+    CONF_PRESET_MODE_COMMAND_TEMPLATE,
+    CONF_PRESET_MODE_COMMAND_TOPIC,
+    CONF_PRESET_MODE_STATE_TOPIC,
+    CONF_PRESET_MODE_VALUE_TEMPLATE,
+    CONF_PRESET_MODES_LIST,
+    CONF_SPEED_RANGE_MAX,
+    CONF_SPEED_RANGE_MIN,
     CONF_STATE_TOPIC,
     CONF_STATE_VALUE_TEMPLATE,
+    DEFAULT_PAYLOAD_OFF,
+    DEFAULT_PAYLOAD_ON,
+    DEFAULT_PAYLOAD_OSCILLATE_OFF,
+    DEFAULT_PAYLOAD_OSCILLATE_ON,
+    DEFAULT_PAYLOAD_RESET,
+    DEFAULT_SPEED_RANGE_MAX,
+    DEFAULT_SPEED_RANGE_MIN,
     PAYLOAD_NONE,
 )
 from .entity import MqttEntity, async_setup_entity_entry_helper
@@ -59,48 +89,16 @@ from .util import valid_publish_topic, valid_subscribe_topic
 
 PARALLEL_UPDATES = 0
 
-CONF_DIRECTION_STATE_TOPIC = "direction_state_topic"
-CONF_DIRECTION_COMMAND_TOPIC = "direction_command_topic"
-CONF_DIRECTION_VALUE_TEMPLATE = "direction_value_template"
-CONF_DIRECTION_COMMAND_TEMPLATE = "direction_command_template"
-CONF_PERCENTAGE_STATE_TOPIC = "percentage_state_topic"
-CONF_PERCENTAGE_COMMAND_TOPIC = "percentage_command_topic"
-CONF_PERCENTAGE_VALUE_TEMPLATE = "percentage_value_template"
-CONF_PERCENTAGE_COMMAND_TEMPLATE = "percentage_command_template"
-CONF_PAYLOAD_RESET_PERCENTAGE = "payload_reset_percentage"
-CONF_SPEED_RANGE_MIN = "speed_range_min"
-CONF_SPEED_RANGE_MAX = "speed_range_max"
-CONF_PRESET_MODE_STATE_TOPIC = "preset_mode_state_topic"
-CONF_PRESET_MODE_COMMAND_TOPIC = "preset_mode_command_topic"
-CONF_PRESET_MODE_VALUE_TEMPLATE = "preset_mode_value_template"
-CONF_PRESET_MODE_COMMAND_TEMPLATE = "preset_mode_command_template"
-CONF_PRESET_MODES_LIST = "preset_modes"
-CONF_PAYLOAD_RESET_PRESET_MODE = "payload_reset_preset_mode"
-CONF_OSCILLATION_STATE_TOPIC = "oscillation_state_topic"
-CONF_OSCILLATION_COMMAND_TOPIC = "oscillation_command_topic"
-CONF_OSCILLATION_VALUE_TEMPLATE = "oscillation_value_template"
-CONF_OSCILLATION_COMMAND_TEMPLATE = "oscillation_command_template"
-CONF_PAYLOAD_OSCILLATION_ON = "payload_oscillation_on"
-CONF_PAYLOAD_OSCILLATION_OFF = "payload_oscillation_off"
-
 DEFAULT_NAME = "MQTT Fan"
-DEFAULT_PAYLOAD_ON = "ON"
-DEFAULT_PAYLOAD_OFF = "OFF"
-DEFAULT_PAYLOAD_RESET = "None"
-DEFAULT_SPEED_RANGE_MIN = 1
-DEFAULT_SPEED_RANGE_MAX = 100
-
-OSCILLATE_ON_PAYLOAD = "oscillate_on"
-OSCILLATE_OFF_PAYLOAD = "oscillate_off"
 
 MQTT_FAN_ATTRIBUTES_BLOCKED = frozenset(
     {
-        fan.ATTR_DIRECTION,
-        fan.ATTR_OSCILLATING,
-        fan.ATTR_PERCENTAGE_STEP,
-        fan.ATTR_PERCENTAGE,
-        fan.ATTR_PRESET_MODE,
-        fan.ATTR_PRESET_MODES,
+        FanEntityStateAttribute.DIRECTION,
+        FanEntityStateAttribute.OSCILLATING,
+        FanEntityStateAttribute.PERCENTAGE_STEP,
+        FanEntityStateAttribute.PERCENTAGE,
+        FanEntityStateAttribute.PRESET_MODE,
+        FanEntityCapabilityAttribute.PRESET_MODES,
     }
 )
 
@@ -165,10 +163,10 @@ _PLATFORM_SCHEMA_BASE = MQTT_RW_SCHEMA.extend(
         vol.Optional(CONF_PAYLOAD_OFF, default=DEFAULT_PAYLOAD_OFF): cv.string,
         vol.Optional(CONF_PAYLOAD_ON, default=DEFAULT_PAYLOAD_ON): cv.string,
         vol.Optional(
-            CONF_PAYLOAD_OSCILLATION_OFF, default=OSCILLATE_OFF_PAYLOAD
+            CONF_PAYLOAD_OSCILLATION_OFF, default=DEFAULT_PAYLOAD_OSCILLATE_OFF
         ): cv.string,
         vol.Optional(
-            CONF_PAYLOAD_OSCILLATION_ON, default=OSCILLATE_ON_PAYLOAD
+            CONF_PAYLOAD_OSCILLATION_ON, default=DEFAULT_PAYLOAD_OSCILLATE_ON
         ): cv.string,
         vol.Optional(CONF_STATE_VALUE_TEMPLATE): cv.template,
     }
@@ -228,10 +226,12 @@ class MqttFan(MqttEntity, FanEntity):
     _speed_range: tuple[int, int]
 
     @staticmethod
+    @override
     def config_schema() -> VolSchemaType:
         """Return the config schema."""
         return DISCOVERY_SCHEMA
 
+    @override
     def _setup_from_config(self, config: ConfigType) -> None:
         """(Re)Setup the entity."""
         self._speed_range = (
@@ -430,6 +430,7 @@ class MqttFan(MqttEntity, FanEntity):
         self._attr_current_direction = str(direction)
 
     @callback
+    @override
     def _prepare_subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         self.add_subscription(CONF_STATE_TOPIC, self._state_received, {"_attr_is_on"})
@@ -453,16 +454,19 @@ class MqttFan(MqttEntity, FanEntity):
             {"_attr_current_direction"},
         )
 
+    @override
     async def _subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         subscription.async_subscribe_topics_internal(self.hass, self._sub_state)
 
     @property
+    @override
     def is_on(self) -> bool | None:
         """Return true if device is on."""
         # The default for FanEntity is to compute it based on percentage
         return self._attr_is_on
 
+    @override
     async def async_turn_on(
         self,
         percentage: int | None = None,
@@ -485,6 +489,7 @@ class MqttFan(MqttEntity, FanEntity):
             self._attr_is_on = True
             self.async_write_ha_state()
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the entity.
 
@@ -498,6 +503,7 @@ class MqttFan(MqttEntity, FanEntity):
             self._attr_is_on = False
             self.async_write_ha_state()
 
+    @override
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the percentage of the fan.
 
@@ -514,6 +520,7 @@ class MqttFan(MqttEntity, FanEntity):
             self._attr_percentage = percentage
             self.async_write_ha_state()
 
+    @override
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan.
 
@@ -527,6 +534,7 @@ class MqttFan(MqttEntity, FanEntity):
             self._attr_preset_mode = preset_mode
             self.async_write_ha_state()
 
+    @override
     async def async_oscillate(self, oscillating: bool) -> None:
         """Set oscillation.
 
@@ -547,6 +555,7 @@ class MqttFan(MqttEntity, FanEntity):
             self._attr_oscillating = oscillating
             self.async_write_ha_state()
 
+    @override
     async def async_set_direction(self, direction: str) -> None:
         """Set direction.
 

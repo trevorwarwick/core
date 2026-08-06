@@ -12,6 +12,7 @@ from buienradar.constants import (
     CONDITION,
     CONTENT,
     DATA,
+    FEELTEMPERATURE,
     FORECAST,
     HUMIDITY,
     MESSAGE,
@@ -22,6 +23,7 @@ from buienradar.constants import (
     TEMPERATURE,
     VISIBILITY,
     WINDAZIMUTH,
+    WINDGUST,
     WINDSPEED,
 )
 from buienradar.urls import JSON_FEED_URL, json_precipitation_forecast_url
@@ -156,7 +158,7 @@ class BrData:
 
         _LOGGER.debug("Buienradar parsed data: %s", result)
         if result.get(SUCCESS) is not True:
-            if int(datetime.now().strftime("%H")) > 0:
+            if int(datetime.now().strftime("%H")) > 0:  # pylint: disable=home-assistant-enforce-naive-now
                 _LOGGER.warning(
                     "Unable to parse data from Buienradar. (Msg: %s)",
                     result.get(MESSAGE),
@@ -197,7 +199,15 @@ class BrData:
         """Return the temperature, or None."""
         try:
             return float(self.data.get(TEMPERATURE))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
+            return None
+
+    @property
+    def feeltemperature(self):
+        """Return the feeltemperature, or None."""
+        try:
+            return float(self.data.get(FEELTEMPERATURE))
+        except ValueError, TypeError:
             return None
 
     @property
@@ -205,7 +215,7 @@ class BrData:
         """Return the pressure, or None."""
         try:
             return float(self.data.get(PRESSURE))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     @property
@@ -213,7 +223,7 @@ class BrData:
         """Return the humidity, or None."""
         try:
             return int(self.data.get(HUMIDITY))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     @property
@@ -221,7 +231,15 @@ class BrData:
         """Return the visibility, or None."""
         try:
             return int(self.data.get(VISIBILITY))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
+            return None
+
+    @property
+    def wind_gust(self):
+        """Return the windgust, or None."""
+        try:
+            return float(self.data.get(WINDGUST))
+        except ValueError, TypeError:
             return None
 
     @property
@@ -229,7 +247,7 @@ class BrData:
         """Return the windspeed, or None."""
         try:
             return float(self.data.get(WINDSPEED))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     @property
@@ -237,7 +255,7 @@ class BrData:
         """Return the wind bearing, or None."""
         try:
             return int(self.data.get(WINDAZIMUTH))
-        except (ValueError, TypeError):
+        except ValueError, TypeError:
             return None
 
     @property

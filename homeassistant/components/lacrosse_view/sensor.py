@@ -1,10 +1,9 @@
 """Sensor component for LaCrosse View."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass, replace
 import logging
+from typing import override
 
 from lacrosse_view import Sensor
 
@@ -14,7 +13,6 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     DEGREE,
     PERCENTAGE,
@@ -32,6 +30,7 @@ from homeassistant.helpers.update_coordinator import (
 )
 
 from .const import DOMAIN
+from .coordinator import LaCrosseConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -105,6 +104,8 @@ SENSOR_DESCRIPTIONS = {
         value_fn=get_value,
         native_unit_of_measurement=DEGREE,
         suggested_display_precision=2,
+        device_class=SensorDeviceClass.WIND_DIRECTION,
+        state_class=SensorStateClass.MEASUREMENT_ANGLE,
     ),
     "WetDry": LaCrosseSensorEntityDescription(
         key="WetDry",
@@ -144,7 +145,8 @@ SENSOR_DESCRIPTIONS = {
         suggested_display_precision=2,
     ),
 }
-# map of API returned unit of measurement strings to their corresponding unit of measurement
+# map of API returned unit of measurement strings to their
+# corresponding unit of measurement
 UNIT_OF_MEASUREMENT_MAP = {
     "degrees_celsius": UnitOfTemperature.CELSIUS,
     "degrees_fahrenheit": UnitOfTemperature.FAHRENHEIT,
@@ -157,17 +159,14 @@ UNIT_OF_MEASUREMENT_MAP = {
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: LaCrosseConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up LaCrosse View from a config entry."""
-    coordinator: DataUpdateCoordinator[list[Sensor]] = hass.data[DOMAIN][
-        entry.entry_id
-    ]["coordinator"]
-    sensors: list[Sensor] = coordinator.data
+    coordinator = entry.runtime_data
 
     sensor_list = []
-    for i, sensor in enumerate(sensors):
+    for i, sensor in enumerate(coordinator.data):
         for field in sensor.sensor_field_names:
             description = SENSOR_DESCRIPTIONS.get(field)
             if description is None:
@@ -186,7 +185,8 @@ async def async_setup_entry(
                 _LOGGER.warning(message)
                 continue
 
-            # if the API returns a different unit of measurement from the description, update it
+            # if the API returns a different unit of measurement
+            # from the description, update it
             if sensor.data is not None and sensor.data.get(field) is not None:
                 native_unit_of_measurement = UNIT_OF_MEASUREMENT_MAP.get(
                     sensor.data[field].get("unit")
@@ -239,6 +239,7 @@ class LaCrosseViewSensor(
         self.index = index
 
     @property
+    @override
     def native_value(self) -> int | float | str | None:
         """Return the sensor value."""
         return self.entity_description.value_fn(
@@ -246,6 +247,7 @@ class LaCrosseViewSensor(
         )
 
     @property
+    @override
     def available(self) -> bool:
         """Return True if entity is available."""
         data = self.coordinator.data[self.index].data

@@ -1,19 +1,17 @@
 """Local backup support for Core and Container installations."""
 
-from __future__ import annotations
-
 from collections.abc import AsyncIterator, Callable, Coroutine
 import json
 from pathlib import Path
 from tarfile import TarError
-from typing import Any
+from typing import Any, override
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.hassio import is_hassio
 
-from .agent import BackupAgent, LocalBackupAgent
+from .agent import BackupAgent, LocalBackupAgent, OnProgressCallback
 from .const import DOMAIN, LOGGER
-from .models import AgentBackup, BackupNotFound
+from .models import AgentBackup, BackupNotFound, InvalidBackupFilename
 from .util import read_backup, suggested_filename
 
 
@@ -56,10 +54,17 @@ class CoreLocalBackupAgent(LocalBackupAgent):
             try:
                 backup = read_backup(backup_path)
                 backups[backup.backup_id] = (backup, backup_path)
-            except (OSError, TarError, json.JSONDecodeError, KeyError) as err:
+            except (
+                OSError,
+                TarError,
+                json.JSONDecodeError,
+                KeyError,
+                InvalidBackupFilename,
+            ) as err:
                 LOGGER.warning("Unable to read backup %s: %s", backup_path, err)
         return backups
 
+    @override
     async def async_download_backup(
         self,
         backup_id: str,
@@ -68,33 +73,37 @@ class CoreLocalBackupAgent(LocalBackupAgent):
         """Download a backup file."""
         raise NotImplementedError
 
+    @override
     async def async_upload_backup(
         self,
         *,
         open_stream: Callable[[], Coroutine[Any, Any, AsyncIterator[bytes]]],
         backup: AgentBackup,
+        on_progress: OnProgressCallback,
         **kwargs: Any,
     ) -> None:
         """Upload a backup."""
         self._backups[backup.backup_id] = (backup, self.get_new_backup_path(backup))
 
+    @override
     async def async_list_backups(self, **kwargs: Any) -> list[AgentBackup]:
         """List backups."""
         if not self._loaded_backups:
             await self._load_backups()
         return [backup for backup, _ in self._backups.values()]
 
+    @override
     async def async_get_backup(
         self,
         backup_id: str,
         **kwargs: Any,
-    ) -> AgentBackup | None:
+    ) -> AgentBackup:
         """Return a backup."""
         if not self._loaded_backups:
             await self._load_backups()
 
         if backup_id not in self._backups:
-            return None
+            raise BackupNotFound(f"Backup {backup_id} not found")
 
         backup, backup_path = self._backups[backup_id]
         if not await self._hass.async_add_executor_job(backup_path.exists):
@@ -107,10 +116,11 @@ class CoreLocalBackupAgent(LocalBackupAgent):
                 backup_path,
             )
             self._backups.pop(backup_id)
-            return None
+            raise BackupNotFound(f"Backup {backup_id} not found")
 
         return backup
 
+    @override
     def get_backup_path(self, backup_id: str) -> Path:
         """Return the local path to an existing backup.
 
@@ -121,19 +131,25 @@ class CoreLocalBackupAgent(LocalBackupAgent):
         except KeyError as err:
             raise BackupNotFound(f"Backup {backup_id} does not exist") from err
 
+    @override
     def get_new_backup_path(self, backup: AgentBackup) -> Path:
         """Return the local path to a new backup."""
-        return self._backup_dir / suggested_filename(backup)
+        candidate = self._backup_dir / suggested_filename(backup)
+        # suggested_filename does not strip separators; refuse paths that would
+        # land outside the backup directory.
+        if candidate.parent != self._backup_dir:
+            raise InvalidBackupFilename(
+                f"Refusing to write outside {self._backup_dir}: {candidate}"
+            )
+        return candidate
 
+    @override
     async def async_delete_backup(self, backup_id: str, **kwargs: Any) -> None:
         """Delete a backup file."""
         if not self._loaded_backups:
             await self._load_backups()
 
-        try:
-            backup_path = self.get_backup_path(backup_id)
-        except BackupNotFound:
-            return
+        backup_path = self.get_backup_path(backup_id)
         await self._hass.async_add_executor_job(backup_path.unlink, True)
         LOGGER.debug("Deleted backup located at %s", backup_path)
         self._backups.pop(backup_id)

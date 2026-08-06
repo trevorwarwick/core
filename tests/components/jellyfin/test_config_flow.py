@@ -23,17 +23,6 @@ from tests.common import MockConfigEntry
 pytestmark = pytest.mark.usefixtures("mock_setup_entry")
 
 
-async def test_abort_if_existing_entry(hass: HomeAssistant) -> None:
-    """Check flow abort when an entry already exist."""
-    MockConfigEntry(domain=DOMAIN).add_to_hass(hass)
-
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN, context={"source": config_entries.SOURCE_USER}
-    )
-    assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "single_instance_allowed"
-
-
 async def test_form(
     hass: HomeAssistant,
     mock_jellyfin: MagicMock,
@@ -68,6 +57,35 @@ async def test_form(
     assert len(mock_client.auth.login.mock_calls) == 1
     assert len(mock_setup_entry.mock_calls) == 1
     assert len(mock_client.jellyfin.get_user_settings.mock_calls) == 1
+
+
+async def test_form_strips_trailing_slash_from_url(
+    hass: HomeAssistant,
+    mock_jellyfin: MagicMock,
+    mock_client: MagicMock,
+    mock_client_device_id: MagicMock,
+    mock_setup_entry: MagicMock,
+) -> None:
+    """Test a trailing slash is stripped from the configured URL.
+
+    A trailing slash would otherwise be joined into a double-slashed request
+    path (e.g. //system/info/public) that some Jellyfin versions reject.
+    """
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+
+    result2 = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input={**USER_INPUT, CONF_URL: f"{TEST_URL}/"},
+    )
+    await hass.async_block_till_done()
+
+    assert result2["type"] is FlowResultType.CREATE_ENTRY
+    # The persisted URL has no trailing slash...
+    assert result2["data"][CONF_URL] == TEST_URL
+    # ...and the connection was attempted against the normalized URL.
+    mock_client.auth.connect_to_address.assert_called_once_with(TEST_URL)
 
 
 async def test_form_cannot_connect(
@@ -199,6 +217,32 @@ async def test_form_persists_device_id_on_error(
         CONF_USERNAME: TEST_USERNAME,
         CONF_PASSWORD: TEST_PASSWORD,
     }
+
+
+async def test_already_configured(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_jellyfin: MagicMock,
+    mock_client: MagicMock,
+) -> None:
+    """Test the case where the user tries to configure an already configured entry."""
+
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": config_entries.SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.FORM
+
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"],
+        user_input=USER_INPUT,
+    )
+    await hass.async_block_till_done()
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "already_configured"
 
 
 async def test_reauth(
@@ -426,7 +470,7 @@ async def test_options_flow(
 
     assert config_entry.options == {}
     result = await hass.config_entries.options.async_init(config_entry.entry_id)
-    assert result["type"] == FlowResultType.FORM
+    assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "init"
 
     # Audio Codec
@@ -434,7 +478,7 @@ async def test_options_flow(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={}
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] is FlowResultType.CREATE_ENTRY
     assert CONF_AUDIO_CODEC not in config_entry.options
 
     # Bad
@@ -464,5 +508,5 @@ async def test_setting_codec(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"], user_input={CONF_AUDIO_CODEC: codec}
     )
-    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["type"] is FlowResultType.CREATE_ENTRY
     assert config_entry.options[CONF_AUDIO_CODEC] == codec

@@ -1,9 +1,7 @@
 """Configure update platform in a device through MQTT topic."""
 
-from __future__ import annotations
-
 import logging
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 
@@ -26,7 +24,7 @@ from . import subscription
 from .config import DEFAULT_RETAIN, MQTT_RO_SCHEMA
 from .const import CONF_COMMAND_TOPIC, CONF_RETAIN, CONF_STATE_TOPIC, PAYLOAD_EMPTY_JSON
 from .entity import MqttEntity, async_setup_entity_entry_helper
-from .models import MqttValueTemplate, ReceiveMessage
+from .models import MqttValueTemplate, PayloadSentinel, ReceiveMessage
 from .schemas import MQTT_ENTITY_COMMON_SCHEMA
 from .util import valid_publish_topic, valid_subscribe_topic
 
@@ -103,18 +101,18 @@ class MqttUpdate(MqttEntity, UpdateEntity, RestoreEntity):
     _entity_id_format = update.ENTITY_ID_FORMAT
 
     @property
+    @override
     def entity_picture(self) -> str | None:
         """Return the entity picture to use in the frontend."""
-        if self._attr_entity_picture is not None:
-            return self._attr_entity_picture
-
-        return super().entity_picture
+        return self._attr_entity_picture
 
     @staticmethod
+    @override
     def config_schema() -> VolSchemaType:
         """Return the config schema."""
         return DISCOVERY_SCHEMA
 
+    @override
     def _setup_from_config(self, config: ConfigType) -> None:
         """(Re)Setup the entity."""
         self._attr_device_class = self._config.get(CONF_DEVICE_CLASS)
@@ -136,7 +134,18 @@ class MqttUpdate(MqttEntity, UpdateEntity, RestoreEntity):
     @callback
     def _handle_state_message_received(self, msg: ReceiveMessage) -> None:
         """Handle receiving state message via MQTT."""
-        payload = self._templates[CONF_VALUE_TEMPLATE](msg.payload)
+        payload = self._templates[CONF_VALUE_TEMPLATE](
+            msg.payload, PayloadSentinel.DEFAULT
+        )
+
+        if payload is PayloadSentinel.DEFAULT:
+            _LOGGER.warning(
+                "Unable to process payload '%s' for topic %s, with value template '%s'",
+                msg.payload,
+                msg.topic,
+                self._config.get(CONF_VALUE_TEMPLATE),
+            )
+            return
 
         if not payload or payload == PAYLOAD_EMPTY_JSON:
             _LOGGER.debug(
@@ -224,6 +233,7 @@ class MqttUpdate(MqttEntity, UpdateEntity, RestoreEntity):
             self._attr_latest_version = latest_version
 
     @callback
+    @override
     def _prepare_subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         self.add_subscription(
@@ -246,10 +256,12 @@ class MqttUpdate(MqttEntity, UpdateEntity, RestoreEntity):
             {"_attr_latest_version"},
         )
 
+    @override
     async def _subscribe_topics(self) -> None:
         """(Re)Subscribe to topics."""
         subscription.async_subscribe_topics_internal(self.hass, self._sub_state)
 
+    @override
     async def async_install(
         self, version: str | None, backup: bool, **kwargs: Any
     ) -> None:
@@ -258,6 +270,7 @@ class MqttUpdate(MqttEntity, UpdateEntity, RestoreEntity):
         await self.async_publish_with_config(self._config[CONF_COMMAND_TOPIC], payload)
 
     @property
+    @override
     def supported_features(self) -> UpdateEntityFeature:
         """Return the list of supported features."""
         support = UpdateEntityFeature(UpdateEntityFeature.PROGRESS)

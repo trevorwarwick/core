@@ -37,8 +37,8 @@ def decide_duration(
     duration: int | None,
     zone_id: int,
     overlay_mode: str | None = None,
-) -> None | int:
-    """Return correct duration based on the selected overlay mode/duration and tado config."""
+) -> int | None:
+    """Return correct duration based on overlay mode and tado config."""
 
     # If we ended up with a timer but no duration, set a default duration
     # If we ended up with a timer but no duration, set a default duration
@@ -53,13 +53,13 @@ def decide_duration(
     return duration
 
 
-def generate_supported_fanmodes(tado_to_ha_mapping: dict[str, str], options: list[str]):
+def generate_supported_fanmodes(
+    tado_to_ha_mapping: dict[str, str], options: list[str]
+) -> list[str] | None:
     """Return correct list of fan modes or None."""
 
     supported_fanmodes = [
-        tado_to_ha_mapping.get(option)
-        for option in options
-        if tado_to_ha_mapping.get(option) is not None
+        val for option in options if (val := tado_to_ha_mapping.get(option)) is not None
     ]
     if not supported_fanmodes:
         return None

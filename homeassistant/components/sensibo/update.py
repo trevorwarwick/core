@@ -1,9 +1,8 @@
 """Update platform for Sensibo integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import override
 
 from pysensibo.model import SensiboDevice
 
@@ -56,7 +55,8 @@ async def async_setup_entry(
     def _add_remove_devices() -> None:
         """Handle additions of devices and sensors."""
         nonlocal added_devices
-        new_devices, _, added_devices = coordinator.get_devices(added_devices)
+        new_devices, _, new_added_devices = coordinator.get_devices(added_devices)
+        added_devices = new_added_devices
 
         if new_devices:
             async_add_entities(
@@ -89,11 +89,13 @@ class SensiboDeviceUpdate(SensiboDeviceBaseEntity, UpdateEntity):
         self._attr_title = self.device_data.model
 
     @property
+    @override
     def installed_version(self) -> str | None:
         """Return version currently installed."""
         return self.entity_description.value_version(self.device_data)
 
     @property
+    @override
     def latest_version(self) -> str | None:
         """Return latest available version."""
         return self.entity_description.value_available(self.device_data)

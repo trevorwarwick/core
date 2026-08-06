@@ -106,6 +106,7 @@
         'model': 'HEOS Drive HS2',
         'name': 'Test Player',
         'network': 'wired',
+        'preferred_host': True,
         'serial': '**REDACTED**',
         'supported_version': True,
         'version': '1.0.0',
@@ -116,6 +117,7 @@
           'model': 'HEOS Drive HS2',
           'name': 'Test Player',
           'network': 'wired',
+          'preferred_host': True,
           'serial': '**REDACTED**',
           'supported_version': True,
           'version': '1.0.0',
@@ -125,6 +127,7 @@
           'model': 'Speaker',
           'name': 'Test Player 2',
           'network': 'wifi',
+          'preferred_host': False,
           'serial': '**REDACTED**',
           'supported_version': True,
           'version': '1.0.0',
@@ -137,6 +140,7 @@
           'model': 'HEOS Drive HS2',
           'name': 'Test Player',
           'network': 'wired',
+          'preferred_host': True,
           'serial': '**REDACTED**',
           'supported_version': True,
           'version': '1.0.0',
@@ -255,6 +259,7 @@
   dict({
     'device': dict({
       'area_id': None,
+      'config_subentry_id': None,
       'configuration_url': None,
       'connections': list([
       ]),

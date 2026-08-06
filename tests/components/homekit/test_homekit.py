@@ -1,7 +1,5 @@
 """Tests for the HomeKit component."""
 
-from __future__ import annotations
-
 import asyncio
 from typing import Any
 from unittest.mock import ANY, AsyncMock, MagicMock, Mock, patch
@@ -21,6 +19,7 @@ from homeassistant.components.homekit import (
     STATUS_RUNNING,
     STATUS_STOPPED,
     STATUS_WAIT,
+    TYPE_AIR_PURIFIER,
     HomeKit,
 )
 from homeassistant.components.homekit.accessories import HomeBridge
@@ -54,10 +53,12 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_PORT,
     EVENT_HOMEASSISTANT_STARTED,
-    PERCENTAGE,
     SERVICE_RELOAD,
     STATE_ON,
     EntityCategory,
+    UnitOfDensity,
+    UnitOfRatio,
+    UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError
@@ -1579,7 +1580,10 @@ async def test_homekit_finds_linked_batteries(
         original_device_class=SensorDeviceClass.BATTERY,
     )
     light = entity_registry.async_get_or_create(
-        "light", "powerwall", "demo", device_id=device_entry.id
+        "light",
+        "powerwall",
+        "demo",
+        device_id=device_entry.id,
     )
 
     hass.states.async_set(
@@ -1611,8 +1615,8 @@ async def test_homekit_finds_linked_batteries(
             "sw_version": "0.16.0",
             "hw_version": "2.34",
             "platform": "test",
-            "linked_battery_charging_sensor": "binary_sensor.powerwall_battery_charging",
-            "linked_battery_sensor": "sensor.powerwall_battery",
+            "linked_battery_charging_sensor": binary_charging_sensor.entity_id,
+            "linked_battery_sensor": battery_sensor.entity_id,
         },
     )
 
@@ -1655,7 +1659,10 @@ async def test_homekit_async_get_integration_fails(
         original_device_class=SensorDeviceClass.BATTERY,
     )
     light = entity_registry.async_get_or_create(
-        "light", "invalid_integration_does_not_exist", "demo", device_id=device_entry.id
+        "light",
+        "invalid_integration_does_not_exist",
+        "demo",
+        device_id=device_entry.id,
     )
 
     hass.states.async_set(
@@ -1686,8 +1693,8 @@ async def test_homekit_async_get_integration_fails(
             "model": "Powerwall 2",
             "sw_version": "0.16.0",
             "platform": "invalid_integration_does_not_exist",
-            "linked_battery_charging_sensor": "binary_sensor.invalid_integration_does_not_exist_battery_charging",
-            "linked_battery_sensor": "sensor.invalid_integration_does_not_exist_battery",
+            "linked_battery_charging_sensor": binary_charging_sensor.entity_id,
+            "linked_battery_sensor": battery_sensor.entity_id,
         },
     )
 
@@ -1714,7 +1721,7 @@ async def test_yaml_updates_update_config_entry_for_name(hass: HomeAssistant) ->
         mock_homekit.return_value = homekit = Mock()
         type(homekit).async_start = AsyncMock()
         assert await async_setup_component(
-            hass, "homekit", {"homekit": {CONF_NAME: BRIDGE_NAME, CONF_PORT: 12345}}
+            hass, DOMAIN, {"homekit": {CONF_NAME: BRIDGE_NAME, CONF_PORT: 12345}}
         )
         await hass.async_block_till_done()
 
@@ -1763,7 +1770,7 @@ async def test_yaml_can_link_with_default_name(hass: HomeAssistant) -> None:
         type(homekit).async_start = AsyncMock()
         assert await async_setup_component(
             hass,
-            "homekit",
+            DOMAIN,
             {"homekit": {"entity_config": {"camera.back_camera": {"stream_count": 3}}}},
         )
         await hass.async_block_till_done()
@@ -1809,7 +1816,7 @@ async def test_yaml_can_link_with_port(hass: HomeAssistant) -> None:
         type(homekit).async_start = AsyncMock()
         assert await async_setup_component(
             hass,
-            "homekit",
+            DOMAIN,
             {
                 "homekit": {
                     "port": 12345,
@@ -1863,7 +1870,7 @@ async def test_homekit_ignored_missing_devices(
     device_registry: dr.DeviceRegistry,
     entity_registry: er.EntityRegistry,
 ) -> None:
-    """Test HomeKit handles a device in the entity registry but missing from the device registry.
+    """Test HomeKit handles entity with missing device registry entry.
 
     If the entity registry is updated to remove entities linked to non-existent devices,
     or set the link to None, this test can be removed.
@@ -1900,7 +1907,10 @@ async def test_homekit_ignored_missing_devices(
         original_device_class=SensorDeviceClass.BATTERY,
     )
     light_entity = light = entity_registry.async_get_or_create(
-        "light", "powerwall", "demo", device_id=device_entry.id
+        "light",
+        "powerwall",
+        "demo",
+        device_id=device_entry.id,
     )
     # Delete the device to make sure we fallback
     # to using the platform
@@ -1935,8 +1945,8 @@ async def test_homekit_ignored_missing_devices(
         ANY,
         {
             "platform": "Tesla Powerwall",
-            "linked_battery_charging_sensor": "binary_sensor.powerwall_battery_charging",
-            "linked_battery_sensor": "sensor.powerwall_battery",
+            "linked_battery_charging_sensor": binary_sensor_entity.entity_id,
+            "linked_battery_sensor": sensor_entity.entity_id,
         },
     )
 
@@ -2125,7 +2135,10 @@ async def test_homekit_finds_linked_humidity_sensors(
         original_device_class=SensorDeviceClass.HUMIDITY,
     )
     humidifier = entity_registry.async_get_or_create(
-        "humidifier", "humidifier", "demo", device_id=device_entry.id
+        "humidifier",
+        "humidifier",
+        "demo",
+        device_id=device_entry.id,
     )
 
     hass.states.async_set(
@@ -2133,7 +2146,7 @@ async def test_homekit_finds_linked_humidity_sensors(
         "42",
         {
             ATTR_DEVICE_CLASS: SensorDeviceClass.HUMIDITY,
-            ATTR_UNIT_OF_MEASUREMENT: PERCENTAGE,
+            ATTR_UNIT_OF_MEASUREMENT: UnitOfRatio.PERCENTAGE,
         },
     )
     hass.states.async_set(humidifier.entity_id, STATE_ON)
@@ -2157,13 +2170,120 @@ async def test_homekit_finds_linked_humidity_sensors(
             "model": "Smart Brainy Clever Humidifier",
             "platform": "test",
             "sw_version": "0.16.1",
-            "linked_humidity_sensor": "sensor.humidifier_humidity_sensor",
+            "linked_humidity_sensor": humidity_sensor.entity_id,
         },
     )
 
 
 @pytest.mark.usefixtures("mock_async_zeroconf")
-async def test_reload(hass: HomeAssistant) -> None:
+async def test_homekit_finds_linked_air_purifier_sensors(
+    hass: HomeAssistant,
+    hk_driver,
+    device_registry: dr.DeviceRegistry,
+    entity_registry: er.EntityRegistry,
+) -> None:
+    """Test HomeKit start method."""
+    entry = await async_init_integration(hass)
+
+    homekit = _mock_homekit(hass, entry, HOMEKIT_MODE_BRIDGE)
+
+    homekit.driver = hk_driver
+    homekit.bridge = HomeBridge(hass, hk_driver, "mock_bridge")
+
+    config_entry = MockConfigEntry(domain="air_purifier", data={})
+    config_entry.add_to_hass(hass)
+    device_entry = device_registry.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        sw_version="0.16.1",
+        model="Smart Air Purifier",
+        manufacturer="Home Assistant",
+        connections={(dr.CONNECTION_NETWORK_MAC, "12:34:56:AB:CD:EF")},
+    )
+
+    humidity_sensor = entity_registry.async_get_or_create(
+        "sensor",
+        "air_purifier",
+        "humidity_sensor",
+        device_id=device_entry.id,
+        original_device_class=SensorDeviceClass.HUMIDITY,
+    )
+    pm25_sensor = entity_registry.async_get_or_create(
+        "sensor",
+        "air_purifier",
+        "pm25_sensor",
+        device_id=device_entry.id,
+        original_device_class=SensorDeviceClass.PM25,
+    )
+    temperature_sensor = entity_registry.async_get_or_create(
+        "sensor",
+        "air_purifier",
+        "temperature_sensor",
+        device_id=device_entry.id,
+        original_device_class=SensorDeviceClass.TEMPERATURE,
+    )
+    air_purifier = entity_registry.async_get_or_create(
+        "fan",
+        "air_purifier",
+        "demo",
+        device_id=device_entry.id,
+    )
+
+    hass.states.async_set(
+        humidity_sensor.entity_id,
+        "42",
+        {
+            ATTR_DEVICE_CLASS: SensorDeviceClass.HUMIDITY,
+            ATTR_UNIT_OF_MEASUREMENT: UnitOfRatio.PERCENTAGE,
+        },
+    )
+    hass.states.async_set(
+        pm25_sensor.entity_id,
+        8,
+        {
+            ATTR_DEVICE_CLASS: SensorDeviceClass.PM25,
+            ATTR_UNIT_OF_MEASUREMENT: UnitOfDensity.MICROGRAMS_PER_CUBIC_METER,
+        },
+    )
+    hass.states.async_set(
+        temperature_sensor.entity_id,
+        22,
+        {
+            ATTR_DEVICE_CLASS: SensorDeviceClass.TEMPERATURE,
+            ATTR_UNIT_OF_MEASUREMENT: UnitOfTemperature.CELSIUS,
+        },
+    )
+    hass.states.async_set(air_purifier.entity_id, STATE_ON)
+
+    with (
+        patch.object(homekit.bridge, "add_accessory"),
+        patch(f"{PATH_HOMEKIT}.async_show_setup_message"),
+        patch(f"{PATH_HOMEKIT}.get_accessory") as mock_get_acc,
+        patch("pyhap.accessory_driver.AccessoryDriver.async_start"),
+    ):
+        await homekit.async_start()
+    await hass.async_block_till_done()
+
+    mock_get_acc.assert_called_with(
+        hass,
+        ANY,
+        ANY,
+        ANY,
+        {
+            "manufacturer": "Home Assistant",
+            "model": "Smart Air Purifier",
+            "platform": "air_purifier",
+            "sw_version": "0.16.1",
+            "type": TYPE_AIR_PURIFIER,
+            "linked_humidity_sensor": humidity_sensor.entity_id,
+            "linked_pm25_sensor": pm25_sensor.entity_id,
+            "linked_temperature_sensor": temperature_sensor.entity_id,
+        },
+    )
+
+
+@pytest.mark.usefixtures("mock_async_zeroconf")
+@patch(f"{PATH_HOMEKIT}.async_port_is_available", return_value=True)
+async def test_reload(mock_port_available: MagicMock, hass: HomeAssistant) -> None:
     """Test we can reload from yaml."""
 
     entry = MockConfigEntry(
@@ -2184,7 +2304,7 @@ async def test_reload(hass: HomeAssistant) -> None:
         mock_homekit.return_value = homekit = Mock()
         type(homekit).async_start = AsyncMock()
         assert await async_setup_component(
-            hass, "homekit", {"homekit": {CONF_NAME: "reloadable", CONF_PORT: 12345}}
+            hass, DOMAIN, {"homekit": {CONF_NAME: "reloadable", CONF_PORT: 12345}}
         )
         await hass.async_block_till_done()
 
@@ -2210,7 +2330,6 @@ async def test_reload(hass: HomeAssistant) -> None:
         patch(
             f"{PATH_HOMEKIT}.get_accessory",
         ),
-        patch(f"{PATH_HOMEKIT}.async_port_is_available", return_value=True),
         patch(
             "pyhap.accessory_driver.AccessoryDriver.async_start",
         ),
@@ -2243,6 +2362,11 @@ async def test_reload(hass: HomeAssistant) -> None:
         entry.title,
         devices=[],
     )
+
+    # Unload while async_port_is_available is still patched so the hass fixture
+    # teardown does not block on the real port check loop in async_unload_entry.
+    await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
 
 
 @pytest.mark.usefixtures("mock_async_zeroconf")

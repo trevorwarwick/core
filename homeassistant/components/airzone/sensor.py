@@ -1,14 +1,14 @@
 """Support for the Airzone sensors."""
 
-from __future__ import annotations
-
-from typing import Any, Final
+from typing import Any, Final, override
 
 from aioairzone.const import (
     AZD_HOT_WATER,
     AZD_HUMIDITY,
     AZD_TEMP,
     AZD_TEMP_UNIT,
+    AZD_THERMOSTAT_BATTERY,
+    AZD_THERMOSTAT_SIGNAL,
     AZD_WEBSERVER,
     AZD_WIFI_RSSI,
     AZD_ZONES,
@@ -72,6 +72,20 @@ ZONE_SENSOR_TYPES: Final[tuple[SensorEntityDescription, ...]] = (
         key=AZD_HUMIDITY,
         native_unit_of_measurement=PERCENTAGE,
         state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        device_class=SensorDeviceClass.BATTERY,
+        key=AZD_THERMOSTAT_BATTERY,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SensorEntityDescription(
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        key=AZD_THERMOSTAT_SIGNAL,
+        native_unit_of_measurement=PERCENTAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        translation_key="thermostat_signal",
     ),
 )
 
@@ -145,6 +159,7 @@ class AirzoneSensor(AirzoneEntity, SensorEntity):
     """Define an Airzone sensor."""
 
     @callback
+    @override
     def _handle_coordinator_update(self) -> None:
         """Update attributes when the coordinator updates."""
         self._async_update_attrs()

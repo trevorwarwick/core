@@ -1,10 +1,9 @@
 """Weather information for air and road temperature (by Trafikverket)."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from typing import override
 
 from pytrafikverket.models import WeatherStationInfoModel
 
@@ -89,7 +88,8 @@ SENSOR_TYPES: tuple[TrafikverketSensorEntityDescription, ...] = (
         translation_key="wind_direction",
         value_fn=lambda data: data.winddirection,
         native_unit_of_measurement=DEGREE,
-        state_class=SensorStateClass.MEASUREMENT,
+        state_class=SensorStateClass.MEASUREMENT_ANGLE,
+        device_class=SensorDeviceClass.WIND_DIRECTION,
     ),
     TrafikverketSensorEntityDescription(
         key="wind_speed",
@@ -248,6 +248,7 @@ class TrafikverketWeatherStation(
         )
 
     @property
+    @override
     def native_value(self) -> StateType | datetime:
         """Return state of sensor."""
         return self.entity_description.value_fn(self.coordinator.data)

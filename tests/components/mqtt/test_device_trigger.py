@@ -16,15 +16,10 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.trigger import async_initialize_triggers
 from homeassistant.setup import async_setup_component
 
-from .test_common import help_test_unload_config_entry
+from .common import help_test_unload_config_entry
 
 from tests.common import async_fire_mqtt_message, async_get_device_automations
 from tests.typing import MqttMockHAClientGenerator, WebSocketGenerator
-
-
-@pytest.fixture(autouse=True, name="stub_blueprint_populate")
-def stub_blueprint_populate_autouse(stub_blueprint_populate: None) -> None:
-    """Stub copying the blueprints to the config folder."""
 
 
 @pytest.mark.parametrize(
@@ -496,8 +491,8 @@ async def test_non_unique_triggers(
     # and therefore it was not set up.
     assert device_entry.name == "beer"
     assert (
-        "Config for device trigger bla2 conflicts with existing device trigger, cannot set up trigger"
-        in caplog.text
+        "Config for device trigger bla2 conflicts with existing"
+        " device trigger, cannot set up trigger" in caplog.text
     )
 
     assert await async_setup_component(
@@ -1276,6 +1271,38 @@ async def test_entity_device_info_with_identifier(
     assert device.sw_version == "0.1-beta"
 
 
+async def test_entity_device_info_with_via_device(
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    mqtt_mock_entry: MqttMockHAClientGenerator,
+) -> None:
+    """Test device_trigger device registry integration links via_device_id."""
+    await mqtt_mock_entry()
+    mqtt_config_entry = hass.config_entries.async_entries(DOMAIN)[0]
+    hub = device_registry.async_get_or_create(
+        config_entry_id=mqtt_config_entry.entry_id,
+        identifiers={("mqtt", "hub-id")},
+        manufacturer="manufacturer",
+        model="hub",
+    )
+
+    data = json.dumps(
+        {
+            "automation_type": "trigger",
+            "topic": "test-topic",
+            "type": "foo",
+            "subtype": "bar",
+            "device": {"identifiers": ["helloworld"], "via_device": "hub-id"},
+        }
+    )
+    async_fire_mqtt_message(hass, "homeassistant/device_automation/bla/config", data)
+    await hass.async_block_till_done()
+
+    device = device_registry.async_get_device(identifiers={("mqtt", "helloworld")})
+    assert device is not None
+    assert device.via_device_id == hub.id
+
+
 async def test_entity_device_info_update(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
@@ -1369,7 +1396,11 @@ async def test_cleanup_trigger(
 
     # Verify retained discovery topic has been cleared
     mqtt_mock.async_publish.assert_called_once_with(
-        "homeassistant/device_automation/bla/config", None, 0, True
+        "homeassistant/device_automation/bla/config",
+        None,
+        0,
+        True,
+        message_expiry_interval=None,
     )
 
 

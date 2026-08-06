@@ -10,11 +10,10 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN
+from . import HiveConfigEntry
 from .entity import HiveEntity
 
 PARALLEL_UPDATES = 0
@@ -69,18 +68,18 @@ SENSOR_TYPES: tuple[BinarySensorEntityDescription, ...] = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    entry: ConfigEntry,
+    entry: HiveConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up Hive thermostat based on a config entry."""
 
-    hive = hass.data[DOMAIN][entry.entry_id]
+    hive = entry.runtime_data
 
     sensors: list[BinarySensorEntity] = []
 
     devices = hive.session.deviceList.get("binary_sensor")
     sensors.extend(
-        HiveBinarySensorEntity(hive, dev, description)
+        HiveBinarySensorEntity(hass, entry, hive, dev, description)
         for dev in devices
         for description in BINARY_SENSOR_TYPES
         if dev["hiveType"] == description.key
@@ -88,7 +87,7 @@ async def async_setup_entry(
 
     devices = hive.session.deviceList.get("sensor")
     sensors.extend(
-        HiveSensorEntity(hive, dev, description)
+        HiveSensorEntity(hass, entry, hive, dev, description)
         for dev in devices
         for description in SENSOR_TYPES
         if dev["hiveType"] == description.key
@@ -102,12 +101,14 @@ class HiveBinarySensorEntity(HiveEntity, BinarySensorEntity):
 
     def __init__(
         self,
+        hass: HomeAssistant,
+        entry: HiveConfigEntry,
         hive: Hive,
         hive_device: dict[str, Any],
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialise hive binary sensor."""
-        super().__init__(hive, hive_device)
+        super().__init__(hass, entry, hive, hive_device)
         self.entity_description = entity_description
 
     async def async_update(self) -> None:
@@ -132,12 +133,14 @@ class HiveSensorEntity(HiveEntity, BinarySensorEntity):
 
     def __init__(
         self,
+        hass: HomeAssistant,
+        entry: HiveConfigEntry,
         hive: Hive,
         hive_device: dict[str, Any],
         entity_description: BinarySensorEntityDescription,
     ) -> None:
         """Initialise hive sensor."""
-        super().__init__(hive, hive_device)
+        super().__init__(hass, entry, hive, hive_device)
         self.entity_description = entity_description
 
     async def async_update(self) -> None:

@@ -1,8 +1,9 @@
 # serializer version: 1
 # name: test_all_entities[binary_sensor.1p7k_500006_ev_diode_short-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -20,13 +21,15 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'EV diode short',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
     'original_icon': None,
-    'original_name': 'Ev diode short',
+    'original_name': 'EV diode short',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'cp_diode_failure',
     'unique_id': '500006_cp_diode_failure',
@@ -36,8 +39,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_ev_diode_short-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Ev diode short',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 EV diode short',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_ev_diode_short',
@@ -49,8 +52,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_ev_error-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -68,13 +72,15 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'EV error',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
     'original_icon': None,
-    'original_name': 'Ev error',
+    'original_name': 'EV error',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'state_e_activated',
     'unique_id': '500006_state_e_activated',
@@ -84,8 +90,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_ev_error-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Ev error',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 EV error',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_ev_error',
@@ -97,8 +103,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_metering_error-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -116,6 +123,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Metering error',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -123,6 +131,7 @@
     'original_name': 'Metering error',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'meter_fault',
     'unique_id': '500006_meter_fault',
@@ -132,8 +141,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_metering_error-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Metering error',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Metering error',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_metering_error',
@@ -145,8 +154,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_overcurrent-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -164,6 +174,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Overcurrent',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -171,6 +182,7 @@
     'original_name': 'Overcurrent',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'overcurrent',
     'unique_id': '500006_overcurrent',
@@ -180,8 +192,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_overcurrent-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Overcurrent',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Overcurrent',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_overcurrent',
@@ -193,8 +205,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_overheating-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -212,6 +225,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Overheating',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -219,6 +233,7 @@
     'original_name': 'Overheating',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'critical_temp',
     'unique_id': '500006_critical_temp',
@@ -228,8 +243,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_overheating-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Overheating',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Overheating',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_overheating',
@@ -241,8 +256,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_overvoltage-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -260,6 +276,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Overvoltage',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -267,6 +284,7 @@
     'original_name': 'Overvoltage',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'overvoltage',
     'unique_id': '500006_overvoltage',
@@ -276,8 +294,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_overvoltage-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Overvoltage',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Overvoltage',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_overvoltage',
@@ -289,8 +307,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_rcd_error-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -308,13 +327,15 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'RCD error',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
     'original_icon': None,
-    'original_name': 'Rcd error',
+    'original_name': 'RCD error',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'rcd_error',
     'unique_id': '500006_rcd_error',
@@ -324,8 +345,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_rcd_error-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Rcd error',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 RCD error',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_rcd_error',
@@ -337,8 +358,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_relay_contacts_welded-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -356,6 +378,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Relay contacts welded',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -363,6 +386,7 @@
     'original_name': 'Relay contacts welded',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'contactor_failure',
     'unique_id': '500006_contactor_failure',
@@ -372,8 +396,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_relay_contacts_welded-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Relay contacts welded',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Relay contacts welded',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_relay_contacts_welded',
@@ -385,8 +409,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_thermal_throttling-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -404,6 +429,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Thermal throttling',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -411,6 +437,7 @@
     'original_name': 'Thermal throttling',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'overtemp',
     'unique_id': '500006_overtemp',
@@ -420,8 +447,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_thermal_throttling-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Thermal throttling',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Thermal throttling',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_thermal_throttling',
@@ -433,8 +460,9 @@
 # ---
 # name: test_all_entities[binary_sensor.1p7k_500006_undervoltage-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -452,6 +480,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Undervoltage',
     'options': dict({
     }),
     'original_device_class': <BinarySensorDeviceClass.PROBLEM: 'problem'>,
@@ -459,6 +488,7 @@
     'original_name': 'Undervoltage',
     'platform': 'lektrico',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'undervoltage',
     'unique_id': '500006_undervoltage',
@@ -468,8 +498,8 @@
 # name: test_all_entities[binary_sensor.1p7k_500006_undervoltage-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'device_class': 'problem',
-      'friendly_name': '1p7k_500006 Undervoltage',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'problem',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: '1p7k_500006 Undervoltage',
     }),
     'context': <ANY>,
     'entity_id': 'binary_sensor.1p7k_500006_undervoltage',

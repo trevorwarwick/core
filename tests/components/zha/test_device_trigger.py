@@ -1,17 +1,19 @@
 """ZHA device automation trigger tests."""
 
-from unittest.mock import patch
+from collections.abc import Callable, Coroutine
+from unittest.mock import AsyncMock, patch
 
 import pytest
-from zha.application.const import ATTR_ENDPOINT_ID
+from zha.application.const import ATTR_ENDPOINT_ID, RadioType
+from zha.quirks import DEVICE_REGISTRY
 from zigpy.application import ControllerApplication
 from zigpy.device import Device as ZigpyDevice
 import zigpy.profiles.zha
 import zigpy.types
 
 from homeassistant.components import automation
-from homeassistant.components.device_automation import DeviceAutomationType
-from homeassistant.components.device_automation.exceptions import (
+from homeassistant.components.device_automation import (
+    DeviceAutomationType,
     InvalidDeviceAutomationConfig,
 )
 from homeassistant.components.zha.helpers import get_zha_gateway
@@ -21,12 +23,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.setup import async_setup_component
 
 from tests.common import MockConfigEntry, async_get_device_automations
-
-
-@pytest.fixture(autouse=True, name="stub_blueprint_populate")
-def stub_blueprint_populate_autouse(stub_blueprint_populate: None) -> None:
-    """Stub copying the blueprints to the config folder."""
-
 
 ON = 1
 OFF = 0
@@ -59,7 +55,7 @@ def _same_lists(list_a, list_b):
 async def test_triggers(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test ZHA device triggers."""
 
@@ -145,7 +141,9 @@ async def test_triggers(
 
 
 async def test_no_triggers(
-    hass: HomeAssistant, device_registry: dr.DeviceRegistry, setup_zha
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test ZHA device with no triggers."""
     await setup_zha()
@@ -185,7 +183,7 @@ async def test_if_fires_on_event(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     service_calls: list[ServiceCall],
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test for remote triggers firing."""
 
@@ -199,6 +197,7 @@ async def test_if_fires_on_event(
     )
     ep = zigpy_device.add_endpoint(1)
     ep.add_output_cluster(0x0006)
+    ep.profile_id = zigpy.profiles.zha.PROFILE_ID
 
     zigpy_device.device_automation_triggers = {
         (SHAKEN, SHAKEN): {COMMAND: COMMAND_SHAKE},
@@ -260,7 +259,7 @@ async def test_device_offline_fires(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     service_calls: list[ServiceCall],
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test for device offline triggers firing."""
 
@@ -316,7 +315,7 @@ async def test_exception_no_triggers(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     caplog: pytest.LogCaptureFixture,
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test for exception when validating device triggers."""
 
@@ -369,7 +368,7 @@ async def test_exception_bad_trigger(
     hass: HomeAssistant,
     device_registry: dr.DeviceRegistry,
     caplog: pytest.LogCaptureFixture,
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test for exception when validating device triggers."""
 
@@ -430,7 +429,7 @@ async def test_validate_trigger_config_missing_info(
     device_registry: dr.DeviceRegistry,
     config_entry: MockConfigEntry,
     caplog: pytest.LogCaptureFixture,
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test device triggers referring to a missing device."""
 
@@ -498,7 +497,7 @@ async def test_validate_trigger_config_unloaded_bad_info(
     config_entry: MockConfigEntry,
     caplog: pytest.LogCaptureFixture,
     zigpy_app_controller: ControllerApplication,
-    setup_zha,
+    setup_zha: Callable[..., Coroutine[None]],
 ) -> None:
     """Test device triggers referring to a missing device."""
 
@@ -560,3 +559,28 @@ async def test_validate_trigger_config_unloaded_bad_info(
     )
 
     assert "Unable to find trigger" in caplog.text
+
+
+async def test_device_trigger_cache_built_with_quirk_resolver(
+    zigpy_app_controller: ControllerApplication,
+    setup_zha: Callable[..., Coroutine[None]],
+) -> None:
+    """Test the early device trigger cache is built with quirk resolution.
+
+    Regression test: without quirk resolution, quirk-defined triggers (e.g.
+    remote button presses) are missing whenever the cache is used as a
+    fallback (i.e. before ZHA has finished loading).
+    """
+    with patch.object(
+        RadioType.ezsp.controller,
+        "new",
+        AsyncMock(return_value=zigpy_app_controller),
+    ) as mock_new:
+        await setup_zha()
+
+    # Both the trigger cache app and the gateway app must quirk-resolve devices
+    assert len(mock_new.await_args_list) == 2
+    assert all(
+        call.kwargs.get("device_resolver") == DEVICE_REGISTRY.resolve
+        for call in mock_new.await_args_list
+    )

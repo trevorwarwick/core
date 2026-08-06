@@ -1,15 +1,13 @@
 """Files to interact with an ESPHome dashboard."""
 
-from __future__ import annotations
-
 import asyncio
 import logging
 from typing import Any
 
-from homeassistant.config_entries import SOURCE_REAUTH, ConfigEntryState
+from homeassistant.config_entries import SOURCE_REAUTH
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.core import CALLBACK_TYPE, Event, HomeAssistant, callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.hassio import is_hassio
 from homeassistant.helpers.singleton import singleton
 from homeassistant.helpers.storage import Store
 from homeassistant.util.hass_dict import HassKey
@@ -60,10 +58,28 @@ class ESPHomeDashboardManager:
     async def async_setup(self) -> None:
         """Restore the dashboard from storage."""
         self._data = await self._store.async_load()
-        if (data := self._data) and (info := data.get("info")):
-            await self.async_set_dashboard_info(
-                info["addon_slug"], info["host"], info["port"]
-            )
+        if not (data := self._data) or not (info := data.get("info")):
+            return
+        if is_hassio(self._hass):
+            from homeassistant.components.hassio import get_addons_info  # noqa: PLC0415
+
+            # This may raise HassioNotReadyError if Supervisor was unreachable
+            # during setup of the Supervisor integration. That will fail setup
+            # of this integration. However there is no better option at this time
+            # since we need to know if the addon is installed from Supervisor to
+            # correctly setup this integration and we can't raise ConfigEntryNotReady
+            # to trigger a retry from async_setup.
+            addons = get_addons_info(self._hass)
+            if info["addon_slug"] not in addons:
+                # The addon is not installed anymore, but it make come back
+                # so we don't want to remove the dashboard, but for now
+                # we don't want to use it.
+                _LOGGER.debug("Addon %s is no longer installed", info["addon_slug"])
+                return
+
+        await self.async_set_dashboard_info(
+            info["addon_slug"], info["host"], info["port"]
+        )
 
     @callback
     def async_get(self) -> ESPHomeDashboardCoordinator | None:
@@ -88,9 +104,7 @@ class ESPHomeDashboardManager:
                 self._cancel_shutdown = None
             self._current_dashboard = None
 
-        dashboard = ESPHomeDashboardCoordinator(
-            hass, addon_slug, url, async_get_clientsession(hass)
-        )
+        dashboard = ESPHomeDashboardCoordinator(hass, addon_slug, url)
         await dashboard.async_request_refresh()
 
         self._current_dashboard = dashboard
@@ -108,10 +122,10 @@ class ESPHomeDashboardManager:
 
         reloads = [
             hass.config_entries.async_reload(entry.entry_id)
-            for entry in hass.config_entries.async_entries(DOMAIN)
-            if entry.state is ConfigEntryState.LOADED
+            for entry in hass.config_entries.async_loaded_entries(DOMAIN)
         ]
-        # Re-auth flows will check the dashboard for encryption key when the form is requested
+        # Re-auth flows will check the dashboard for encryption
+        # key when the form is requested
         # but we only trigger reauth if the dashboard is available.
         if dashboard.last_update_success:
             reauths = [

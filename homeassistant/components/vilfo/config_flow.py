@@ -1,7 +1,7 @@
 """Config flow for Vilfo Router integration."""
 
 import logging
-from typing import Any
+from typing import Any, override
 
 from vilfo import Client as VilfoClient
 from vilfo.exceptions import (
@@ -33,7 +33,7 @@ RESULT_INVALID_AUTH = "invalid_auth"
 
 
 def _try_connect_and_fetch_basic_info(host, token):
-    """Attempt to connect and call the ping endpoint and, if successful, fetch basic information."""
+    """Connect, call ping endpoint, and fetch basic info."""
 
     # Perform the ping. This doesn't validate authentication.
     controller = VilfoClient(host=host, token=token)
@@ -100,6 +100,7 @@ class DomainConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -114,8 +115,8 @@ class DomainConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = "cannot_connect"
             except InvalidAuth:
                 errors["base"] = "invalid_auth"
-            except Exception as err:  # noqa: BLE001
-                _LOGGER.error("Unexpected exception: %s", err)
+            except Exception:
+                _LOGGER.exception("Unexpected exception")
                 errors["base"] = "unknown"
             else:
                 await self.async_set_unique_id(info[CONF_ID])

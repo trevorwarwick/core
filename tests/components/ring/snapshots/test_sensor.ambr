@@ -1,8 +1,9 @@
 # serializer version: 1
 # name: test_states[sensor.downstairs_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -20,6 +21,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -27,6 +29,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '123456-volume',
@@ -36,8 +39,8 @@
 # name: test_states[sensor.downstairs_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Downstairs Volume',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Downstairs Volume',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.downstairs_volume',
@@ -49,8 +52,9 @@
 # ---
 # name: test_states[sensor.downstairs_wifi_signal_category-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -68,6 +72,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wi-Fi signal category',
     'options': dict({
     }),
     'original_device_class': None,
@@ -75,6 +80,7 @@
     'original_name': 'Wi-Fi signal category',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wifi_signal_category',
     'unique_id': '123456-wifi_signal_category',
@@ -84,8 +90,8 @@
 # name: test_states[sensor.downstairs_wifi_signal_category-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Downstairs Wi-Fi signal category',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Downstairs Wi-Fi signal category',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.downstairs_wifi_signal_category',
@@ -97,8 +103,9 @@
 # ---
 # name: test_states[sensor.downstairs_wifi_signal_strength-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -116,6 +123,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Signal strength',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
@@ -123,6 +131,7 @@
     'original_name': 'Signal strength',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '123456-wifi_signal_strength',
@@ -132,10 +141,10 @@
 # name: test_states[sensor.downstairs_wifi_signal_strength-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'signal_strength',
-      'friendly_name': 'Downstairs Signal strength',
-      'unit_of_measurement': 'dBm',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'signal_strength',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Downstairs Signal strength',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'dBm',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.downstairs_wifi_signal_strength',
@@ -147,11 +156,12 @@
 # ---
 # name: test_states[sensor.front_battery-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -168,6 +178,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Battery',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.BATTERY: 'battery'>,
@@ -175,6 +186,7 @@
     'original_name': 'Battery',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '765432-battery',
@@ -184,11 +196,11 @@
 # name: test_states[sensor.front_battery-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'battery',
-      'friendly_name': 'Front Battery',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': '%',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'battery',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Battery',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: '%',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_battery',
@@ -200,11 +212,12 @@
 # ---
 # name: test_states[sensor.front_door_battery-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -221,6 +234,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Battery',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.BATTERY: 'battery'>,
@@ -228,6 +242,7 @@
     'original_name': 'Battery',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '987654-battery',
@@ -237,11 +252,11 @@
 # name: test_states[sensor.front_door_battery-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'battery',
-      'friendly_name': 'Front Door Battery',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': '%',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'battery',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Battery',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: '%',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_battery',
@@ -253,8 +268,9 @@
 # ---
 # name: test_states[sensor.front_door_last_activity-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -272,6 +288,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last activity',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -279,6 +296,7 @@
     'original_name': 'Last activity',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_activity',
     'unique_id': '987654-last_activity',
@@ -288,9 +306,9 @@
 # name: test_states[sensor.front_door_last_activity-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Door Last activity',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Last activity',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_last_activity',
@@ -302,8 +320,9 @@
 # ---
 # name: test_states[sensor.front_door_last_ding-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -321,6 +340,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last ding',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -328,6 +348,7 @@
     'original_name': 'Last ding',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_ding',
     'unique_id': '987654-last_ding',
@@ -337,9 +358,9 @@
 # name: test_states[sensor.front_door_last_ding-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Door Last ding',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Last ding',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_last_ding',
@@ -351,8 +372,9 @@
 # ---
 # name: test_states[sensor.front_door_last_motion-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -370,6 +392,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last motion',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -377,6 +400,7 @@
     'original_name': 'Last motion',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_motion',
     'unique_id': '987654-last_motion',
@@ -386,9 +410,9 @@
 # name: test_states[sensor.front_door_last_motion-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Door Last motion',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Last motion',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_last_motion',
@@ -400,8 +424,9 @@
 # ---
 # name: test_states[sensor.front_door_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -419,6 +444,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -426,6 +452,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '765432-volume',
@@ -435,8 +462,8 @@
 # name: test_states[sensor.front_door_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Front Volume',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Volume',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_volume',
@@ -448,8 +475,9 @@
 # ---
 # name: test_states[sensor.front_door_wifi_signal_category-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -467,6 +495,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wi-Fi signal category',
     'options': dict({
     }),
     'original_device_class': None,
@@ -474,6 +503,7 @@
     'original_name': 'Wi-Fi signal category',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wifi_signal_category',
     'unique_id': '987654-wifi_signal_category',
@@ -483,8 +513,8 @@
 # name: test_states[sensor.front_door_wifi_signal_category-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Front Door Wi-Fi signal category',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Wi-Fi signal category',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_wifi_signal_category',
@@ -496,8 +526,9 @@
 # ---
 # name: test_states[sensor.front_door_wifi_signal_strength-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -515,6 +546,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Signal strength',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
@@ -522,6 +554,7 @@
     'original_name': 'Signal strength',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '987654-wifi_signal_strength',
@@ -531,10 +564,10 @@
 # name: test_states[sensor.front_door_wifi_signal_strength-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'signal_strength',
-      'friendly_name': 'Front Door Signal strength',
-      'unit_of_measurement': 'dBm',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'signal_strength',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Signal strength',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'dBm',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_door_wifi_signal_strength',
@@ -546,8 +579,9 @@
 # ---
 # name: test_states[sensor.front_last_activity-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -565,6 +599,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last activity',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -572,6 +607,7 @@
     'original_name': 'Last activity',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_activity',
     'unique_id': '765432-last_activity',
@@ -581,9 +617,9 @@
 # name: test_states[sensor.front_last_activity-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Last activity',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Last activity',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_last_activity',
@@ -595,8 +631,9 @@
 # ---
 # name: test_states[sensor.front_last_ding-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -614,6 +651,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last ding',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -621,6 +659,7 @@
     'original_name': 'Last ding',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_ding',
     'unique_id': '765432-last_ding',
@@ -630,9 +669,9 @@
 # name: test_states[sensor.front_last_ding-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Last ding',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Last ding',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_last_ding',
@@ -644,8 +683,9 @@
 # ---
 # name: test_states[sensor.front_last_motion-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -663,6 +703,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last motion',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -670,6 +711,7 @@
     'original_name': 'Last motion',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_motion',
     'unique_id': '765432-last_motion',
@@ -679,9 +721,9 @@
 # name: test_states[sensor.front_last_motion-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Front Last motion',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Last motion',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_last_motion',
@@ -693,8 +735,9 @@
 # ---
 # name: test_states[sensor.front_wifi_signal_category-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -712,6 +755,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wi-Fi signal category',
     'options': dict({
     }),
     'original_device_class': None,
@@ -719,6 +763,7 @@
     'original_name': 'Wi-Fi signal category',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wifi_signal_category',
     'unique_id': '765432-wifi_signal_category',
@@ -728,8 +773,8 @@
 # name: test_states[sensor.front_wifi_signal_category-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Front Wi-Fi signal category',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Wi-Fi signal category',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_wifi_signal_category',
@@ -741,8 +786,9 @@
 # ---
 # name: test_states[sensor.front_wifi_signal_strength-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -760,6 +806,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Signal strength',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
@@ -767,6 +814,7 @@
     'original_name': 'Signal strength',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '765432-wifi_signal_strength',
@@ -776,10 +824,10 @@
 # name: test_states[sensor.front_wifi_signal_strength-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'signal_strength',
-      'friendly_name': 'Front Signal strength',
-      'unit_of_measurement': 'dBm',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'signal_strength',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Signal strength',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'dBm',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.front_wifi_signal_strength',
@@ -791,11 +839,12 @@
 # ---
 # name: test_states[sensor.ingress_battery-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -812,6 +861,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Battery',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.BATTERY: 'battery'>,
@@ -819,6 +869,7 @@
     'original_name': 'Battery',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '185036587-battery',
@@ -828,11 +879,11 @@
 # name: test_states[sensor.ingress_battery-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'battery',
-      'friendly_name': 'Ingress Battery',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': '%',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'battery',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Battery',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: '%',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_battery',
@@ -844,8 +895,9 @@
 # ---
 # name: test_states[sensor.ingress_doorbell_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -863,6 +915,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Doorbell volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -870,6 +923,7 @@
     'original_name': 'Doorbell volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'doorbell_volume',
     'unique_id': '185036587-doorbell_volume',
@@ -879,8 +933,8 @@
 # name: test_states[sensor.ingress_doorbell_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Doorbell volume',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Doorbell volume',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_doorbell_volume',
@@ -892,8 +946,9 @@
 # ---
 # name: test_states[sensor.ingress_last_activity-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -911,6 +966,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last activity',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -918,6 +974,7 @@
     'original_name': 'Last activity',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_activity',
     'unique_id': '185036587-last_activity',
@@ -927,9 +984,9 @@
 # name: test_states[sensor.ingress_last_activity-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Ingress Last activity',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Last activity',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_last_activity',
@@ -941,8 +998,9 @@
 # ---
 # name: test_states[sensor.ingress_mic_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -960,6 +1018,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Mic volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -967,6 +1026,7 @@
     'original_name': 'Mic volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'mic_volume',
     'unique_id': '185036587-mic_volume',
@@ -976,8 +1036,8 @@
 # name: test_states[sensor.ingress_mic_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Mic volume',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Mic volume',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_mic_volume',
@@ -989,8 +1049,9 @@
 # ---
 # name: test_states[sensor.ingress_voice_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1008,6 +1069,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voice volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1015,6 +1077,7 @@
     'original_name': 'Voice volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voice_volume',
     'unique_id': '185036587-voice_volume',
@@ -1024,8 +1087,8 @@
 # name: test_states[sensor.ingress_voice_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Voice volume',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Voice volume',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_voice_volume',
@@ -1037,8 +1100,9 @@
 # ---
 # name: test_states[sensor.ingress_wifi_signal_category-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1056,6 +1120,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wi-Fi signal category',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1063,6 +1128,7 @@
     'original_name': 'Wi-Fi signal category',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wifi_signal_category',
     'unique_id': '185036587-wifi_signal_category',
@@ -1072,8 +1138,8 @@
 # name: test_states[sensor.ingress_wifi_signal_category-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Wi-Fi signal category',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Wi-Fi signal category',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_wifi_signal_category',
@@ -1085,8 +1151,9 @@
 # ---
 # name: test_states[sensor.ingress_wifi_signal_strength-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1104,6 +1171,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Signal strength',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
@@ -1111,6 +1179,7 @@
     'original_name': 'Signal strength',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '185036587-wifi_signal_strength',
@@ -1120,10 +1189,10 @@
 # name: test_states[sensor.ingress_wifi_signal_strength-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'signal_strength',
-      'friendly_name': 'Ingress Signal strength',
-      'unit_of_measurement': 'dBm',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'signal_strength',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Signal strength',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'dBm',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.ingress_wifi_signal_strength',
@@ -1135,11 +1204,12 @@
 # ---
 # name: test_states[sensor.internal_battery-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -1156,6 +1226,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Battery',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.BATTERY: 'battery'>,
@@ -1163,6 +1234,7 @@
     'original_name': 'Battery',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '345678-battery',
@@ -1172,11 +1244,11 @@
 # name: test_states[sensor.internal_battery-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'battery',
-      'friendly_name': 'Internal Battery',
-      'state_class': <SensorStateClass.MEASUREMENT: 'measurement'>,
-      'unit_of_measurement': '%',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'battery',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Battery',
+      <SensorEntityCapabilityAttribute.STATE_CLASS: 'state_class'>: <SensorStateClass.MEASUREMENT: 'measurement'>,
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: '%',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_battery',
@@ -1188,8 +1260,9 @@
 # ---
 # name: test_states[sensor.internal_last_activity-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1207,6 +1280,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last activity',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -1214,6 +1288,7 @@
     'original_name': 'Last activity',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_activity',
     'unique_id': '345678-last_activity',
@@ -1223,9 +1298,9 @@
 # name: test_states[sensor.internal_last_activity-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Internal Last activity',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Last activity',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_last_activity',
@@ -1237,8 +1312,9 @@
 # ---
 # name: test_states[sensor.internal_last_ding-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1256,6 +1332,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last ding',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -1263,6 +1340,7 @@
     'original_name': 'Last ding',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_ding',
     'unique_id': '345678-last_ding',
@@ -1272,9 +1350,9 @@
 # name: test_states[sensor.internal_last_ding-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Internal Last ding',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Last ding',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_last_ding',
@@ -1286,8 +1364,9 @@
 # ---
 # name: test_states[sensor.internal_last_motion-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1305,6 +1384,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Last motion',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.TIMESTAMP: 'timestamp'>,
@@ -1312,6 +1392,7 @@
     'original_name': 'Last motion',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'last_motion',
     'unique_id': '345678-last_motion',
@@ -1321,9 +1402,9 @@
 # name: test_states[sensor.internal_last_motion-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'timestamp',
-      'friendly_name': 'Internal Last motion',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'timestamp',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Last motion',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_last_motion',
@@ -1335,8 +1416,9 @@
 # ---
 # name: test_states[sensor.internal_wifi_signal_category-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1354,6 +1436,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Wi-Fi signal category',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1361,6 +1444,7 @@
     'original_name': 'Wi-Fi signal category',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'wifi_signal_category',
     'unique_id': '345678-wifi_signal_category',
@@ -1370,8 +1454,8 @@
 # name: test_states[sensor.internal_wifi_signal_category-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Internal Wi-Fi signal category',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Wi-Fi signal category',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_wifi_signal_category',
@@ -1383,8 +1467,9 @@
 # ---
 # name: test_states[sensor.internal_wifi_signal_strength-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': None,
     'config_entry_id': <ANY>,
@@ -1402,6 +1487,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Signal strength',
     'options': dict({
     }),
     'original_device_class': <SensorDeviceClass.SIGNAL_STRENGTH: 'signal_strength'>,
@@ -1409,6 +1495,7 @@
     'original_name': 'Signal strength',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '345678-wifi_signal_strength',
@@ -1418,10 +1505,10 @@
 # name: test_states[sensor.internal_wifi_signal_strength-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'device_class': 'signal_strength',
-      'friendly_name': 'Internal Signal strength',
-      'unit_of_measurement': 'dBm',
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.DEVICE_CLASS: 'device_class'>: 'signal_strength',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Signal strength',
+      <EntityStateAttribute.UNIT_OF_MEASUREMENT: 'unit_of_measurement'>: 'dBm',
     }),
     'context': <ANY>,
     'entity_id': 'sensor.internal_wifi_signal_strength',

@@ -1,9 +1,8 @@
 """Platform for button."""
 
-from __future__ import annotations
-
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
+from typing import Any, override
 
 from ohme import ApiException, ChargerStatus, OhmeApiClient
 
@@ -23,7 +22,7 @@ PARALLEL_UPDATES = 1
 class OhmeButtonDescription(OhmeEntityDescription, ButtonEntityDescription):
     """Class describing Ohme button entities."""
 
-    press_fn: Callable[[OhmeApiClient], Awaitable[None]]
+    press_fn: Callable[[OhmeApiClient], Coroutine[Any, Any, bool]]
 
 
 BUTTON_DESCRIPTIONS = [
@@ -57,6 +56,7 @@ class OhmeButton(OhmeEntity, ButtonEntity):
 
     entity_description: OhmeButtonDescription
 
+    @override
     async def async_press(self) -> None:
         """Handle the button press."""
         try:

@@ -1,9 +1,8 @@
 """Support for zestimate data from zillow.com."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 import logging
+from typing import Any, override
 
 import requests
 import voluptuous as vol
@@ -81,16 +80,19 @@ class ZestimateDataSensor(SensorEntity):
         self._state = None
 
     @property
+    @override
     def unique_id(self):
         """Return the ZPID."""
         return self.params["zpid"]
 
     @property
+    @override
     def name(self):
         """Return the name of the sensor."""
         return f"{self._name} {self.address}"
 
     @property
+    @override
     def native_value(self):
         """Return the state of the sensor."""
         try:
@@ -99,7 +101,8 @@ class ZestimateDataSensor(SensorEntity):
             return None
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes."""
         attributes = {}
         if self.data is not None:
@@ -107,13 +110,13 @@ class ZestimateDataSensor(SensorEntity):
         attributes["address"] = self.address
         return attributes
 
-    def update(self):
+    def update(self) -> None:
         """Get the latest data and update the states."""
 
         try:
             response = requests.get(_RESOURCE, params=self.params, timeout=5)
             data = response.content.decode("utf-8")
-            data_dict = xmltodict.parse(data).get(ZESTIMATE)
+            data_dict = xmltodict.parse(data)[ZESTIMATE]
             error_code = int(data_dict["message"]["code"])
             if error_code != 0:
                 _LOGGER.error("The API returned: %s", data_dict["message"]["text"])

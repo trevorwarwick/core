@@ -1,8 +1,6 @@
 """Light support for switch entities."""
 
-from __future__ import annotations
-
-from typing import Any
+from typing import Any, override
 
 import voluptuous as vol
 
@@ -26,14 +24,14 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.event import async_track_state_change_event
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
-from .const import DOMAIN as SWITCH_DOMAIN
+from .const import DOMAIN
 
 DEFAULT_NAME = "Light Switch"
 
 PLATFORM_SCHEMA = LIGHT_PLATFORM_SCHEMA.extend(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Required(CONF_ENTITY_ID): cv.entity_domain(SWITCH_DOMAIN),
+        vol.Required(CONF_ENTITY_ID): cv.entity_domain(DOMAIN),
     }
 )
 
@@ -73,26 +71,29 @@ class LightSwitch(LightEntity):
         self._attr_unique_id = unique_id
         self._switch_entity_id = switch_entity_id
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Forward the turn_on command to the switch in this light switch."""
         await self.hass.services.async_call(
-            SWITCH_DOMAIN,
+            DOMAIN,
             SERVICE_TURN_ON,
             {ATTR_ENTITY_ID: self._switch_entity_id},
             blocking=True,
             context=self._context,
         )
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Forward the turn_off command to the switch in this light switch."""
         await self.hass.services.async_call(
-            SWITCH_DOMAIN,
+            DOMAIN,
             SERVICE_TURN_OFF,
             {ATTR_ENTITY_ID: self._switch_entity_id},
             blocking=True,
             context=self._context,
         )
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 

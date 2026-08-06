@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 from pyps4_2ndscreen.credential import get_ddp_message
 from pyps4_2ndscreen.ddp import DEFAULT_UDP_PORT
 from pyps4_2ndscreen.media_art import TYPE_APP as PS_TYPE_APP
+from syrupy.assertion import SnapshotAssertion
 
 from homeassistant.components import ps4
 from homeassistant.components.media_player import (
@@ -33,8 +34,8 @@ from homeassistant.const import (
     CONF_REGION,
     CONF_TOKEN,
     STATE_IDLE,
+    STATE_OFF,
     STATE_PLAYING,
-    STATE_STANDBY,
     STATE_UNKNOWN,
 )
 from homeassistant.core import HomeAssistant
@@ -188,13 +189,16 @@ async def test_state_standby_is_set(hass: HomeAssistant) -> None:
 
     await mock_ddp_response(hass, MOCK_STATUS_STANDBY)
 
-    assert hass.states.get(mock_entity_id).state == STATE_STANDBY
+    assert hass.states.get(mock_entity_id).state == STATE_OFF
 
 
 async def test_state_playing_is_set(hass: HomeAssistant) -> None:
     """Test that state is set to playing."""
     mock_entity_id = await setup_mock_component(hass)
-    mock_func = "homeassistant.components.ps4.media_player.pyps4.Ps4Async.async_get_ps_store_data"
+    mock_func = (
+        "homeassistant.components.ps4.media_player"
+        ".pyps4.Ps4Async.async_get_ps_store_data"
+    )
 
     with patch(mock_func, return_value=None):
         await mock_ddp_response(hass, MOCK_STATUS_PLAYING)
@@ -221,7 +225,10 @@ async def test_state_none_is_set(hass: HomeAssistant) -> None:
 async def test_media_attributes_are_fetched(hass: HomeAssistant) -> None:
     """Test that media attributes are fetched."""
     mock_entity_id = await setup_mock_component(hass)
-    mock_func = "homeassistant.components.ps4.media_player.pyps4.Ps4Async.async_get_ps_store_data"
+    mock_func = (
+        "homeassistant.components.ps4.media_player"
+        ".pyps4.Ps4Async.async_get_ps_store_data"
+    )
 
     # Mock result from fetching data.
     mock_result = MagicMock()
@@ -308,13 +315,31 @@ async def test_device_info_is_set_from_status_correctly(
 
     mock_d_entries = device_registry.devices
     mock_entry = device_registry.async_get_device(identifiers={(DOMAIN, MOCK_HOST_ID)})
-    assert mock_state == STATE_STANDBY
+    assert mock_state == STATE_OFF
 
     assert len(mock_d_entries) == 1
     assert mock_entry.name == MOCK_HOST_NAME
     assert mock_entry.model == MOCK_DEVICE_MODEL
     assert mock_entry.sw_version == mock_version
     assert mock_entry.identifiers == {(DOMAIN, MOCK_HOST_ID)}
+
+
+async def test_device_registry(
+    hass: HomeAssistant,
+    patch_get_status: MagicMock,
+    device_registry: dr.DeviceRegistry,
+    snapshot: SnapshotAssertion,
+) -> None:
+    """Test the device registry entry, including the network MAC connection."""
+    patch_get_status.return_value = MOCK_STATUS_STANDBY
+    await setup_mock_component(hass)
+
+    await hass.async_block_till_done()
+
+    device_entry = device_registry.async_get_device(
+        identifiers={(DOMAIN, MOCK_HOST_ID)}
+    )
+    assert device_entry == snapshot
 
 
 async def test_device_info_is_assummed(
@@ -538,7 +563,7 @@ async def test_entry_is_unloaded(hass: HomeAssistant) -> None:
         domain=ps4.DOMAIN, data=MOCK_DATA, version=VERSION, entry_id=MOCK_ENTRY_ID
     )
     mock_entity_id = await setup_mock_component(hass, mock_entry)
-    mock_unload = await ps4.async_unload_entry(hass, mock_entry)
+    mock_unload = await hass.config_entries.async_unload(mock_entry.entry_id)
 
     assert mock_unload is True
     assert not hass.data[PS4_DATA].devices

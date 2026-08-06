@@ -1,10 +1,9 @@
 """Tests for 1-Wire config flow."""
 
-from copy import deepcopy
 from unittest.mock import MagicMock, patch
 
+from aio_ownet.exceptions import OWServerReturnError
 from freezegun.api import FrozenDateTimeFactory
-from pyownet import protocol
 import pytest
 from syrupy.assertion import SnapshotAssertion
 
@@ -39,7 +38,8 @@ async def test_listing_failure(
     hass: HomeAssistant, config_entry: MockConfigEntry, owproxy: MagicMock
 ) -> None:
     """Test listing failure raises ConfigEntryNotReady."""
-    owproxy.return_value.dir.side_effect = protocol.OwnetError()
+    owproxy.return_value.read.side_effect = OWServerReturnError(-1)
+    owproxy.return_value.dir.side_effect = OWServerReturnError(-1)
 
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
@@ -48,9 +48,11 @@ async def test_listing_failure(
     assert config_entry.state is ConfigEntryState.SETUP_RETRY
 
 
-@pytest.mark.usefixtures("owproxy")
-async def test_unload_entry(hass: HomeAssistant, config_entry: MockConfigEntry) -> None:
+async def test_unload_entry(
+    hass: HomeAssistant, config_entry: MockConfigEntry, owproxy: MagicMock
+) -> None:
     """Test being able to unload an entry."""
+    setup_owproxy_mock_devices(owproxy, [])
     await hass.config_entries.async_setup(config_entry.entry_id)
     await hass.async_block_till_done()
 
@@ -61,27 +63,6 @@ async def test_unload_entry(hass: HomeAssistant, config_entry: MockConfigEntry) 
     await hass.async_block_till_done()
 
     assert config_entry.state is ConfigEntryState.NOT_LOADED
-
-
-async def test_update_options(
-    hass: HomeAssistant, config_entry: MockConfigEntry, owproxy: MagicMock
-) -> None:
-    """Test update options triggers reload."""
-    await hass.config_entries.async_setup(config_entry.entry_id)
-    await hass.async_block_till_done()
-
-    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
-    assert config_entry.state is ConfigEntryState.LOADED
-    assert owproxy.call_count == 1
-
-    new_options = deepcopy(dict(config_entry.options))
-    new_options["device_options"].clear()
-    hass.config_entries.async_update_entry(config_entry, options=new_options)
-    await hass.async_block_till_done()
-
-    assert len(hass.config_entries.async_entries(DOMAIN)) == 1
-    assert config_entry.state is ConfigEntryState.LOADED
-    assert owproxy.call_count == 2
 
 
 @pytest.mark.usefixtures("entity_registry_enabled_by_default")
@@ -127,6 +108,30 @@ async def test_registry_delayed(
         len(dr.async_entries_for_config_entry(device_registry, config_entry.entry_id))
         == 2
     )
+
+
+async def test_device_via_device_links(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+    owproxy: MagicMock,
+    device_registry: dr.DeviceRegistry,
+) -> None:
+    """Test a coupler branch device links to its parent via via_device_id."""
+    # The 1F coupler exposes a 1D device on its "main" branch.
+    setup_owproxy_mock_devices(owproxy, ["1F.111111111111"])
+    await hass.config_entries.async_setup(config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    parent_device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, "1F.111111111111"), config_entry.entry_id
+    )
+    assert parent_device is not None
+
+    child_device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, "1D.111111111111"), config_entry.entry_id
+    )
+    assert child_device is not None
+    assert child_device.via_device_id == parent_device.id
 
 
 @patch("homeassistant.components.onewire._PLATFORMS", [Platform.SENSOR])

@@ -1,6 +1,7 @@
 """Config flow for SONOS."""
 
 from collections.abc import Awaitable
+from typing import override
 
 from homeassistant.components import ssdp
 from homeassistant.config_entries import ConfigFlowResult
@@ -24,6 +25,7 @@ class SonosDiscoveryFlowHandler(DiscoveryFlowHandler[Awaitable[bool]], domain=DO
         """Init discovery flow."""
         super().__init__(DOMAIN, "Sonos", _async_has_devices)
 
+    @override
     async def async_step_zeroconf(
         self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:
@@ -31,6 +33,8 @@ class SonosDiscoveryFlowHandler(DiscoveryFlowHandler[Awaitable[bool]], domain=DO
         hostname = discovery_info.hostname
         if hostname is None or not hostname.lower().startswith("sonos"):
             return self.async_abort(reason="not_sonos_device")
+        if discovery_info.ip_address.version != 4:
+            return self.async_abort(reason="not_ipv4_address")
         if discovery_manager := self.hass.data.get(DATA_SONOS_DISCOVERY_MANAGER):
             host = discovery_info.host
             mdns_name = discovery_info.name

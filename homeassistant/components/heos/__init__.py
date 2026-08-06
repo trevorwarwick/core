@@ -1,7 +1,5 @@
 """Denon HEOS Media Player."""
 
-from __future__ import annotations
-
 from datetime import timedelta
 
 from homeassistant.const import Platform
@@ -9,9 +7,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.typing import ConfigType
 
-from . import services
 from .const import DOMAIN
 from .coordinator import HeosConfigEntry, HeosCoordinator
+from .services import async_setup_services
 
 PLATFORMS = [Platform.MEDIA_PLAYER]
 
@@ -22,7 +20,7 @@ CONFIG_SCHEMA = cv.empty_config_schema(DOMAIN)
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
     """Set up the HEOS component."""
-    services.register(hass)
+    async_setup_services(hass)
     return True
 
 
@@ -45,10 +43,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: HeosConfigEntry) -> bool
 
             # Create set of identifiers excluding this integration
             identifiers = {ident for ident in device.identifiers if ident[0] != DOMAIN}
-            migrated_identifiers = {(DOMAIN, str(player_id))}
-            # Add migrated if not already present in another device, which occurs if the user downgraded and then upgraded
-            if not device_registry.async_get_device(migrated_identifiers):
-                identifiers.update(migrated_identifiers)
+            migrated_identifier = (DOMAIN, str(player_id))
+            # Add migrated if not already present in another
+            # device, which occurs if the user downgraded and
+            # then upgraded
+            if not device_registry.async_get_devices(identifiers={migrated_identifier}):
+                identifiers.add(migrated_identifier)
             if len(identifiers) > 0:
                 device_registry.async_update_device(
                     device.id, new_identifiers=identifiers
@@ -69,3 +69,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: HeosConfigEntry) -> bool
 async def async_unload_entry(hass: HomeAssistant, entry: HeosConfigEntry) -> bool:
     """Unload a config entry."""
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_config_entry_device(
+    hass: HomeAssistant, entry: HeosConfigEntry, device: dr.DeviceEntry
+) -> bool:
+    """Remove config entry from device if no longer present."""
+    return not any(
+        (domain, key)
+        for domain, key in device.identifiers
+        if domain == DOMAIN and int(key) in entry.runtime_data.heos.players
+    )

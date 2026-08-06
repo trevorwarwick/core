@@ -15,7 +15,7 @@ from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .const import DHCP_DATA, DISCOVERY_DATA, HOMEKIT_DATA, MOCK_SERIAL
 
-from tests.common import MockConfigEntry, load_json_object_fixture
+from tests.common import MockConfigEntry, async_load_json_object_fixture
 
 
 @pytest.mark.usefixtures("mock_hunterdouglas_hub")
@@ -156,7 +156,7 @@ async def test_form_homekit_and_dhcp(
     assert result3["type"] is FlowResultType.ABORT
 
 
-@pytest.mark.usefixtures("mock_hunterdouglas_hub")
+@pytest.mark.usefixtures("mock_hunterdouglas_hub", "mock_setup_entry")
 @pytest.mark.parametrize(
     ("homekit_source", "homekit_discovery", "api_version"), HOMEKIT_DATA
 )
@@ -165,7 +165,6 @@ async def test_form_homekit_and_dhcp(
 )
 async def test_discovered_by_homekit_and_dhcp(
     hass: HomeAssistant,
-    mock_setup_entry: MagicMock,
     homekit_source: str,
     homekit_discovery: ZeroconfServiceInfo,
     api_version: int,
@@ -330,7 +329,9 @@ async def test_form_unsupported_device(
     # Simulate a gen 3 secondary hub
     with patch(
         "homeassistant.components.hunterdouglas_powerview.util.Hub.request_raw_data",
-        return_value=load_json_object_fixture("gen3/gateway/secondary.json", DOMAIN),
+        return_value=await async_load_json_object_fixture(
+            hass, "gen3/gateway/secondary.json", DOMAIN
+        ),
     ):
         result2 = await hass.config_entries.flow.async_configure(
             result["flow_id"],

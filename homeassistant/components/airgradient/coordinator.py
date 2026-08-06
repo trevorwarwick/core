@@ -1,9 +1,8 @@
 """Define an object to manage fetching AirGradient data."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 from datetime import timedelta
+from typing import override
 
 from airgradient import AirGradientClient, AirGradientError, Config, Measures
 
@@ -49,12 +48,21 @@ class AirGradientCoordinator(DataUpdateCoordinator[AirGradientData]):
         assert self.config_entry.unique_id
         self.serial_number = self.config_entry.unique_id
 
+    @override
     async def _async_setup(self) -> None:
         """Set up the coordinator."""
-        self._current_version = (
-            await self.client.get_current_measures()
-        ).firmware_version
+        try:
+            self._current_version = (
+                await self.client.get_current_measures()
+            ).firmware_version
+        except AirGradientError as error:
+            raise UpdateFailed(
+                translation_domain=DOMAIN,
+                translation_key="update_error",
+                translation_placeholders={"error": str(error)},
+            ) from error
 
+    @override
     async def _async_update_data(self) -> AirGradientData:
         try:
             measures = await self.client.get_current_measures()
@@ -67,8 +75,8 @@ class AirGradientCoordinator(DataUpdateCoordinator[AirGradientData]):
             ) from error
         if measures.firmware_version != self._current_version:
             device_registry = dr.async_get(self.hass)
-            device_entry = device_registry.async_get_device(
-                identifiers={(DOMAIN, self.serial_number)}
+            device_entry = device_registry.async_get_device_by_identifier(
+                (DOMAIN, self.serial_number), self.config_entry.entry_id
             )
             assert device_entry
             device_registry.async_update_device(

@@ -19,6 +19,12 @@
     }
   },
   "services": {
+    "get_alerts": {
+      "service": "mdi:bell-alert"
+    },
+    "get_forecasts": {
+      "service": "mdi:weather-cloudy-clock"
+    },
     "set_radar_type": {
       "service": "mdi:radar"
     }

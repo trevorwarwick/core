@@ -1,9 +1,8 @@
 """Config flow for mütesync integration."""
 
-from __future__ import annotations
-
 import asyncio
-from typing import Any
+import logging
+from typing import Any, override
 
 import aiohttp
 import mutesync
@@ -15,6 +14,8 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
+
+_LOGGER = logging.getLogger(__name__)
 
 STEP_USER_DATA_SCHEMA = vol.Schema({vol.Required("host"): str})
 
@@ -43,6 +44,7 @@ class MuteSyncConfigFlow(ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -60,7 +62,8 @@ class MuteSyncConfigFlow(ConfigFlow, domain=DOMAIN):
             errors["base"] = "cannot_connect"
         except InvalidAuth:
             errors["base"] = "invalid_auth"
-        except Exception:  # noqa: BLE001
+        except Exception:
+            _LOGGER.exception("Unexpected exception")
             errors["base"] = "unknown"
         else:
             return self.async_create_entry(

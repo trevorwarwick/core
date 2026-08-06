@@ -5,7 +5,7 @@ from typing import Any
 from unittest.mock import patch
 
 import pytest
-from syrupy import SnapshotAssertion
+from syrupy.assertion import SnapshotAssertion
 
 from homeassistant.components.deconz.const import CONF_ALLOW_DECONZ_GROUPS
 from homeassistant.components.light import (
@@ -562,7 +562,7 @@ async def test_ikea_default_transition_time(
     hass: HomeAssistant,
     mock_put_request: Callable[[str, str], AiohttpClientMocker],
 ) -> None:
-    """Verify that service calls to IKEA lights always extend with transition tinme 0 if absent."""
+    """Verify IKEA light calls always extend with transition time 0 if absent."""
     aioclient_mock = mock_put_request("/lights/0/state")
 
     await hass.services.async_call(

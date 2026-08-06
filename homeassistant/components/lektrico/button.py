@@ -2,7 +2,7 @@
 
 from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from lektricowifi import Device
 
@@ -38,6 +38,12 @@ BUTTONS_FOR_CHARGERS: tuple[LektricoButtonEntityDescription, ...] = (
         translation_key="charge_stop",
         entity_category=EntityCategory.CONFIG,
         press_fn=lambda device: device.send_charge_stop(),
+    ),
+    LektricoButtonEntityDescription(
+        key="charging_schedule_override",
+        translation_key="charging_schedule_override",
+        entity_category=EntityCategory.CONFIG,
+        press_fn=lambda device: device.send_charge_schedule_override(),
     ),
     LektricoButtonEntityDescription(
         key="reboot",
@@ -97,6 +103,7 @@ class LektricoButton(LektricoEntity, ButtonEntity):
         self.entity_description = description
         self._attr_unique_id = f"{coordinator.serial_number}-{description.key}"
 
+    @override
     async def async_press(self) -> None:
         """Press the button."""
         await self.entity_description.press_fn(self.coordinator.device)

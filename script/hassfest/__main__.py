@@ -1,7 +1,5 @@
 """Validate manifests."""
 
-from __future__ import annotations
-
 import argparse
 from operator import attrgetter
 from pathlib import Path
@@ -12,22 +10,30 @@ from . import (
     application_credentials,
     bluetooth,
     codeowners,
+    conditions,
     config_flow,
     config_schema,
+    core_files,
     dependencies,
     dhcp,
     docker,
     icons,
+    integration_info,
+    integration_type,
     json,
+    labs,
     manifest,
+    mdi_icons,
     metadata,
     mqtt,
     mypy_config,
     quality_scale,
     requirements,
+    sensor,
     services,
     ssdp,
     translations,
+    triggers,
     usb,
     zeroconf,
 )
@@ -37,11 +43,15 @@ INTEGRATION_PLUGINS = [
     application_credentials,
     bluetooth,
     codeowners,
+    conditions,
     config_schema,
     dependencies,
     dhcp,
     icons,
+    integration_info,
+    integration_type,
     json,
+    labs,
     manifest,
     mqtt,
     quality_scale,
@@ -49,14 +59,18 @@ INTEGRATION_PLUGINS = [
     services,
     ssdp,
     translations,
+    triggers,
     usb,
     zeroconf,
     config_flow,  # This needs to run last, after translations are processed
 ]
 HASS_PLUGINS = [
+    core_files,
     docker,
+    mdi_icons,
     mypy_config,
     metadata,
+    sensor,
 ]
 
 ALL_PLUGIN_NAMES = [
@@ -113,7 +127,10 @@ def get_config() -> Config:
         "--skip-plugins",
         type=validate_plugins,
         default=[],
-        help=f"Comma-separated list of plugins to skip. Valid plugin names: {ALL_PLUGIN_NAMES}",
+        help=(
+            "Comma-separated list of plugins to skip."
+            f" Valid plugin names: {ALL_PLUGIN_NAMES}"
+        ),
     )
     parser.add_argument(
         "--core-path",

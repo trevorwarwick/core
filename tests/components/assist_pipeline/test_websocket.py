@@ -20,6 +20,8 @@ from homeassistant.components.assist_pipeline.pipeline import (
     DeviceAudioQueue,
     Pipeline,
     PipelineData,
+    async_get_pipelines,
+    async_update_pipeline,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
@@ -38,11 +40,19 @@ from tests.typing import WebSocketGenerator
 
 
 @pytest.fixture(autouse=True)
-def mock_ulid() -> Generator[Mock]:
-    """Mock the ulid of chat sessions."""
-    with patch("homeassistant.helpers.chat_session.ulid_now") as mock_ulid_now:
-        mock_ulid_now.return_value = "mock-ulid"
+def mock_chat_session_id() -> Generator[Mock]:
+    """Mock the conversation ID of chat sessions."""
+    with patch(
+        "homeassistant.helpers.chat_session.ulid_now", return_value="mock-ulid"
+    ) as mock_ulid_now:
         yield mock_ulid_now
+
+
+@pytest.fixture(autouse=True)
+def mock_tts_token() -> Generator[None]:
+    """Mock the TTS token for URLs."""
+    with patch("secrets.token_urlsafe", return_value="mocked-token"):
+        yield
 
 
 @pytest.mark.parametrize(
@@ -277,7 +287,7 @@ async def test_audio_pipeline_with_wake_word_no_timeout(
     init_components,
     snapshot: SnapshotAssertion,
 ) -> None:
-    """Test events from a pipeline run with audio input/output + wake word with no timeout."""
+    """Test pipeline run with audio input/output + wake word, no timeout."""
     events = []
     client = await hass_ws_client(hass)
 
@@ -825,74 +835,6 @@ async def test_stt_stream_failed(
     assert msg["result"] == {"events": events}
 
 
-async def test_tts_failed(
-    hass: HomeAssistant,
-    hass_ws_client: WebSocketGenerator,
-    init_components,
-    snapshot: SnapshotAssertion,
-) -> None:
-    """Test pipeline run with text-to-speech error."""
-    events = []
-    client = await hass_ws_client(hass)
-
-    with patch(
-        "homeassistant.components.media_source.async_resolve_media",
-        side_effect=RuntimeError,
-    ):
-        await client.send_json_auto_id(
-            {
-                "type": "assist_pipeline/run",
-                "start_stage": "tts",
-                "end_stage": "tts",
-                "input": {"text": "Lights are on."},
-            }
-        )
-
-        # result
-        msg = await client.receive_json()
-        assert msg["success"]
-
-        # run start
-        msg = await client.receive_json()
-        assert msg["event"]["type"] == "run-start"
-        msg["event"]["data"]["pipeline"] = ANY
-        assert msg["event"]["data"] == snapshot
-        events.append(msg["event"])
-
-        # tts start
-        msg = await client.receive_json()
-        assert msg["event"]["type"] == "tts-start"
-        assert msg["event"]["data"] == snapshot
-        events.append(msg["event"])
-
-        # tts error
-        msg = await client.receive_json()
-        assert msg["event"]["type"] == "error"
-        assert msg["event"]["data"]["code"] == "tts-failed"
-        events.append(msg["event"])
-
-        # run end
-        msg = await client.receive_json()
-        assert msg["event"]["type"] == "run-end"
-        assert msg["event"]["data"] == snapshot
-        events.append(msg["event"])
-
-    pipeline_data: PipelineData = hass.data[DOMAIN]
-    pipeline_id = list(pipeline_data.pipeline_debug)[0]
-    pipeline_run_id = list(pipeline_data.pipeline_debug[pipeline_id])[0]
-
-    await client.send_json_auto_id(
-        {
-            "type": "assist_pipeline/pipeline_debug/get",
-            "pipeline_id": pipeline_id,
-            "pipeline_run_id": pipeline_run_id,
-        }
-    )
-    msg = await client.receive_json()
-    assert msg["success"]
-    assert msg["result"] == {"events": events}
-
-
 async def test_tts_provider_missing(
     hass: HomeAssistant,
     hass_ws_client: WebSocketGenerator,
@@ -903,23 +845,22 @@ async def test_tts_provider_missing(
     """Test pipeline run with text-to-speech error."""
     client = await hass_ws_client(hass)
 
-    with patch(
-        "homeassistant.components.tts.async_support_options",
-        side_effect=HomeAssistantError,
-    ):
-        await client.send_json_auto_id(
-            {
-                "type": "assist_pipeline/run",
-                "start_stage": "tts",
-                "end_stage": "tts",
-                "input": {"text": "Lights are on."},
-            }
-        )
+    pipelines = async_get_pipelines(hass)
+    await async_update_pipeline(hass, pipelines[0], tts_engine="unavailable")
 
-        # result
-        msg = await client.receive_json()
-        assert not msg["success"]
-        assert msg["error"]["code"] == "tts-not-supported"
+    await client.send_json_auto_id(
+        {
+            "type": "assist_pipeline/run",
+            "start_stage": "tts",
+            "end_stage": "tts",
+            "input": {"text": "Lights are on."},
+        }
+    )
+
+    # result
+    msg = await client.receive_json()
+    assert not msg["success"]
+    assert msg["error"]["code"] == "tts-not-supported"
 
 
 async def test_tts_provider_bad_options(
@@ -933,8 +874,8 @@ async def test_tts_provider_bad_options(
     client = await hass_ws_client(hass)
 
     with patch(
-        "homeassistant.components.tts.async_support_options",
-        return_value=False,
+        "homeassistant.components.tts.SpeechManager.process_options",
+        side_effect=HomeAssistantError("Language not supported"),
     ):
         await client.send_json_auto_id(
             {
@@ -1212,9 +1153,9 @@ async def test_get_pipeline(
         "name": "Home Assistant",
         "stt_engine": "stt.mock_stt",
         "stt_language": "en-US",
-        "tts_engine": "test",
-        "tts_language": "en-US",
-        "tts_voice": "james_earl_jones",
+        "tts_engine": "tts.test",
+        "tts_language": "en_US",
+        "tts_voice": None,
         "wake_word_entity": None,
         "wake_word_id": None,
         "prefer_local_intents": False,
@@ -1238,9 +1179,9 @@ async def test_get_pipeline(
         # It found these defaults
         "stt_engine": "stt.mock_stt",
         "stt_language": "en-US",
-        "tts_engine": "test",
-        "tts_language": "en-US",
-        "tts_voice": "james_earl_jones",
+        "tts_engine": "tts.test",
+        "tts_language": "en_US",
+        "tts_voice": None,
         "wake_word_entity": None,
         "wake_word_id": None,
         "prefer_local_intents": False,
@@ -1325,9 +1266,9 @@ async def test_list_pipelines(
                 "name": "Home Assistant",
                 "stt_engine": "stt.mock_stt",
                 "stt_language": "en-US",
-                "tts_engine": "test",
-                "tts_language": "en-US",
-                "tts_voice": "james_earl_jones",
+                "tts_engine": "tts.test",
+                "tts_language": "en_US",
+                "tts_voice": None,
                 "wake_word_entity": None,
                 "wake_word_id": None,
                 "prefer_local_intents": False,
@@ -1909,7 +1850,7 @@ async def test_wake_word_cooldown_same_id(
     hass_ws_client: WebSocketGenerator,
     snapshot: SnapshotAssertion,
 ) -> None:
-    """Test that duplicate wake word detections with the same id are blocked during the cooldown period."""
+    """Test duplicate wake word detections blocked during cooldown."""
     client_1 = await hass_ws_client(hass)
     client_2 = await hass_ws_client(hass)
 
@@ -2068,7 +2009,7 @@ async def test_wake_word_cooldown_different_entities(
     hass_ws_client: WebSocketGenerator,
     snapshot: SnapshotAssertion,
 ) -> None:
-    """Test that duplicate wake word detections are blocked even with different wake word entities."""
+    """Test duplicate wake word detections blocked across entities."""
     client_pipeline = await hass_ws_client(hass)
     await client_pipeline.send_json_auto_id(
         {
@@ -2590,7 +2531,7 @@ async def test_pipeline_list_devices(
     assert msg["result"] == [
         {
             "device_id": assist_device.id,
-            "pipeline_entity": "select.test_assist_device_test_prefix_pipeline",
+            "pipeline_entity": "select.test_device",
         }
     ]
 
@@ -2602,7 +2543,7 @@ async def test_stt_cooldown_same_id(
     hass_ws_client: WebSocketGenerator,
     snapshot: SnapshotAssertion,
 ) -> None:
-    """Test that two speech-to-text pipelines cannot run within the cooldown period if they have the same wake word."""
+    """Test two STT pipelines cannot run in cooldown with same wake word."""
     client_1 = await hass_ws_client(hass)
     client_2 = await hass_ws_client(hass)
 
@@ -2673,7 +2614,7 @@ async def test_stt_cooldown_different_ids(
     hass_ws_client: WebSocketGenerator,
     snapshot: SnapshotAssertion,
 ) -> None:
-    """Test that two speech-to-text pipelines can run within the cooldown period if they have the different wake words."""
+    """Test two STT pipelines can run in cooldown with different wake words."""
     client_1 = await hass_ws_client(hass)
     client_2 = await hass_ws_client(hass)
 

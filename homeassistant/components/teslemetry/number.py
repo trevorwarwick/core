@@ -1,14 +1,13 @@
 """Number platform for Teslemetry integration."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from itertools import chain
-from typing import Any
+from typing import Any, override
 
-from tesla_fleet_api import EnergySpecific, VehicleSpecific
+from tesla_fleet_api import firmware_at_least
 from tesla_fleet_api.const import Scope
+from tesla_fleet_api.teslemetry import EnergySite, Vehicle
 from teslemetry_stream import TeslemetryStreamVehicle
 
 from homeassistant.components.number import (
@@ -27,13 +26,12 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
-from homeassistant.helpers.icon import icon_for_battery_level
 
 from . import TeslemetryConfigEntry
 from .entity import (
     TeslemetryEnergyInfoEntity,
     TeslemetryRootEntity,
-    TeslemetryVehicleEntity,
+    TeslemetryVehiclePollingEntity,
     TeslemetryVehicleStreamEntity,
 )
 from .helpers import handle_command, handle_vehicle_command
@@ -46,7 +44,7 @@ PARALLEL_UPDATES = 0
 class TeslemetryNumberVehicleEntityDescription(NumberEntityDescription):
     """Describes Teslemetry Number entity."""
 
-    func: Callable[[VehicleSpecific, int], Awaitable[Any]]
+    func: Callable[[Vehicle, int], Awaitable[Any]]
     min_key: str | None = None
     max_key: str
     native_min_value: float
@@ -99,7 +97,7 @@ VEHICLE_DESCRIPTIONS: tuple[TeslemetryNumberVehicleEntityDescription, ...] = (
 class TeslemetryNumberBatteryEntityDescription(NumberEntityDescription):
     """Describes Teslemetry Number entity."""
 
-    func: Callable[[EnergySpecific, float], Awaitable[Any]]
+    func: Callable[[EnergySite, float], Awaitable[Any]]
     requires: str | None = None
     scopes: list[Scope]
 
@@ -140,12 +138,12 @@ async def async_setup_entry(
     async_add_entities(
         chain(
             (
-                TeslemetryPollingNumberEntity(
+                TeslemetryVehiclePollingNumberEntity(
                     vehicle,
                     description,
                     entry.runtime_data.scopes,
                 )
-                if vehicle.api.pre2021 or vehicle.firmware < "2024.26"
+                if vehicle.poll or not firmware_at_least(vehicle.firmware, "2024.26")
                 else TeslemetryStreamingNumberEntity(
                     vehicle,
                     description,
@@ -172,8 +170,10 @@ async def async_setup_entry(
 class TeslemetryVehicleNumberEntity(TeslemetryRootEntity, NumberEntity):
     """Vehicle number entity base class."""
 
+    api: Vehicle
     entity_description: TeslemetryNumberVehicleEntityDescription
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
         value = int(value)
@@ -183,8 +183,8 @@ class TeslemetryVehicleNumberEntity(TeslemetryRootEntity, NumberEntity):
         self.async_write_ha_state()
 
 
-class TeslemetryPollingNumberEntity(
-    TeslemetryVehicleEntity, TeslemetryVehicleNumberEntity
+class TeslemetryVehiclePollingNumberEntity(
+    TeslemetryVehiclePollingEntity, TeslemetryVehicleNumberEntity
 ):
     """Vehicle polling number entity."""
 
@@ -202,6 +202,7 @@ class TeslemetryPollingNumberEntity(
             description.key,
         )
 
+    @override
     def _async_update_attrs(self) -> None:
         """Update the attributes of the entity."""
         self._attr_native_value = self._value
@@ -231,6 +232,7 @@ class TeslemetryStreamingNumberEntity(
         self._attr_native_max_value = self.entity_description.native_max_value
         super().__init__(data, description.key)
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Handle entity which will be added."""
         await super().async_added_to_hass()
@@ -243,6 +245,7 @@ class TeslemetryStreamingNumberEntity(
                 self._attr_native_value = last_number_data.native_value
             if last_number_data.native_max_value:
                 self._attr_native_max_value = last_number_data.native_max_value
+            self.async_write_ha_state()
 
         # Add listeners
         self.async_on_remove(
@@ -291,11 +294,12 @@ class TeslemetryEnergyInfoNumberSensorEntity(TeslemetryEnergyInfoEntity, NumberE
         self.entity_description = description
         super().__init__(data, description.key)
 
+    @override
     def _async_update_attrs(self) -> None:
         """Update the attributes of the entity."""
         self._attr_native_value = self._value
-        self._attr_icon = icon_for_battery_level(self.native_value)
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
         value = int(value)

@@ -2,8 +2,8 @@
 
 import logging
 
-from pyezviz.client import EzvizClient
-from pyezviz.exceptions import (
+from pyezvizapi.client import EzvizClient
+from pyezvizapi.exceptions import (
     EzvizAuthTokenExpired,
     EzvizAuthVerificationCode,
     HTTPError,
@@ -14,6 +14,7 @@ from pyezviz.exceptions import (
 from homeassistant.const import CONF_TIMEOUT, CONF_TYPE, CONF_URL, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
+from homeassistant.helpers import entity_registry as er
 
 from .const import (
     ATTR_TYPE_CAMERA,
@@ -94,9 +95,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: EzvizConfigEntry) -> boo
 
         entry.runtime_data = coordinator
 
-    entry.async_on_unload(entry.add_update_listener(_async_update_listener))
-
-    # Check EZVIZ cloud account entity is present, reload cloud account entities for camera entity change to take effect.
+    # Check EZVIZ cloud account entity is present, reload
+    # cloud account entities for camera entity change
+    # to take effect.
     # Cameras are accessed via local RTSP stream with unique credentials per camera.
     # Separate camera entities allow for credential changes per camera.
     if sensor_type == ATTR_TYPE_CAMERA:
@@ -110,6 +111,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: EzvizConfigEntry) -> boo
         entry, PLATFORMS_BY_TYPE[sensor_type]
     )
 
+    # Remove any existing last_alarm_pic sensor entities that were migrated away.
+    if sensor_type == ATTR_TYPE_CLOUD:
+        entity_registry = er.async_get(hass)
+        entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+        for entity_entry in entries:
+            unique_id = entity_entry.unique_id
+            if (
+                entity_entry.domain == "sensor"
+                and unique_id is not None
+                and unique_id.endswith(".last_alarm_pic")
+            ):
+                entity_registry.async_remove(entity_entry.entity_id)
+                _LOGGER.debug(
+                    "Removed legacy last_alarm_pic sensor entity: %s",
+                    entity_entry.entity_id,
+                )
+
     return True
 
 
@@ -120,8 +138,3 @@ async def async_unload_entry(hass: HomeAssistant, entry: EzvizConfigEntry) -> bo
     return await hass.config_entries.async_unload_platforms(
         entry, PLATFORMS_BY_TYPE[sensor_type]
     )
-
-
-async def _async_update_listener(hass: HomeAssistant, entry: EzvizConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)

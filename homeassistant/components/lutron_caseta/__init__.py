@@ -1,15 +1,12 @@
 """Component for interacting with a Lutron Caseta system."""
 
-from __future__ import annotations
-
 import asyncio
-import contextlib
 from itertools import chain
 import logging
 import ssl
 from typing import Any, cast
 
-from pylutron_caseta import BUTTON_STATUS_PRESSED
+from pylutron_caseta import BUTTON_STATUS_MULTITAP, BUTTON_STATUS_PRESSED
 from pylutron_caseta.smartbridge import Smartbridge
 import voluptuous as vol
 
@@ -26,6 +23,8 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import ConfigType
 
 from .const import (
+    ACTION_LONG_PRESS,
+    ACTION_MULTITAP,
     ACTION_PRESS,
     ACTION_RELEASE,
     ATTR_ACTION,
@@ -37,11 +36,13 @@ from .const import (
     ATTR_SERIAL,
     ATTR_TYPE,
     BRIDGE_DEVICE_ID,
-    BRIDGE_TIMEOUT,
+    BUTTON_STATUS_LONG_HOLD,
     CONF_CA_CERTS,
     CONF_CERTFILE,
     CONF_KEYFILE,
     CONF_SUBTYPE,
+    CONFIGURE_TIMEOUT,
+    CONNECT_TIMEOUT,
     DOMAIN,
     LUTRON_CASETA_BUTTON_EVENT,
     MANUFACTURER,
@@ -143,7 +144,9 @@ async def _async_migrate_unique_ids(
             return None
         sensor_id = unique_id.split("_")[1]
         new_unique_id = f"occupancygroup_{bridge_unique_id}_{sensor_id}"
-        if dev_entry := dev_reg.async_get_device(identifiers={(DOMAIN, unique_id)}):
+        if dev_entry := dev_reg.async_get_device_by_identifier(
+            (DOMAIN, unique_id), entry.entry_id
+        ):
             dev_reg.async_update_device(
                 dev_entry.id, new_identifiers={(DOMAIN, new_unique_id)}
             )
@@ -161,28 +164,40 @@ async def async_setup_entry(
     keyfile = hass.config.path(entry.data[CONF_KEYFILE])
     certfile = hass.config.path(entry.data[CONF_CERTFILE])
     ca_certs = hass.config.path(entry.data[CONF_CA_CERTS])
-    bridge = None
+    connected_future: asyncio.Future[None] = hass.loop.create_future()
+
+    def _on_connect() -> None:
+        nonlocal connected_future
+        if not connected_future.done():
+            connected_future.set_result(None)
 
     try:
         bridge = Smartbridge.create_tls(
-            hostname=host, keyfile=keyfile, certfile=certfile, ca_certs=ca_certs
+            hostname=host,
+            keyfile=keyfile,
+            certfile=certfile,
+            ca_certs=ca_certs,
+            on_connect_callback=_on_connect,
         )
     except ssl.SSLError:
         _LOGGER.error("Invalid certificate used to connect to bridge at %s", host)
         return False
 
-    timed_out = True
-    with contextlib.suppress(TimeoutError):
-        async with asyncio.timeout(BRIDGE_TIMEOUT):
-            await bridge.connect()
-            timed_out = False
+    connect_task = hass.async_create_task(bridge.connect())
+    for future, name, timeout in (
+        (connected_future, "connect", CONNECT_TIMEOUT),
+        (connect_task, "configure", CONFIGURE_TIMEOUT),
+    ):
+        try:
+            async with asyncio.timeout(timeout):
+                await future
+        except TimeoutError as ex:
+            connect_task.cancel()
+            await bridge.close()
+            raise ConfigEntryNotReady(f"Timed out on {name} for {host}") from ex
 
-    if timed_out or not bridge.is_connected():
-        await bridge.close()
-        if timed_out:
-            raise ConfigEntryNotReady(f"Timed out while trying to connect to {host}")
-        if not bridge.is_connected():
-            raise ConfigEntryNotReady(f"Cannot connect to {host}")
+    if not bridge.is_connected():
+        raise ConfigEntryNotReady(f"Connection failed to {host}")
 
     _LOGGER.debug("Connected to Lutron Caseta bridge via LEAP at %s", host)
     await _async_migrate_unique_ids(hass, entry)
@@ -202,7 +217,7 @@ async def async_setup_entry(
     # Store this bridge (keyed by entry_id) so it can be retrieved by the
     # platforms we're setting up.
 
-    entry.runtime_data = LutronCasetaData(bridge, bridge_device, keypad_data)
+    entry.runtime_data = LutronCasetaData(bridge, bridge_device, keypad_data, entry_id)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
@@ -221,7 +236,6 @@ def _async_register_bridge_device(
         manufacturer=MANUFACTURER,
         identifiers={(DOMAIN, bridge_device["serial"])},
         model=f"{bridge_device['model']} ({bridge_device['type']})",
-        via_device=(DOMAIN, bridge_device["serial"]),
         configuration_url="https://device-login.lutron.com",
     )
 
@@ -229,7 +243,15 @@ def _async_register_bridge_device(
     if area != UNASSIGNED_AREA:
         device_args["suggested_area"] = area
 
-    device_registry.async_get_or_create(**device_args, config_entry_id=config_entry_id)
+    device = device_registry.async_get_or_create(
+        **device_args, config_entry_id=config_entry_id
+    )
+    if device.via_device_id is not None:
+        # Existing installations may still have the bridge device linked to
+        # itself via via_device_id, from when it was (incorrectly) registered
+        # as its own via device. Clear it explicitly since async_get_or_create
+        # above leaves via_device_id untouched when it's not passed.
+        device_registry.async_update_device(device.id, via_device_id=None)
 
 
 @callback
@@ -265,7 +287,12 @@ def _async_setup_keypads(
         if not (keypad := keypads.get(keypad_lutron_device_id)):
             # First time seeing this keypad, build keypad data and store in keypads
             keypad = keypads[keypad_lutron_device_id] = _async_build_lutron_keypad(
-                bridge, bridge_device, bridge_keypad, keypad_lutron_device_id
+                hass,
+                config_entry_id,
+                bridge,
+                bridge_device,
+                bridge_keypad,
+                keypad_lutron_device_id,
             )
 
             # Register the keypad device
@@ -278,7 +305,8 @@ def _async_setup_keypads(
         button_name = _get_button_name(keypad, bridge_button)
         keypad_lutron_device_id = keypad[LUTRON_KEYPAD_LUTRON_DEVICE_ID]
 
-        # Add button to parent keypad, and build keypad_buttons and keypad_button_names_to_leap
+        # Add button to parent keypad, and build
+        # keypad_buttons and keypad_button_names_to_leap
         keypad_buttons[button_lutron_device_id] = LutronButton(
             lutron_device_id=button_lutron_device_id,
             leap_button_number=leap_button_number,
@@ -337,6 +365,8 @@ def _async_build_trigger_schemas(
 
 @callback
 def _async_build_lutron_keypad(
+    hass: HomeAssistant,
+    config_entry_id: str,
     bridge: Smartbridge,
     bridge_device: dict[str, Any],
     bridge_keypad: dict[str, Any],
@@ -351,7 +381,9 @@ def _async_build_lutron_keypad(
         manufacturer=MANUFACTURER,
         identifiers={(DOMAIN, keypad_serial)},
         model=f"{bridge_keypad['model']} ({bridge_keypad['type']})",
-        via_device=(DOMAIN, bridge_device["serial"]),
+        via_device_id=dr.async_get_device_id_by_identifier(
+            hass, (DOMAIN, bridge_device["serial"]), config_entry_id=config_entry_id
+        ),
     )
     if area_name != UNASSIGNED_AREA:
         device_info["suggested_area"] = area_name
@@ -436,6 +468,10 @@ def _async_subscribe_keypad_events(
 
         if event_type == BUTTON_STATUS_PRESSED:
             action = ACTION_PRESS
+        elif event_type == BUTTON_STATUS_MULTITAP:
+            action = ACTION_MULTITAP
+        elif event_type == BUTTON_STATUS_LONG_HOLD:
+            action = ACTION_LONG_PRESS
         else:
             action = ACTION_RELEASE
 

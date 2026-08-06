@@ -1,10 +1,9 @@
 """Support for Ecoforest sensors."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
+from typing import override
 
 from pyecoforest.models.device import Alarm, Device, State
 
@@ -132,7 +131,7 @@ SENSOR_TYPES: tuple[EcoforestSensorEntityDescription, ...] = (
     ),
     EcoforestSensorEntityDescription(
         key="convecto_air_flow",
-        translation_key="convecto_air_flow",
+        translation_key="convector_air_flow",
         native_unit_of_measurement=PERCENTAGE,
         entity_registry_enabled_default=False,
         value_fn=lambda data: data.convecto_air_flow,
@@ -161,6 +160,7 @@ class EcoforestSensor(SensorEntity, EcoforestEntity):
     entity_description: EcoforestSensorEntityDescription
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         return self.entity_description.value_fn(self.data)

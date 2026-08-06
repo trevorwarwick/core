@@ -1,13 +1,23 @@
 """Test KNX cover."""
 
-from homeassistant.components.cover import CoverState
-from homeassistant.components.knx.schema import CoverSchema
-from homeassistant.const import CONF_NAME
-from homeassistant.core import HomeAssistant
+from typing import Any
 
+import pytest
+
+from homeassistant.components.cover import (
+    ATTR_CURRENT_POSITION,
+    ATTR_CURRENT_TILT_POSITION,
+    CoverEntityFeature,
+    CoverState,
+)
+from homeassistant.components.knx.schema import CoverSchema
+from homeassistant.const import CONF_NAME, STATE_UNAVAILABLE, STATE_UNKNOWN, Platform
+from homeassistant.core import HomeAssistant, State
+
+from . import KnxEntityGenerator
 from .conftest import KNXTestKit
 
-from tests.common import async_capture_events
+from tests.common import async_capture_events, mock_restore_cache
 
 
 async def test_cover_basic(hass: HomeAssistant, knx: KNXTestKit) -> None:
@@ -67,13 +77,15 @@ async def test_cover_basic(hass: HomeAssistant, knx: KNXTestKit) -> None:
         blocking=True,
     )
 
-    # in KNX this will result in a payload of 191, percent values are encoded from 0 to 255
-    # We need to transpile the position by using 100 - position due to the way KNX actuators work
+    # in KNX this will result in a payload of 191, percent values
+    # are encoded from 0 to 255. We need to transpile the position
+    # by using 100 - position due to the way KNX actuators work
     await knx.assert_write("1/0/3", (0xBF,))
 
     knx.assert_state(
         "cover.test",
         CoverState.CLOSING,
+        assumed_state=None,
     )
 
     assert len(events) == 1
@@ -114,8 +126,9 @@ async def test_cover_tilt_absolute(hass: HomeAssistant, knx: KNXTestKit) -> None
         blocking=True,
     )
 
-    # in KNX this will result in a payload of 191, percent values are encoded from 0 to 255
-    # We need to transpile the position by using 100 - position due to the way KNX actuators work
+    # in KNX this will result in a payload of 191, percent values
+    # are encoded from 0 to 255. We need to transpile the position
+    # by using 100 - position due to the way KNX actuators work
     await knx.assert_write("1/0/5", (0xBF,))
 
     assert len(events) == 1
@@ -160,3 +173,213 @@ async def test_cover_tilt_move_short(hass: HomeAssistant, knx: KNXTestKit) -> No
         "cover", "open_cover_tilt", target={"entity_id": "cover.test"}, blocking=True
     )
     await knx.assert_write("1/0/1", 0)
+
+
+async def test_cover_restore_assumed_state(
+    hass: HomeAssistant, knx: KNXTestKit
+) -> None:
+    """Test a cover without position feedback restores its state and is assumed."""
+    mock_restore_cache(
+        hass,
+        (
+            State(
+                "cover.test",
+                CoverState.OPEN,
+                {ATTR_CURRENT_POSITION: 40, ATTR_CURRENT_TILT_POSITION: 60},
+            ),
+        ),
+    )
+    await knx.setup_integration(
+        {
+            CoverSchema.PLATFORM: {
+                CONF_NAME: "test",
+                CoverSchema.CONF_MOVE_LONG_ADDRESS: "1/0/0",
+                CoverSchema.CONF_STOP_ADDRESS: "1/0/1",
+                CoverSchema.CONF_ANGLE_ADDRESS: "1/0/2",
+            }
+        }
+    )
+    # position and tilt can't be read from the bus - no telegrams are sent
+    await knx.assert_no_telegram()
+    knx.assert_state(
+        "cover.test",
+        CoverState.OPEN,
+        current_position=40,
+        current_tilt_position=60,
+        assumed_state=True,
+    )
+
+
+@pytest.mark.parametrize(
+    "restored_state",
+    [STATE_UNKNOWN, STATE_UNAVAILABLE],
+)
+async def test_cover_restore_unknown_state(
+    hass: HomeAssistant, knx: KNXTestKit, restored_state: str
+) -> None:
+    """Test a cover doesn't restore a non-numeric position."""
+    mock_restore_cache(
+        hass,
+        (State("cover.test", restored_state, {ATTR_CURRENT_POSITION: 40}),),
+    )
+    await knx.setup_integration(
+        {
+            CoverSchema.PLATFORM: {
+                CONF_NAME: "test",
+                CoverSchema.CONF_MOVE_LONG_ADDRESS: "1/0/0",
+                CoverSchema.CONF_STOP_ADDRESS: "1/0/1",
+            }
+        }
+    )
+    await knx.assert_no_telegram()
+    knx.assert_state(
+        "cover.test",
+        STATE_UNKNOWN,
+        current_position=None,
+        assumed_state=True,
+    )
+
+
+async def test_cover_restore_readable(hass: HomeAssistant, knx: KNXTestKit) -> None:
+    """Test a readable cover shows the restored state until the bus read completes."""
+    mock_restore_cache(
+        hass,
+        (State("cover.test", CoverState.CLOSED, {ATTR_CURRENT_POSITION: 0}),),
+    )
+    await knx.setup_integration(
+        {
+            CoverSchema.PLATFORM: {
+                CONF_NAME: "test",
+                CoverSchema.CONF_MOVE_LONG_ADDRESS: "1/0/0",
+                CoverSchema.CONF_POSITION_STATE_ADDRESS: "1/0/2",
+                CoverSchema.CONF_POSITION_ADDRESS: "1/0/3",
+            }
+        }
+    )
+    # restored value bridges the gap until the bus read completes - it is
+    # assumed as long as it hasn't been confirmed by the bus
+    knx.assert_state(
+        "cover.test",
+        CoverState.CLOSED,
+        current_position=0,
+        assumed_state=True,
+    )
+    # bus reports a different position - the confirmed value overwrites the
+    # restored one and the state is no longer assumed
+    await knx.assert_read("1/0/2", response=(0x00,))
+    knx.assert_state(
+        "cover.test",
+        CoverState.OPEN,
+        current_position=100,
+        assumed_state=None,
+    )
+
+
+@pytest.mark.parametrize(
+    ("knx_data", "read_responses", "initial_state", "supported_features", "assumed"),
+    [
+        (
+            {
+                "ga_up_down": {"write": "1/0/1"},
+                "sync_state": True,
+            },
+            {},
+            STATE_UNKNOWN,
+            CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE,
+            True,
+        ),
+        (
+            {
+                "ga_position_set": {"write": "2/0/1"},
+                "ga_position_state": {"state": "2/0/0"},
+                "sync_state": True,
+            },
+            {"2/0/0": (0x00,)},
+            CoverState.OPEN,
+            CoverEntityFeature.OPEN
+            | CoverEntityFeature.CLOSE
+            | CoverEntityFeature.SET_POSITION,
+            None,
+        ),
+        (
+            {
+                "ga_up_down": {"write": "3/0/1", "passive": []},
+                "ga_stop": {"write": "3/0/2", "passive": []},
+                "ga_position_set": {"write": "3/1/1", "passive": []},
+                "ga_position_state": {"state": "3/1/0", "passive": []},
+                "ga_angle": {"write": "3/2/1", "state": "3/2/0", "passive": []},
+                "travelling_time_down": 16.0,
+                "travelling_time_up": 16.0,
+                "invert_angle": True,
+                "sync_state": True,
+            },
+            {"3/1/0": (0x00,), "3/2/0": (0x00,)},
+            CoverState.OPEN,
+            CoverEntityFeature.CLOSE
+            | CoverEntityFeature.OPEN
+            | CoverEntityFeature.SET_POSITION
+            | CoverEntityFeature.SET_TILT_POSITION
+            | CoverEntityFeature.STOP
+            | CoverEntityFeature.STOP_TILT,
+            None,
+        ),
+    ],
+)
+async def test_cover_ui_create(
+    knx: KNXTestKit,
+    create_ui_entity: KnxEntityGenerator,
+    knx_data: dict[str, Any],
+    read_responses: dict[str, int | tuple[int]],
+    initial_state: str,
+    supported_features: int,
+    assumed: bool | None,
+) -> None:
+    """Test creating a cover."""
+    await knx.setup_integration()
+    await create_ui_entity(
+        platform=Platform.COVER,
+        entity_data={"name": "test"},
+        knx_data=knx_data,
+    )
+    # created entity sends read-request to KNX bus
+    for ga, value in read_responses.items():
+        await knx.assert_read(ga, response=value, ignore_order=True)
+    knx.assert_state(
+        "cover.test",
+        initial_state,
+        supported_features=supported_features,
+        assumed_state=assumed,
+    )
+
+
+async def test_cover_ui_load(knx: KNXTestKit) -> None:
+    """Test loading a cover from storage."""
+    await knx.setup_integration(config_store_fixture="config_store_cover.json")
+
+    await knx.assert_read("2/0/0", response=(0xFF,), ignore_order=True)
+    await knx.assert_read("3/1/0", response=(0xFF,), ignore_order=True)
+    await knx.assert_read("3/2/0", response=(0xFF,), ignore_order=True)
+
+    knx.assert_state(
+        "cover.minimal",
+        STATE_UNKNOWN,
+        supported_features=CoverEntityFeature.CLOSE | CoverEntityFeature.OPEN,
+        assumed_state=True,
+    )
+    knx.assert_state(
+        "cover.position_only",
+        CoverState.OPEN,
+        supported_features=CoverEntityFeature.CLOSE
+        | CoverEntityFeature.OPEN
+        | CoverEntityFeature.SET_POSITION,
+    )
+    knx.assert_state(
+        "cover.tiltable",
+        CoverState.CLOSED,
+        supported_features=CoverEntityFeature.CLOSE
+        | CoverEntityFeature.OPEN
+        | CoverEntityFeature.SET_POSITION
+        | CoverEntityFeature.SET_TILT_POSITION
+        | CoverEntityFeature.STOP
+        | CoverEntityFeature.STOP_TILT,
+    )

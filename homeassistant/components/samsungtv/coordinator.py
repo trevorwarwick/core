@@ -1,10 +1,8 @@
 """Coordinator for the SamsungTV integration."""
 
-from __future__ import annotations
-
 from collections.abc import Callable, Coroutine
 from datetime import timedelta
-from typing import Any
+from typing import Any, override
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -39,12 +37,13 @@ class SamsungTVDataUpdateCoordinator(DataUpdateCoordinator[None]):
         )
 
         self.bridge = bridge
-        self.is_on: bool | None = False
+        self.is_on: bool | None = None
         self.async_extra_update: Callable[[], Coroutine[Any, Any, None]] | None = None
 
+    @override
     async def _async_update_data(self) -> None:
         """Fetch data from SamsungTV bridge."""
-        if self.bridge.auth_failed or self.hass.is_stopping:
+        if self.bridge.auth_failed:
             return
         old_state = self.is_on
         if self.bridge.power_off_in_progress:
@@ -52,7 +51,12 @@ class SamsungTVDataUpdateCoordinator(DataUpdateCoordinator[None]):
         else:
             self.is_on = await self.bridge.async_is_on()
         if self.is_on != old_state:
-            LOGGER.debug("TV %s state updated to %s", self.bridge.host, self.is_on)
+            LOGGER.debug(
+                "TV %s state updated from %s to %s",
+                self.bridge.host,
+                old_state,
+                self.is_on,
+            )
 
         if self.async_extra_update:
             await self.async_extra_update()

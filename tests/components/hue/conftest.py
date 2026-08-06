@@ -59,7 +59,7 @@ def create_mock_bridge(hass: HomeAssistant, api_version: int = 1) -> Mock:
 
     async def async_initialize_bridge():
         if bridge.config_entry:
-            hass.data.setdefault(hue.DOMAIN, {})[bridge.config_entry.entry_id] = bridge
+            bridge.config_entry.runtime_data = bridge
         if bridge.api_version == 2:
             await async_setup_devices(bridge)
         return True
@@ -73,7 +73,7 @@ def create_mock_bridge(hass: HomeAssistant, api_version: int = 1) -> Mock:
 
     async def async_reset():
         if bridge.config_entry:
-            hass.data[hue.DOMAIN].pop(bridge.config_entry.entry_id)
+            delattr(bridge.config_entry, "runtime_data")
         return True
 
     bridge.async_reset = async_reset
@@ -128,6 +128,8 @@ def create_mock_api_v1() -> Mock:
         software_version="1935144040",
     )
     api.config.name = "Home"
+    # aiohue exposes the bridge id as both `bridge_id` and `bridgeid`
+    api.config.bridgeid = api.config.bridge_id
 
     api.lights = aiohue_v1.Lights(logger, {}, mock_request)
     api.groups = aiohue_v1.Groups(logger, {}, mock_request)
@@ -254,6 +256,8 @@ async def setup_bridge(
         with patch("homeassistant.components.hue.HueBridge", return_value=mock_bridge):
             await hass.config_entries.async_setup(config_entry.entry_id)
 
+    assert config_entry.state is ConfigEntryState.LOADED
+
 
 async def setup_platform(
     hass: HomeAssistant,
@@ -271,7 +275,7 @@ async def setup_platform(
         api_version=mock_bridge.api_version, host=hostname
     )
     mock_bridge.config_entry = config_entry
-    hass.data[hue.DOMAIN] = {config_entry.entry_id: mock_bridge}
+    config_entry.runtime_data = {config_entry.entry_id: mock_bridge}
 
     # simulate a full setup by manually adding the bridge config entry
     await setup_bridge(hass, mock_bridge, config_entry)

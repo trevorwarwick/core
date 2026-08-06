@@ -1,13 +1,19 @@
 """Tests for the Hydrawise integration."""
 
+from copy import deepcopy
 from unittest.mock import AsyncMock
 
 from aiohttp import ClientError
+from freezegun.api import FrozenDateTimeFactory
+from pydrawise.schema import Controller, User, Zone
 
+from homeassistant.components.hydrawise.const import DOMAIN, MAIN_SCAN_INTERVAL
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceRegistry
 
-from tests.common import MockConfigEntry
+from tests.common import MockConfigEntry, async_fire_time_changed
 
 
 async def test_connect_retry(
@@ -32,3 +38,150 @@ async def test_update_version(
 
     # Make sure reauth flow has been initiated
     assert any(mock_config_entry_legacy.async_get_active_flows(hass, {"reauth"}))
+
+
+async def test_auto_add_devices(
+    hass: HomeAssistant,
+    device_registry: DeviceRegistry,
+    mock_added_config_entry: MockConfigEntry,
+    mock_pydrawise: AsyncMock,
+    user: User,
+    controller: Controller,
+    zones: list[Zone],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test new devices are auto-added to the device registry."""
+    device = device_registry.async_get_device(
+        identifiers={(DOMAIN, str(controller.id))}
+    )
+    assert device is not None
+    for zone in zones:
+        zone_device = device_registry.async_get_device(
+            identifiers={(DOMAIN, str(zone.id))}
+        )
+        assert zone_device is not None
+    all_devices = dr.async_entries_for_config_entry(
+        device_registry, mock_added_config_entry.entry_id
+    )
+    # 1 controller + 2 zones
+    assert len(all_devices) == 3
+
+    # Sensors that use the water-use coordinator should exist for the initial zones.
+    assert hass.states.get("sensor.zone_one_daily_active_water_use") is not None
+    assert hass.states.get("sensor.zone_one_daily_active_watering_time") is not None
+    assert hass.states.get("sensor.zone_two_daily_active_water_use") is not None
+    assert hass.states.get("sensor.zone_two_daily_active_watering_time") is not None
+
+    controller2 = deepcopy(controller)
+    controller2.id += 10
+    controller2.name += " 2"
+    controller2.sensors = []
+
+    zones2 = deepcopy(zones)
+    for zone in zones2:
+        zone.id += 10
+        zone.name += " 2"
+
+    user.controllers = [controller, controller2]
+    mock_pydrawise.get_zones.side_effect = [zones, zones2]
+
+    # Make the coordinator refresh data.
+    freezer.tick(MAIN_SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    new_controller_device = device_registry.async_get_device(
+        identifiers={(DOMAIN, str(controller2.id))}
+    )
+    assert new_controller_device is not None
+
+    # The new controller's own entities must also be added, not just its device.
+    # Registering the controller device must not make _add_remove_zones treat the
+    # controller as already-known and skip the new-controller callbacks.
+    assert hass.states.get("binary_sensor.home_controller_2_connectivity") is not None
+
+    for zone in zones2:
+        new_zone_device = device_registry.async_get_device(
+            identifiers={(DOMAIN, str(zone.id))}
+        )
+        assert new_zone_device is not None
+
+    all_devices = dr.async_entries_for_config_entry(
+        device_registry, mock_added_config_entry.entry_id
+    )
+    # 2 controllers + 4 zones
+    assert len(all_devices) == 6
+
+    # Sensors that use the water-use coordinator must also be created for the
+    # newly added zones, even though the water-use coordinator hasn't refreshed.
+    assert hass.states.get("sensor.zone_one_2_daily_active_watering_time") is not None
+    assert hass.states.get("sensor.zone_two_2_daily_active_watering_time") is not None
+
+
+async def test_setup_clears_self_referential_via_device(
+    hass: HomeAssistant,
+    device_registry: DeviceRegistry,
+    mock_config_entry: MockConfigEntry,
+    mock_pydrawise: AsyncMock,
+) -> None:
+    """Test setup clears a self-referential via_device left by older versions.
+
+    Older versions linked the controller device to itself via its rain sensor
+    entity, which persists in the device registry across upgrades.
+    """
+    mock_config_entry.add_to_hass(hass)
+    controller = device_registry.async_get_or_create(
+        config_entry_id=mock_config_entry.entry_id,
+        identifiers={(DOMAIN, "52496")},
+        name="Home Controller",
+    )
+    controller = device_registry.async_update_device(
+        controller.id, via_device_id=controller.id
+    )
+    assert controller.via_device_id == controller.id
+
+    await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+
+    controller = device_registry.async_get_device_by_identifier(
+        (DOMAIN, "52496"), mock_config_entry.entry_id
+    )
+    assert controller is not None
+    assert controller.via_device_id is None
+
+
+async def test_auto_remove_devices(
+    hass: HomeAssistant,
+    device_registry: DeviceRegistry,
+    mock_added_config_entry: MockConfigEntry,
+    user: User,
+    controller: Controller,
+    zones: list[Zone],
+    freezer: FrozenDateTimeFactory,
+) -> None:
+    """Test old devices are auto-removed from the device registry."""
+    assert (
+        device_registry.async_get_device(identifiers={(DOMAIN, str(controller.id))})
+        is not None
+    )
+    for zone in zones:
+        device = device_registry.async_get_device(identifiers={(DOMAIN, str(zone.id))})
+        assert device is not None
+
+    user.controllers = []
+    # Make the coordinator refresh data.
+    freezer.tick(MAIN_SCAN_INTERVAL)
+    async_fire_time_changed(hass)
+    await hass.async_block_till_done(wait_background_tasks=True)
+
+    assert (
+        device_registry.async_get_device(identifiers={(DOMAIN, str(controller.id))})
+        is None
+    )
+    for zone in zones:
+        device = device_registry.async_get_device(identifiers={(DOMAIN, str(zone.id))})
+        assert device is None
+    all_devices = dr.async_entries_for_config_entry(
+        device_registry, mock_added_config_entry.entry_id
+    )
+    assert len(all_devices) == 0

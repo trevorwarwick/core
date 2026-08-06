@@ -1,10 +1,9 @@
 """GoodWe PV inverter numeric settings entities."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 import logging
+from typing import override
 
 from goodwe import Inverter, InverterError
 
@@ -13,13 +12,13 @@ from homeassistant.components.number import (
     NumberEntity,
     NumberEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfPower
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from .const import DOMAIN, KEY_DEVICE_INFO, KEY_INVERTER
+from .const import DOMAIN
+from .coordinator import GoodweConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,19 +85,19 @@ NUMBERS = (
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: GoodweConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the inverter select entities from a config entry."""
-    inverter = hass.data[DOMAIN][config_entry.entry_id][KEY_INVERTER]
-    device_info = hass.data[DOMAIN][config_entry.entry_id][KEY_DEVICE_INFO]
+    inverter = config_entry.runtime_data.inverter
+    device_info = config_entry.runtime_data.device_info
 
     entities = []
 
     for description in filter(lambda dsc: dsc.filter(inverter), NUMBERS):
         try:
             current_value = await description.getter(inverter)
-        except (InverterError, ValueError):
+        except InverterError, ValueError:
             # Inverter model does not support this setting
             _LOGGER.debug("Could not read inverter setting %s", description.key)
             continue
@@ -126,7 +125,7 @@ class InverterNumberEntity(NumberEntity):
     ) -> None:
         """Initialize the number inverter setting entity."""
         self.entity_description = description
-        self._attr_unique_id = f"{DOMAIN}-{description.key}-{inverter.serial_number}"
+        self._attr_unique_id = f"{DOMAIN}-{description.key}-{inverter.serial_number}"  # pylint: disable=home-assistant-entity-unique-id-redundant-domain
         self._attr_device_info = device_info
         self._attr_native_value = float(current_value)
         self._inverter: Inverter = inverter
@@ -136,6 +135,7 @@ class InverterNumberEntity(NumberEntity):
         value = await self.entity_description.getter(self._inverter)
         self._attr_native_value = float(value)
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Set new value."""
         await self.entity_description.setter(self._inverter, int(value))

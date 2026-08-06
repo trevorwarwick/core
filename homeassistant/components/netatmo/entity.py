@@ -1,29 +1,25 @@
 """Base class for Netatmo entities."""
 
-from __future__ import annotations
-
 from abc import abstractmethod
-from typing import Any, cast
+from typing import Any, cast, override
 
 from pyatmo import DeviceType, Home, Module, Room
 from pyatmo.modules.base_class import NetatmoBase, Place
 from pyatmo.modules.device_types import DEVICE_DESCRIPTION_MAP
 
-from homeassistant.const import ATTR_LATITUDE, ATTR_LONGITUDE
+from homeassistant.const import EntityStateAttribute
 from homeassistant.core import callback
-from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 
 from .const import (
     CONF_URL_ENERGY,
     CONF_URL_WEATHER,
-    DATA_DEVICE_IDS,
     DEFAULT_ATTRIBUTION,
     DOMAIN,
     SIGNAL_NAME,
 )
-from .data_handler import PUBLIC, NetatmoDataHandler, NetatmoDevice, NetatmoRoom
+from .coordinator import PUBLIC, NetatmoDataHandler, NetatmoDevice, NetatmoRoom
 
 
 class NetatmoBaseEntity(Entity):
@@ -38,6 +34,16 @@ class NetatmoBaseEntity(Entity):
         self._publishers: list[dict[str, Any]] = []
         self._attr_extra_state_attributes = {}
 
+    @property
+    @override
+    def available(self) -> bool:
+        """Return True if the underlying data publishers are reachable."""
+        return super().available and all(
+            self.data_handler.is_signal_available(publisher[SIGNAL_NAME])
+            for publisher in self._publishers
+        )
+
+    @override
     async def async_added_to_hass(self) -> None:
         """Entity created."""
         for publisher in self._publishers:
@@ -75,6 +81,7 @@ class NetatmoBaseEntity(Entity):
 
         self.async_update_callback()
 
+    @override
     async def async_will_remove_from_hass(self) -> None:
         """Run when entity will be removed from hass."""
         await super().async_will_remove_from_hass()
@@ -93,9 +100,11 @@ class NetatmoBaseEntity(Entity):
 class NetatmoDeviceEntity(NetatmoBaseEntity):
     """Netatmo entity base class."""
 
-    def __init__(self, data_handler: NetatmoDataHandler, device: NetatmoBase) -> None:
+    def __init__(
+        self, data_handler: NetatmoDataHandler, device: NetatmoBase, **kwargs: Any
+    ) -> None:
         """Set up Netatmo entity base."""
-        super().__init__(data_handler)
+        super().__init__(data_handler, **kwargs)
         self.device = device
 
     @property
@@ -131,16 +140,15 @@ class NetatmoRoomEntity(NetatmoDeviceEntity):
             suggested_area=room.room.name,
         )
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Entity created."""
         await super().async_added_to_hass()
-        registry = dr.async_get(self.hass)
-        if device := registry.async_get_device(
-            identifiers={(DOMAIN, self.device.entity_id)}
-        ):
-            self.hass.data[DOMAIN][DATA_DEVICE_IDS][self.device.entity_id] = device.id
+        if device := self.device_entry:
+            self.data_handler.device_ids[self.device.entity_id] = device.id
 
     @property
+    @override
     def device_type(self) -> DeviceType:
         """Return the device type."""
         assert self.device.climate_type
@@ -153,9 +161,9 @@ class NetatmoModuleEntity(NetatmoDeviceEntity):
     device: Module
     _attr_configuration_url: str
 
-    def __init__(self, device: NetatmoDevice) -> None:
+    def __init__(self, device: NetatmoDevice, **kwargs: Any) -> None:
         """Set up a Netatmo module entity."""
-        super().__init__(device.data_handler, device.device)
+        super().__init__(device.data_handler, device.device, **kwargs)
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, device.device.entity_id)},
             name=device.device.name,
@@ -165,9 +173,20 @@ class NetatmoModuleEntity(NetatmoDeviceEntity):
         )
 
     @property
+    @override
     def device_type(self) -> DeviceType:
         """Return the device type."""
         return self.device.device_type
+
+
+class NetatmoReachabilityEntity(NetatmoModuleEntity):
+    """Module entity that is unavailable when its device is unreachable."""
+
+    @property
+    @override
+    def available(self) -> bool:
+        """Return True unless the device explicitly reports as unreachable."""
+        return super().available and self.device.reachable is not False
 
 
 class NetatmoWeatherModuleEntity(NetatmoModuleEntity):
@@ -175,10 +194,11 @@ class NetatmoWeatherModuleEntity(NetatmoModuleEntity):
 
     _attr_configuration_url = CONF_URL_WEATHER
 
-    def __init__(self, device: NetatmoDevice) -> None:
+    def __init__(self, device: NetatmoDevice, **kwargs: Any) -> None:
         """Set up a Netatmo weather module entity."""
-        super().__init__(device)
-        category = getattr(self.device.device_category, "name")
+        super().__init__(device, **kwargs)
+        assert self.device.device_category
+        category = self.device.device_category.name
         self._publishers.extend(
             [
                 {
@@ -189,16 +209,17 @@ class NetatmoWeatherModuleEntity(NetatmoModuleEntity):
         )
 
         if hasattr(self.device, "place"):
-            place = cast(Place, getattr(self.device, "place"))
+            place = cast(Place, self.device.place)
             if hasattr(place, "location") and place.location is not None:
                 self._attr_extra_state_attributes.update(
                     {
-                        ATTR_LATITUDE: place.location.latitude,
-                        ATTR_LONGITUDE: place.location.longitude,
+                        EntityStateAttribute.LATITUDE: place.location.latitude,
+                        EntityStateAttribute.LONGITUDE: place.location.longitude,
                     }
                 )
 
     @property
+    @override
     def device_type(self) -> DeviceType:
         """Return the Netatmo device type."""
         if "." not in self.device.device_type:

@@ -1,8 +1,7 @@
 """Define a PurpleAir DataUpdateCoordinator."""
 
-from __future__ import annotations
-
 from datetime import timedelta
+from typing import override
 
 from aiopurpleair import API
 from aiopurpleair.errors import InvalidApiKeyError, PurpleAirError
@@ -43,15 +42,18 @@ SENSOR_FIELDS_TO_RETRIEVE = [
     "voc",
 ]
 
-UPDATE_INTERVAL = timedelta(minutes=2)
+UPDATE_INTERVAL = timedelta(minutes=5)
+
+
+type PurpleAirConfigEntry = ConfigEntry[PurpleAirDataUpdateCoordinator]
 
 
 class PurpleAirDataUpdateCoordinator(DataUpdateCoordinator[GetSensorsResponse]):
     """Define a PurpleAir-specific coordinator."""
 
-    config_entry: ConfigEntry
+    config_entry: PurpleAirConfigEntry
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(self, hass: HomeAssistant, entry: PurpleAirConfigEntry) -> None:
         """Initialize."""
         self._api = API(
             entry.data[CONF_API_KEY],
@@ -66,6 +68,7 @@ class PurpleAirDataUpdateCoordinator(DataUpdateCoordinator[GetSensorsResponse]):
             update_interval=UPDATE_INTERVAL,
         )
 
+    @override
     async def _async_update_data(self) -> GetSensorsResponse:
         """Get the latest sensor information."""
         try:

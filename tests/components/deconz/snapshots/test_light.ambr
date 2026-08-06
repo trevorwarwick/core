@@ -1,11 +1,12 @@
 # serializer version: 1
 # name: test_groups[input0-light_payload0][light.dimmable_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
     }),
@@ -24,6 +25,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Dimmable light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -31,6 +33,7 @@
     'original_name': 'Dimmable light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 40>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:02-00',
@@ -40,14 +43,14 @@
 # name: test_groups[input0-light_payload0][light.dimmable_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 255,
-      'color_mode': <ColorMode.BRIGHTNESS: 'brightness'>,
-      'friendly_name': 'Dimmable light',
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 255,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.BRIGHTNESS: 'brightness'>,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Dimmable light',
       'is_deconz_group': False,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
-      'supported_features': <LightEntityFeature: 40>,
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 40>,
     }),
     'context': <ANY>,
     'entity_id': 'light.dimmable_light',
@@ -59,18 +62,17 @@
 # ---
 # name: test_groups[input0-light_payload0][light.group-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
@@ -90,6 +92,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -97,6 +100,7 @@
     'original_name': None,
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '01234E56789A-/groups/0',
@@ -107,35 +111,32 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'all_on': False,
-      'brightness': 255,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 2500,
-      'color_temp_kelvin': 400,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 255,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 400,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'Group',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Group',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         15.981,
         100.0,
       ),
       'is_deconz_group': True,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         68,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.673,
         0.322,
       ),
@@ -150,14 +151,15 @@
 # ---
 # name: test_groups[input0-light_payload0][light.rgb_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
     }),
@@ -176,6 +178,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'RGB light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -183,6 +186,7 @@
     'original_name': 'RGB light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:00-00',
@@ -192,28 +196,28 @@
 # name: test_groups[input0-light_payload0][light.rgb_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 50,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 50,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'RGB light',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'RGB light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         52.0,
         100.0,
       ),
       'is_deconz_group': False,
-      'rgb_color': tuple(
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         221,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.5,
         0.5,
       ),
@@ -228,15 +232,14 @@
 # ---
 # name: test_groups[input0-light_payload0][light.tunable_white_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
     }),
@@ -255,6 +258,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Tunable white light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -262,6 +266,7 @@
     'original_name': 'Tunable white light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:01-00',
@@ -271,30 +276,27 @@
 # name: test_groups[input0-light_payload0][light.tunable_white_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': None,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 2500,
-      'color_temp_kelvin': 400,
-      'friendly_name': 'Tunable white light',
-      'hs_color': tuple(
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: None,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 400,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Tunable white light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         15.981,
         100.0,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         68,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
-      'supported_features': <LightEntityFeature: 0>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 0>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.673,
         0.322,
       ),
@@ -309,11 +311,12 @@
 # ---
 # name: test_groups[input1-light_payload0][light.dimmable_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
     }),
@@ -332,6 +335,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Dimmable light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -339,6 +343,7 @@
     'original_name': 'Dimmable light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 40>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:02-00',
@@ -348,14 +353,14 @@
 # name: test_groups[input1-light_payload0][light.dimmable_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 255,
-      'color_mode': <ColorMode.BRIGHTNESS: 'brightness'>,
-      'friendly_name': 'Dimmable light',
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 255,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.BRIGHTNESS: 'brightness'>,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Dimmable light',
       'is_deconz_group': False,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
-      'supported_features': <LightEntityFeature: 40>,
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 40>,
     }),
     'context': <ANY>,
     'entity_id': 'light.dimmable_light',
@@ -367,18 +372,17 @@
 # ---
 # name: test_groups[input1-light_payload0][light.group-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
@@ -398,6 +402,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -405,6 +410,7 @@
     'original_name': None,
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '01234E56789A-/groups/0',
@@ -415,35 +421,32 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'all_on': False,
-      'brightness': 50,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 2500,
-      'color_temp_kelvin': 400,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 50,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 400,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'Group',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Group',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         15.981,
         100.0,
       ),
       'is_deconz_group': True,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         68,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.673,
         0.322,
       ),
@@ -458,14 +461,15 @@
 # ---
 # name: test_groups[input1-light_payload0][light.rgb_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
     }),
@@ -484,6 +488,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'RGB light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -491,6 +496,7 @@
     'original_name': 'RGB light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:00-00',
@@ -500,28 +506,28 @@
 # name: test_groups[input1-light_payload0][light.rgb_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 50,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 50,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'RGB light',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'RGB light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         52.0,
         100.0,
       ),
       'is_deconz_group': False,
-      'rgb_color': tuple(
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         221,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.5,
         0.5,
       ),
@@ -536,15 +542,14 @@
 # ---
 # name: test_groups[input1-light_payload0][light.tunable_white_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
     }),
@@ -563,6 +568,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Tunable white light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -570,6 +576,7 @@
     'original_name': 'Tunable white light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:01-00',
@@ -579,30 +586,27 @@
 # name: test_groups[input1-light_payload0][light.tunable_white_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': None,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 2500,
-      'color_temp_kelvin': 400,
-      'friendly_name': 'Tunable white light',
-      'hs_color': tuple(
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: None,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 400,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Tunable white light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         15.981,
         100.0,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         68,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
-      'supported_features': <LightEntityFeature: 0>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 0>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.673,
         0.322,
       ),
@@ -617,11 +621,12 @@
 # ---
 # name: test_groups[input2-light_payload0][light.dimmable_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
     }),
@@ -640,6 +645,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Dimmable light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -647,6 +653,7 @@
     'original_name': 'Dimmable light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 40>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:02-00',
@@ -656,14 +663,14 @@
 # name: test_groups[input2-light_payload0][light.dimmable_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 255,
-      'color_mode': <ColorMode.BRIGHTNESS: 'brightness'>,
-      'friendly_name': 'Dimmable light',
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 255,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.BRIGHTNESS: 'brightness'>,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Dimmable light',
       'is_deconz_group': False,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
-      'supported_features': <LightEntityFeature: 40>,
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 40>,
     }),
     'context': <ANY>,
     'entity_id': 'light.dimmable_light',
@@ -675,18 +682,17 @@
 # ---
 # name: test_groups[input2-light_payload0][light.group-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
@@ -706,6 +712,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': None,
     'options': dict({
     }),
     'original_device_class': None,
@@ -713,6 +720,7 @@
     'original_name': None,
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '01234E56789A-/groups/0',
@@ -723,35 +731,32 @@
   StateSnapshot({
     'attributes': ReadOnlyDict({
       'all_on': False,
-      'brightness': 50,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'color_temp': None,
-      'color_temp_kelvin': None,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 50,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: None,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'Group',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Group',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         52.0,
         100.0,
       ),
       'is_deconz_group': True,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         221,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.5,
         0.5,
       ),
@@ -766,14 +771,15 @@
 # ---
 # name: test_groups[input2-light_payload0][light.rgb_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
     }),
@@ -792,6 +798,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'RGB light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -799,6 +806,7 @@
     'original_name': 'RGB light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:00-00',
@@ -808,28 +816,28 @@
 # name: test_groups[input2-light_payload0][light.rgb_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 50,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 50,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'RGB light',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'RGB light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         52.0,
         100.0,
       ),
       'is_deconz_group': False,
-      'rgb_color': tuple(
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         221,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.5,
         0.5,
       ),
@@ -844,15 +852,14 @@
 # ---
 # name: test_groups[input2-light_payload0][light.tunable_white_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
     }),
@@ -871,6 +878,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Tunable white light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -878,6 +886,7 @@
     'original_name': 'Tunable white light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '00:00:00:00:00:00:00:01-00',
@@ -887,30 +896,27 @@
 # name: test_groups[input2-light_payload0][light.tunable_white_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': None,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 2500,
-      'color_temp_kelvin': 400,
-      'friendly_name': 'Tunable white light',
-      'hs_color': tuple(
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: None,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 400,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Tunable white light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         15.981,
         100.0,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6451,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 155,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6451,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         68,
         0,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
-      'supported_features': <LightEntityFeature: 0>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 0>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.673,
         0.322,
       ),
@@ -925,18 +931,17 @@
 # ---
 # name: test_lights[light_payload0][light.hue_go-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
@@ -957,6 +962,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Hue Go',
     'options': dict({
     }),
     'original_device_class': None,
@@ -964,6 +970,7 @@
     'original_name': 'Hue Go',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:17:88:01:01:23:45:67-00',
@@ -973,36 +980,33 @@
 # name: test_lights[light_payload0][light.hue_go-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 254,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 375,
-      'color_temp_kelvin': 2666,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 254,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 2666,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'Hue Go',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Hue Go',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         28.47,
         66.821,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         165,
         85,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.529,
         0.387,
       ),
@@ -1017,18 +1021,17 @@
 # ---
 # name: test_lights[light_payload1][light.hue_ensis-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'max_color_temp_kelvin': 7142,
-      'max_mireds': 650,
-      'min_color_temp_kelvin': 1538,
-      'min_mireds': 140,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 7142,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 1538,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
@@ -1049,6 +1052,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Hue Ensis',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1056,6 +1060,7 @@
     'original_name': 'Hue Ensis',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:17:88:01:01:23:45:67-01',
@@ -1065,36 +1070,33 @@
 # name: test_lights[light_payload1][light.hue_ensis-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 254,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'color_temp': None,
-      'color_temp_kelvin': None,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 254,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: None,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'colorloop',
       ]),
-      'friendly_name': 'Hue Ensis',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Hue Ensis',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         29.691,
         38.039,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 7142,
-      'max_mireds': 650,
-      'min_color_temp_kelvin': 1538,
-      'min_mireds': 140,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 7142,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 1538,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         206,
         158,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.427,
         0.373,
       ),
@@ -1109,11 +1111,12 @@
 # ---
 # name: test_lights[light_payload2][light.lidl_xmas_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'carnival',
         'collide',
         'fading',
@@ -1131,7 +1134,7 @@
         'vintage',
         'waves',
       ]),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.HS: 'hs'>,
       ]),
     }),
@@ -1150,6 +1153,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'LIDL xmas light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1157,6 +1161,7 @@
     'original_name': 'LIDL xmas light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '58:8e:81:ff:fe:db:7b:be-01',
@@ -1166,10 +1171,10 @@
 # name: test_lights[light_payload2][light.lidl_xmas_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 25,
-      'color_mode': <ColorMode.HS: 'hs'>,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 25,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.HS: 'hs'>,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         'carnival',
         'collide',
         'fading',
@@ -1187,22 +1192,22 @@
         'vintage',
         'waves',
       ]),
-      'friendly_name': 'LIDL xmas light',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'LIDL xmas light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         294.938,
         55.294,
       ),
       'is_deconz_group': False,
-      'rgb_color': tuple(
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         243,
         114,
         255,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.HS: 'hs'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.357,
         0.189,
       ),
@@ -1217,15 +1222,14 @@
 # ---
 # name: test_lights[light_payload3][light.hue_white_ambiance-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
     }),
@@ -1244,6 +1248,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Hue White Ambiance',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1251,6 +1256,7 @@
     'original_name': 'Hue White Ambiance',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 40>,
     'translation_key': None,
     'unique_id': '00:17:88:01:01:23:45:67-02',
@@ -1260,30 +1266,27 @@
 # name: test_lights[light_payload3][light.hue_white_ambiance-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 254,
-      'color_mode': <ColorMode.COLOR_TEMP: 'color_temp'>,
-      'color_temp': 396,
-      'color_temp_kelvin': 2525,
-      'friendly_name': 'Hue White Ambiance',
-      'hs_color': tuple(
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 254,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.COLOR_TEMP: 'color_temp'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: 2525,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Hue White Ambiance',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         28.809,
         71.624,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 454,
-      'min_color_temp_kelvin': 2202,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2202,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         255,
         160,
         72,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
       ]),
-      'supported_features': <LightEntityFeature: 40>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 40>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.544,
         0.389,
       ),
@@ -1298,11 +1301,12 @@
 # ---
 # name: test_lights[light_payload4][light.hue_filament-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
     }),
@@ -1321,6 +1325,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Hue Filament',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1328,6 +1333,7 @@
     'original_name': 'Hue Filament',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 40>,
     'translation_key': None,
     'unique_id': '00:17:88:01:01:23:45:67-03',
@@ -1337,14 +1343,14 @@
 # name: test_lights[light_payload4][light.hue_filament-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 254,
-      'color_mode': <ColorMode.BRIGHTNESS: 'brightness'>,
-      'friendly_name': 'Hue Filament',
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 254,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.BRIGHTNESS: 'brightness'>,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Hue Filament',
       'is_deconz_group': False,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.BRIGHTNESS: 'brightness'>,
       ]),
-      'supported_features': <LightEntityFeature: 40>,
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 40>,
     }),
     'context': <ANY>,
     'entity_id': 'light.hue_filament',
@@ -1356,11 +1362,12 @@
 # ---
 # name: test_lights[light_payload5][light.simple_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.ONOFF: 'onoff'>,
       ]),
     }),
@@ -1379,6 +1386,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Simple Light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1386,6 +1394,7 @@
     'original_name': 'Simple Light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': None,
     'unique_id': '00:15:8d:00:01:23:45:67-01',
@@ -1395,13 +1404,13 @@
 # name: test_lights[light_payload5][light.simple_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'color_mode': <ColorMode.ONOFF: 'onoff'>,
-      'friendly_name': 'Simple Light',
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.ONOFF: 'onoff'>,
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Simple Light',
       'is_deconz_group': False,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.ONOFF: 'onoff'>,
       ]),
-      'supported_features': <LightEntityFeature: 0>,
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 0>,
     }),
     'context': <ANY>,
     'entity_id': 'light.simple_light',
@@ -1413,11 +1422,12 @@
 # ---
 # name: test_lights[light_payload6][light.gradient_light-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'effect_list': list([
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         <LightEffect.NONE: 'none'>,
         <LightEffect.COLOR_LOOP: 'colorloop'>,
         <LightEffect.CANDLE: 'candle'>,
@@ -1425,11 +1435,9 @@
         <LightEffect.PRISM: 'prism'>,
         <LightEffect.SUNRISE: 'sunrise'>,
       ]),
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
@@ -1450,6 +1458,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Gradient light',
     'options': dict({
     }),
     'original_device_class': None,
@@ -1457,6 +1466,7 @@
     'original_name': 'Gradient light',
     'platform': 'deconz',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': <LightEntityFeature: 44>,
     'translation_key': None,
     'unique_id': '00:17:88:01:0b:0c:0d:0e-0f',
@@ -1466,12 +1476,11 @@
 # name: test_lights[light_payload6][light.gradient_light-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'brightness': 184,
-      'color_mode': <ColorMode.XY: 'xy'>,
-      'color_temp': None,
-      'color_temp_kelvin': None,
-      'effect': None,
-      'effect_list': list([
+      <LightEntityStateAttribute.BRIGHTNESS: 'brightness'>: 184,
+      <LightEntityStateAttribute.COLOR_MODE: 'color_mode'>: <ColorMode.XY: 'xy'>,
+      <LightEntityStateAttribute.COLOR_TEMP_KELVIN: 'color_temp_kelvin'>: None,
+      <LightEntityStateAttribute.EFFECT: 'effect'>: None,
+      <LightEntityCapabilityAttribute.EFFECT_LIST: 'effect_list'>: list([
         <LightEffect.NONE: 'none'>,
         <LightEffect.COLOR_LOOP: 'colorloop'>,
         <LightEffect.CANDLE: 'candle'>,
@@ -1479,28 +1488,26 @@
         <LightEffect.PRISM: 'prism'>,
         <LightEffect.SUNRISE: 'sunrise'>,
       ]),
-      'friendly_name': 'Gradient light',
-      'hs_color': tuple(
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Gradient light',
+      <LightEntityStateAttribute.HS_COLOR: 'hs_color'>: tuple(
         98.095,
         74.118,
       ),
       'is_deconz_group': False,
-      'max_color_temp_kelvin': 6535,
-      'max_mireds': 500,
-      'min_color_temp_kelvin': 2000,
-      'min_mireds': 153,
-      'rgb_color': tuple(
+      <LightEntityCapabilityAttribute.MAX_COLOR_TEMP_KELVIN: 'max_color_temp_kelvin'>: 6535,
+      <LightEntityCapabilityAttribute.MIN_COLOR_TEMP_KELVIN: 'min_color_temp_kelvin'>: 2000,
+      <LightEntityStateAttribute.RGB_COLOR: 'rgb_color'>: tuple(
         135,
         255,
         66,
       ),
-      'supported_color_modes': list([
+      <LightEntityCapabilityAttribute.SUPPORTED_COLOR_MODES: 'supported_color_modes'>: list([
         <ColorMode.COLOR_TEMP: 'color_temp'>,
         <ColorMode.HS: 'hs'>,
         <ColorMode.XY: 'xy'>,
       ]),
-      'supported_features': <LightEntityFeature: 44>,
-      'xy_color': tuple(
+      <EntityStateAttribute.SUPPORTED_FEATURES: 'supported_features'>: <LightEntityFeature: 44>,
+      <LightEntityStateAttribute.XY_COLOR: 'xy_color'>: tuple(
         0.2727,
         0.6226,
       ),

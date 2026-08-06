@@ -1,7 +1,5 @@
 """Websocket API for the history integration."""
 
-from __future__ import annotations
-
 import asyncio
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
@@ -11,6 +9,8 @@ from typing import Any, cast
 
 import voluptuous as vol
 
+from homeassistant.auth.permissions import filter_entity_ids_by_permission
+from homeassistant.auth.permissions.const import POLICY_READ
 from homeassistant.components import websocket_api
 from homeassistant.components.recorder import get_instance, history
 from homeassistant.components.websocket_api import ActiveConnection, messages
@@ -52,7 +52,7 @@ class HistoryLiveStream:
     subscriptions: list[CALLBACK_TYPE]
     end_time_unsub: CALLBACK_TYPE | None = None
     task: asyncio.Task | None = None
-    wait_sync_task: asyncio.Task | None = None
+    wait_sync_future: asyncio.Future[None] | None = None
 
 
 @callback
@@ -137,6 +137,13 @@ async def ws_get_history_during_period(
         if not hass.states.get(entity_id) and not valid_entity_id(entity_id):
             connection.send_error(msg["id"], "invalid_entity_ids", "Invalid entity_ids")
             return
+
+    entity_ids = filter_entity_ids_by_permission(
+        connection.user, entity_ids, POLICY_READ
+    )
+    if not entity_ids:
+        connection.send_result(msg["id"], {})
+        return
 
     include_start_time_state = msg["include_start_time_state"]
     no_attributes = msg["no_attributes"]
@@ -444,6 +451,13 @@ async def ws_stream(
             connection.send_error(msg["id"], "invalid_entity_ids", "Invalid entity_ids")
             return
 
+    entity_ids = filter_entity_ids_by_permission(
+        connection.user, entity_ids, POLICY_READ
+    )
+    if not entity_ids:
+        _async_send_empty_response(connection, msg_id, start_time, end_time)
+        return
+
     include_start_time_state = msg["include_start_time_state"]
     significant_changes_only = msg["significant_changes_only"]
     no_attributes = msg["no_attributes"]
@@ -491,8 +505,8 @@ async def ws_stream(
         subscriptions.clear()
         if live_stream.task:
             live_stream.task.cancel()
-        if live_stream.wait_sync_task:
-            live_stream.wait_sync_task.cancel()
+        if live_stream.wait_sync_future:
+            live_stream.wait_sync_future.cancel()
         if live_stream.end_time_unsub:
             live_stream.end_time_unsub()
             live_stream.end_time_unsub = None
@@ -554,10 +568,12 @@ async def ws_stream(
         )
     )
 
-    live_stream.wait_sync_task = create_eager_task(
-        get_instance(hass).async_block_till_done()
-    )
-    await live_stream.wait_sync_task
+    if sync_future := get_instance(hass).async_get_commit_future():
+        # Set the future so we can cancel it if the client
+        # unsubscribes before the commit is done so we don't
+        # query the database needlessly
+        live_stream.wait_sync_future = sync_future
+        await live_stream.wait_sync_future
 
     #
     # Fetch any states from the database that have

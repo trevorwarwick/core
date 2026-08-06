@@ -239,7 +239,7 @@ async def websocket_run(
     with chat_session.async_get_chat_session(
         hass, msg.get("conversation_id")
     ) as session:
-        input_args["conversation_id"] = session.conversation_id
+        input_args["session"] = session
         pipeline_input = PipelineInput(**input_args)
 
         try:
@@ -470,7 +470,7 @@ async def websocket_device_capture(
     # single sample (16 bits) per queue item.
     max_queue_items = (
         # +1 for None to signal end
-        int(math.ceil(timeout_seconds * CAPTURE_RATE)) + 1
+        math.ceil(timeout_seconds * CAPTURE_RATE) + 1
     )
 
     audio_queue = DeviceAudioQueue(queue=asyncio.Queue(maxsize=max_queue_items))

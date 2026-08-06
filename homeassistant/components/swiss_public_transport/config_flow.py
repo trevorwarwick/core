@@ -1,7 +1,7 @@
 """Config flow for swiss_public_transport."""
 
 import logging
-from typing import Any
+from typing import Any, override
 
 from opendata_transport import OpendataTransport
 from opendata_transport.exceptions import (
@@ -83,6 +83,7 @@ class SwissPublicTransportConfigFlow(ConfigFlow, domain=DOMAIN):
 
     user_input: dict[str, Any]
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -190,7 +191,7 @@ class SwissPublicTransportConfigFlow(ConfigFlow, domain=DOMAIN):
             return "cannot_connect"
         except OpendataTransportError:
             return "bad_config"
-        except Exception:  # pylint: disable=broad-except
+        except Exception:
             _LOGGER.exception("Unknown error")
             return "unknown"
         return None

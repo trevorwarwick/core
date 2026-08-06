@@ -1,7 +1,5 @@
 """Test for Nord Pool component Init."""
 
-from __future__ import annotations
-
 import json
 from unittest.mock import patch
 
@@ -24,11 +22,11 @@ from homeassistant.helpers import device_registry as dr, entity_registry as er
 
 from . import ENTRY_CONFIG
 
-from tests.common import MockConfigEntry, load_fixture
+from tests.common import MockConfigEntry, async_load_fixture
 from tests.test_util.aiohttp import AiohttpClientMocker
 
 
-@pytest.mark.freeze_time("2024-11-05T10:00:00+00:00")
+@pytest.mark.freeze_time("2025-10-01T10:00:00+00:00")
 async def test_unload_entry(hass: HomeAssistant, get_client: NordPoolClient) -> None:
     """Test load and unload an entry."""
     entry = MockConfigEntry(
@@ -79,7 +77,7 @@ async def test_initial_startup_fails(
     assert entry.state is ConfigEntryState.SETUP_RETRY
 
 
-@pytest.mark.freeze_time("2024-11-05T10:00:00+00:00")
+@pytest.mark.freeze_time("2025-10-01T10:00:00+00:00")
 async def test_reconfigure_cleans_up_device(
     hass: HomeAssistant,
     aioclient_mock: AiohttpClientMocker,
@@ -88,7 +86,7 @@ async def test_reconfigure_cleans_up_device(
     entity_registry: er.EntityRegistry,
 ) -> None:
     """Test clean up devices due to reconfiguration."""
-    nl_json_file = load_fixture("delivery_period_nl.json", DOMAIN)
+    nl_json_file = await async_load_fixture(hass, "delivery_period_nl.json", DOMAIN)
     load_nl_json = json.loads(nl_json_file)
 
     entry = MockConfigEntry(
@@ -115,7 +113,7 @@ async def test_reconfigure_cleans_up_device(
         "GET",
         url=API + "/DayAheadPrices",
         params={
-            "date": "2024-11-04",
+            "date": "2025-09-30",
             "market": "DayAhead",
             "deliveryArea": "NL",
             "currency": "EUR",
@@ -126,7 +124,7 @@ async def test_reconfigure_cleans_up_device(
         "GET",
         url=API + "/DayAheadPrices",
         params={
-            "date": "2024-11-05",
+            "date": "2025-10-01",
             "market": "DayAhead",
             "deliveryArea": "NL",
             "currency": "EUR",
@@ -137,7 +135,7 @@ async def test_reconfigure_cleans_up_device(
         "GET",
         url=API + "/DayAheadPrices",
         params={
-            "date": "2024-11-06",
+            "date": "2025-10-02",
             "market": "DayAhead",
             "deliveryArea": "NL",
             "currency": "EUR",

@@ -1,7 +1,5 @@
 """Constants used by Teslemetry integration."""
 
-from __future__ import annotations
-
 from enum import StrEnum
 import logging
 
@@ -9,12 +7,10 @@ DOMAIN = "teslemetry"
 
 LOGGER = logging.getLogger(__package__)
 
-MODELS = {
-    "S": "Model S",
-    "3": "Model 3",
-    "X": "Model X",
-    "Y": "Model Y",
-}
+# OAuth
+AUTHORIZE_URL = "https://teslemetry.com/connect"
+TOKEN_URL = "https://api.teslemetry.com/oauth/token"
+CLIENT_ID = "homeassistant"
 
 ENERGY_HISTORY_FIELDS = [
     "solar_energy_exported",
@@ -39,6 +35,15 @@ ENERGY_HISTORY_FIELDS = [
     "total_solar_generation",
     "total_grid_energy_exported",
 ]
+
+
+# Vehicle metadata "issue" values that map to an actionable repair issue, with
+# an optional "learn more" URL the user can visit to resolve it. The "no_data"
+# issue is intentionally ignored as it is not user-actionable.
+VEHICLE_ISSUE_LEARN_MORE: dict[str, str | None] = {
+    "key": "https://teslemetry.com/key",
+    "streaming_toggle": None,
+}
 
 
 class TeslemetryState(StrEnum):

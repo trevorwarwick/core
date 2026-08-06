@@ -1,10 +1,8 @@
 """Support for RESTful API sensors."""
 
-from __future__ import annotations
-
 import logging
 import ssl
-from typing import Any
+from typing import Any, override
 from xml.parsers.expat import ExpatError
 
 import voluptuous as vol
@@ -13,9 +11,7 @@ from homeassistant.components.sensor import (
     CONF_STATE_CLASS,
     DOMAIN as SENSOR_DOMAIN,
     PLATFORM_SCHEMA as SENSOR_PLATFORM_SCHEMA,
-    SensorDeviceClass,
 )
-from homeassistant.components.sensor.helpers import async_parse_date_datetime
 from homeassistant.const import (
     CONF_DEVICE_CLASS,
     CONF_FORCE_UPDATE,
@@ -36,6 +32,7 @@ from homeassistant.helpers.trigger_template_entity import (
     CONF_AVAILABILITY,
     CONF_PICTURE,
     ManualTriggerSensorEntity,
+    ValueTemplate,
 )
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -138,12 +135,13 @@ class RestSensor(ManualTriggerSensorEntity, RestEntity):
             config.get(CONF_RESOURCE_TEMPLATE),
             config[CONF_FORCE_UPDATE],
         )
-        self._value_template = config.get(CONF_VALUE_TEMPLATE)
+        self._value_template: ValueTemplate | None = config.get(CONF_VALUE_TEMPLATE)
         self._json_attrs = config.get(CONF_JSON_ATTRS)
         self._json_attrs_path = config.get(CONF_JSON_ATTRS_PATH)
         self._attr_extra_state_attributes = {}
 
     @property
+    @override
     def available(self) -> bool:
         """Return if entity is available."""
         available1 = RestEntity.available.fget(self)  # type: ignore[attr-defined]
@@ -151,10 +149,12 @@ class RestSensor(ManualTriggerSensorEntity, RestEntity):
         return bool(available1 and available2)
 
     @property
+    @override
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra attributes."""
         return dict(self._attr_extra_state_attributes)
 
+    @override
     def _update_from_rest_data(self) -> None:
         """Update state from the rest data."""
         try:
@@ -165,30 +165,21 @@ class RestSensor(ManualTriggerSensorEntity, RestEntity):
             )
             value = self.rest.data
 
+        variables = self._template_variables_with_value(value)
+        if not self._render_availability_template(variables):
+            self.async_write_ha_state()
+            return
+
         if self._json_attrs:
             self._attr_extra_state_attributes = parse_json_attributes(
                 value, self._json_attrs, self._json_attrs_path
             )
 
-        raw_value = value
-
         if value is not None and self._value_template is not None:
-            value = self._value_template.async_render_with_possible_json_value(
-                value, None
+            value = self._value_template.async_render_as_value_template(
+                self.entity_id, variables, None
             )
 
-        if value is None or self.device_class not in (
-            SensorDeviceClass.DATE,
-            SensorDeviceClass.TIMESTAMP,
-        ):
-            self._attr_native_value = value
-            self._process_manual_data(raw_value)
-            self.async_write_ha_state()
-            return
-
-        self._attr_native_value = async_parse_date_datetime(
-            value, self.entity_id, self.device_class
-        )
-
-        self._process_manual_data(raw_value)
+        self._set_native_value_with_possible_timestamp(value)
+        self._process_manual_data(variables)
         self.async_write_ha_state()

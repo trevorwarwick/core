@@ -1,8 +1,10 @@
 """Support for the Nettigo Air Monitor service."""
 
-from __future__ import annotations
-
 import logging
+from typing import override
+
+from aiohttp.client_exceptions import ClientError
+from nettigo_air_monitor import ApiError, AuthFailedError
 
 from homeassistant.components.button import (
     ButtonDeviceClass,
@@ -11,9 +13,11 @@ from homeassistant.components.button import (
 )
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from .const import DOMAIN
 from .coordinator import NAMConfigEntry, NAMDataUpdateCoordinator
 
 PARALLEL_UPDATES = 1
@@ -57,6 +61,19 @@ class NAMButton(CoordinatorEntity[NAMDataUpdateCoordinator], ButtonEntity):
         self._attr_unique_id = f"{coordinator.unique_id}-{description.key}"
         self.entity_description = description
 
+    @override
     async def async_press(self) -> None:
         """Triggers the restart."""
-        await self.coordinator.nam.async_restart()
+        try:
+            await self.coordinator.nam.async_restart()
+        except (ApiError, ClientError) as err:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="device_communication_action_error",
+                translation_placeholders={
+                    "entity": self.entity_id,
+                    "device": self.coordinator.config_entry.title,
+                },
+            ) from err
+        except AuthFailedError:
+            self.coordinator.config_entry.async_start_reauth(self.hass)

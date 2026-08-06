@@ -1,6 +1,7 @@
 """Contains fixtures for Loqed tests."""
 
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Callable
+from contextlib import contextmanager
 import json
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
@@ -8,20 +9,21 @@ from unittest.mock import AsyncMock, Mock, patch
 from loqedAPI import loqed
 import pytest
 
-from homeassistant.components.loqed import DOMAIN
-from homeassistant.components.loqed.const import CONF_CLOUDHOOK_URL
+from homeassistant.components.loqed.const import CONF_CLOUDHOOK_URL, DOMAIN
 from homeassistant.const import CONF_API_TOKEN, CONF_NAME, CONF_WEBHOOK_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.setup import async_setup_component
 
-from tests.common import MockConfigEntry, load_fixture
+from tests.common import MockConfigEntry, async_load_fixture
+
+type PatchLockCreationFlow = Callable[[dict[str, Any], loqed.Lock, str], Any]
 
 
 @pytest.fixture(name="config_entry")
-def config_entry_fixture() -> MockConfigEntry:
+async def config_entry_fixture(hass: HomeAssistant) -> MockConfigEntry:
     """Mock config entry."""
 
-    config = load_fixture("loqed/integration_config.json")
+    config = await async_load_fixture(hass, "integration_config.json", DOMAIN)
     json_config = json.loads(config)
     return MockConfigEntry(
         version=1,
@@ -41,11 +43,13 @@ def config_entry_fixture() -> MockConfigEntry:
 
 
 @pytest.fixture(name="cloud_config_entry")
-def cloud_config_entry_fixture() -> MockConfigEntry:
+async def cloud_config_entry_fixture(hass: HomeAssistant) -> MockConfigEntry:
     """Mock config entry."""
 
-    config = load_fixture("loqed/integration_config.json")
-    webhooks_fixture = json.loads(load_fixture("loqed/get_all_webhooks.json"))
+    config = await async_load_fixture(hass, "integration_config.json", DOMAIN)
+    webhooks_fixture = json.loads(
+        await async_load_fixture(hass, "get_all_webhooks.json", DOMAIN)
+    )
     json_config = json.loads(config)
     return MockConfigEntry(
         version=1,
@@ -66,9 +70,11 @@ def cloud_config_entry_fixture() -> MockConfigEntry:
 
 
 @pytest.fixture(name="lock")
-def lock_fixture() -> loqed.Lock:
+async def lock_fixture(hass: HomeAssistant) -> loqed.Lock:
     """Set up a mock implementation of a Lock."""
-    webhooks_fixture = json.loads(load_fixture("loqed/get_all_webhooks.json"))
+    webhooks_fixture = json.loads(
+        await async_load_fixture(hass, "get_all_webhooks.json", DOMAIN)
+    )
 
     mock_lock = Mock(spec=loqed.Lock, id="Foo", last_key_id=2)
     mock_lock.name = "LOQED smart lock"
@@ -86,7 +92,7 @@ async def integration_fixture(
     config: dict[str, Any] = {DOMAIN: {CONF_API_TOKEN: ""}}
     config_entry.add_to_hass(hass)
 
-    lock_status = json.loads(load_fixture("loqed/status_ok.json"))
+    lock_status = json.loads(await async_load_fixture(hass, "status_ok.json", DOMAIN))
 
     with (
         patch("loqedAPI.loqed.LoqedAPI.async_get_lock", return_value=lock),
@@ -97,3 +103,36 @@ async def integration_fixture(
         await async_setup_component(hass, DOMAIN, config)
         await hass.async_block_till_done()
         yield config_entry
+
+
+@pytest.fixture(name="patch_lock_creation_flow")
+def patch_lock_creation_flow_fixture() -> PatchLockCreationFlow:
+    """Patch config-flow calls used when creating a lock entry."""
+
+    @contextmanager
+    def _patch_lock_creation_flow(
+        all_locks_response: dict[str, Any],
+        lock: loqed.Lock,
+        webhook_id: str,
+    ) -> Any:
+        with (
+            patch(
+                "loqedAPI.cloud_loqed.LoqedCloudAPI.async_get_locks",
+                return_value=all_locks_response,
+            ),
+            patch(
+                "loqedAPI.loqed.LoqedAPI.async_get_lock",
+                return_value=lock,
+            ),
+            patch(
+                "homeassistant.components.loqed.async_setup_entry",
+                return_value=True,
+            ),
+            patch(
+                "homeassistant.components.webhook.async_generate_id",
+                return_value=webhook_id,
+            ),
+        ):
+            yield
+
+    return _patch_lock_creation_flow

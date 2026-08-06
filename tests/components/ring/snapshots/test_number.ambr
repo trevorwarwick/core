@@ -1,14 +1,15 @@
 # serializer version: 1
 # name: test_states[number.downstairs_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -25,6 +26,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -32,6 +34,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '123456-volume',
@@ -41,12 +44,12 @@
 # name: test_states[number.downstairs_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Downstairs Volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Downstairs Volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.downstairs_volume',
@@ -58,14 +61,15 @@
 # ---
 # name: test_states[number.front_door_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -82,6 +86,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -89,6 +94,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '987654-volume',
@@ -98,12 +104,12 @@
 # name: test_states[number.front_door_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Front Door Volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Door Volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.front_door_volume',
@@ -115,14 +121,15 @@
 # ---
 # name: test_states[number.front_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -139,6 +146,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -146,6 +154,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '765432-volume',
@@ -155,12 +164,12 @@
 # name: test_states[number.front_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Front Volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Front Volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.front_volume',
@@ -172,14 +181,15 @@
 # ---
 # name: test_states[number.ingress_doorbell_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 8,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 8,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -196,6 +206,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Doorbell volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -203,6 +214,7 @@
     'original_name': 'Doorbell volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'doorbell_volume',
     'unique_id': '185036587-doorbell_volume',
@@ -212,12 +224,12 @@
 # name: test_states[number.ingress_doorbell_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Doorbell volume',
-      'max': 8,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Doorbell volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 8,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.ingress_doorbell_volume',
@@ -229,14 +241,15 @@
 # ---
 # name: test_states[number.ingress_mic_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -253,6 +266,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Mic volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -260,6 +274,7 @@
     'original_name': 'Mic volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'mic_volume',
     'unique_id': '185036587-mic_volume',
@@ -269,12 +284,12 @@
 # name: test_states[number.ingress_mic_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Mic volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Mic volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.ingress_mic_volume',
@@ -286,14 +301,15 @@
 # ---
 # name: test_states[number.ingress_voice_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -310,6 +326,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Voice volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -317,6 +334,7 @@
     'original_name': 'Voice volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'voice_volume',
     'unique_id': '185036587-voice_volume',
@@ -326,12 +344,12 @@
 # name: test_states[number.ingress_voice_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Ingress Voice volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Ingress Voice volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.ingress_voice_volume',
@@ -343,14 +361,15 @@
 # ---
 # name: test_states[number.internal_volume-entry]
   EntityRegistryEntrySnapshot({
-    'aliases': set({
-    }),
+    'aliases': list([
+      None,
+    ]),
     'area_id': None,
     'capabilities': dict({
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'config_entry_id': <ANY>,
     'config_subentry_id': <ANY>,
@@ -367,6 +386,7 @@
     'labels': set({
     }),
     'name': None,
+    'object_id_base': 'Volume',
     'options': dict({
     }),
     'original_device_class': None,
@@ -374,6 +394,7 @@
     'original_name': 'Volume',
     'platform': 'ring',
     'previous_unique_id': None,
+    'suggested_object_id': None,
     'supported_features': 0,
     'translation_key': 'volume',
     'unique_id': '345678-volume',
@@ -383,12 +404,12 @@
 # name: test_states[number.internal_volume-state]
   StateSnapshot({
     'attributes': ReadOnlyDict({
-      'attribution': 'Data provided by Ring.com',
-      'friendly_name': 'Internal Volume',
-      'max': 11,
-      'min': 0,
-      'mode': <NumberMode.SLIDER: 'slider'>,
-      'step': 1,
+      <EntityStateAttribute.ATTRIBUTION: 'attribution'>: 'Data provided by Ring.com',
+      <EntityStateAttribute.FRIENDLY_NAME: 'friendly_name'>: 'Internal Volume',
+      <NumberEntityCapabilityAttribute.MAX: 'max'>: 11,
+      <NumberEntityCapabilityAttribute.MIN: 'min'>: 0,
+      <NumberEntityCapabilityAttribute.MODE: 'mode'>: <NumberMode.SLIDER: 'slider'>,
+      <NumberEntityCapabilityAttribute.STEP: 'step'>: 1,
     }),
     'context': <ANY>,
     'entity_id': 'number.internal_volume',

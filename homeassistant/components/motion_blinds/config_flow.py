@@ -1,17 +1,15 @@
 """Config flow to configure Motionblinds using their WLAN API."""
 
-from __future__ import annotations
-
-from typing import Any
+import logging
+from typing import Any, override
 
 from motionblinds import MotionDiscovery, MotionGateway
 import voluptuous as vol
 
 from homeassistant.config_entries import (
-    ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
-    OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import CONF_API_KEY, CONF_HOST
 from homeassistant.core import callback
@@ -26,7 +24,10 @@ from .const import (
     DEFAULT_WAIT_FOR_PUSH,
     DOMAIN,
 )
+from .coordinator import MotionBlindsConfigEntry
 from .gateway import ConnectMotionGateway
+
+_LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -35,7 +36,7 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-class OptionsFlowHandler(OptionsFlow):
+class OptionsFlowHandler(OptionsFlowWithReload):
     """Options for the component."""
 
     async def async_step_init(
@@ -75,12 +76,14 @@ class MotionBlindsFlowHandler(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: MotionBlindsConfigEntry,
     ) -> OptionsFlowHandler:
         """Get the options flow."""
         return OptionsFlowHandler()
 
+    @override
     async def async_step_dhcp(
         self, discovery_info: DhcpServiceInfo
     ) -> ConfigFlowResult:
@@ -93,7 +96,8 @@ class MotionBlindsFlowHandler(ConfigFlow, domain=DOMAIN):
         try:
             # key not needed for GetDeviceList request
             await self.hass.async_add_executor_job(gateway.GetDeviceList)
-        except Exception:  # noqa: BLE001
+        except Exception:
+            _LOGGER.exception("Failed to connect to Motion Gateway")
             return self.async_abort(reason="not_motionblinds")
 
         if not gateway.available:
@@ -108,6 +112,7 @@ class MotionBlindsFlowHandler(ConfigFlow, domain=DOMAIN):
         self._host = discovery_info.ip
         return await self.async_step_connect()
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -156,6 +161,7 @@ class MotionBlindsFlowHandler(ConfigFlow, domain=DOMAIN):
         errors: dict[str, str] = {}
         if user_input is not None:
             key = user_input[CONF_API_KEY]
+            assert self._host
 
             connect_gateway_class = ConnectMotionGateway(self.hass)
             if not await connect_gateway_class.async_connect_gateway(self._host, key):
@@ -197,5 +203,10 @@ class MotionBlindsFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
         return self.async_show_form(
-            step_id="connect", data_schema=self._config_settings, errors=errors
+            step_id="connect",
+            data_schema=self._config_settings,
+            errors=errors,
+            description_placeholders={
+                "documentation_url": "https://www.home-assistant.io/integrations/motion_blinds/#retrieving-the-api-key",
+            },
         )

@@ -1,8 +1,6 @@
 """Support for Verizon FiOS Quantum Gateways."""
 
-from __future__ import annotations
-
-import logging
+from typing import override
 
 from quantum_gateway import QuantumGatewayScanner
 from requests.exceptions import RequestException
@@ -18,9 +16,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.typing import ConfigType
 
-_LOGGER = logging.getLogger(__name__)
-
-DEFAULT_HOST = "myfiosgateway.com"
+from .const import DEFAULT_HOST, LOGGER
 
 PLATFORM_SCHEMA = DEVICE_TRACKER_PLATFORM_SCHEMA.extend(
     {
@@ -43,13 +39,13 @@ def get_scanner(
 class QuantumGatewayDeviceScanner(DeviceScanner):
     """Class which queries a Quantum Gateway."""
 
-    def __init__(self, config):
+    def __init__(self, config) -> None:
         """Initialize the scanner."""
 
         self.host = config[CONF_HOST]
         self.password = config[CONF_PASSWORD]
         self.use_https = config[CONF_SSL]
-        _LOGGER.debug("Initializing")
+        LOGGER.debug("Initializing")
 
         try:
             self.quantum = QuantumGatewayScanner(
@@ -58,20 +54,22 @@ class QuantumGatewayDeviceScanner(DeviceScanner):
             self.success_init = self.quantum.success_init
         except RequestException:
             self.success_init = False
-            _LOGGER.error("Unable to connect to gateway. Check host")
+            LOGGER.error("Unable to connect to gateway. Check host")
 
         if not self.success_init:
-            _LOGGER.error("Unable to login to gateway. Check password and host")
+            LOGGER.error("Unable to login to gateway. Check password and host")
 
+    @override
     def scan_devices(self):
         """Scan for new devices and return a list of found MACs."""
         connected_devices = []
         try:
             connected_devices = self.quantum.scan_devices()
         except RequestException:
-            _LOGGER.error("Unable to scan devices. Check connection to router")
+            LOGGER.error("Unable to scan devices. Check connection to router")
         return connected_devices
 
+    @override
     def get_device_name(self, device):
         """Return the name of the given device or None if we don't know."""
         return self.quantum.get_device_name(device)

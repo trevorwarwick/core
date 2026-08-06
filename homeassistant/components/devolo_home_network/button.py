@@ -1,9 +1,8 @@
 """Platform for button integration."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import override
 
 from devolo_plc_api.device import Device
 from devolo_plc_api.exceptions.device import DevicePasswordProtected, DeviceUnavailable
@@ -18,8 +17,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
-from . import DevoloHomeNetworkConfigEntry
 from .const import DOMAIN, IDENTIFY, PAIRING, RESTART, START_WPS
+from .coordinator import DevoloHomeNetworkConfigEntry
 from .entity import DevoloEntity
 
 PARALLEL_UPDATES = 0
@@ -109,6 +108,7 @@ class DevoloButtonEntity(DevoloEntity, ButtonEntity):
         self.entity_description = description
         super().__init__(entry)
 
+    @override
     async def async_press(self) -> None:
         """Handle the button press."""
         try:

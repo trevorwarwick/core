@@ -1,10 +1,8 @@
 """Support for the Environment Canada weather service."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from env_canada import ECWeather
 
@@ -145,7 +143,7 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         key="timestamp",
         translation_key="timestamp",
         device_class=SensorDeviceClass.TIMESTAMP,
-        value_fn=lambda data: data.metadata.get("timestamp"),
+        value_fn=lambda data: data.metadata.timestamp,
     ),
     ECSensorEntityDescription(
         key="uv_index",
@@ -167,6 +165,8 @@ SENSOR_TYPES: tuple[ECSensorEntityDescription, ...] = (
         translation_key="wind_bearing",
         native_unit_of_measurement=DEGREE,
         value_fn=lambda data: data.conditions.get("wind_bearing", {}).get("value"),
+        device_class=SensorDeviceClass.WIND_DIRECTION,
+        state_class=SensorStateClass.MEASUREMENT_ANGLE,
     ),
     ECSensorEntityDescription(
         key="wind_chill",
@@ -287,11 +287,12 @@ class ECBaseSensorEntity[DataT: ECDataType](
         super().__init__(coordinator)
         self.entity_description = description
         self._ec_data = coordinator.ec_data
-        self._attr_attribution = self._ec_data.metadata["attribution"]
+        self._attr_attribution = self._ec_data.metadata.attribution
         self._attr_unique_id = f"{coordinator.config_entry.title}-{description.key}"
         self._attr_device_info = coordinator.device_info
 
     @property
+    @override
     def native_value(self):
         """Return the native value of the sensor."""
         value = self.entity_description.value_fn(self._ec_data)
@@ -311,8 +312,8 @@ class ECSensorEntity[DataT: ECDataType](ECBaseSensorEntity[DataT]):
         """Initialize the sensor."""
         super().__init__(coordinator, description)
         self._attr_extra_state_attributes = {
-            ATTR_LOCATION: self._ec_data.metadata.get("location"),
-            ATTR_STATION: self._ec_data.metadata.get("station"),
+            ATTR_LOCATION: self._ec_data.metadata.location,
+            ATTR_STATION: self._ec_data.metadata.station,
         }
 
 
@@ -320,15 +321,16 @@ class ECAlertSensorEntity(ECBaseSensorEntity[ECWeather]):
     """Environment Canada sensor for alerts."""
 
     @property
-    def extra_state_attributes(self):
+    @override
+    def extra_state_attributes(self) -> dict[str, Any] | None:
         """Return the extra state attributes."""
         value = self.entity_description.value_fn(self._ec_data)
         if not value:
             return None
 
         extra_state_attrs = {
-            ATTR_LOCATION: self._ec_data.metadata.get("location"),
-            ATTR_STATION: self._ec_data.metadata.get("station"),
+            ATTR_LOCATION: self._ec_data.metadata.location,
+            ATTR_STATION: self._ec_data.metadata.station,
         }
         for index, alert in enumerate(value, start=1):
             extra_state_attrs[f"alert_{index}"] = alert.get("title")

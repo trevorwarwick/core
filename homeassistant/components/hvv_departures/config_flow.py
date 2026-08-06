@@ -1,26 +1,28 @@
 """Config flow for HVV integration."""
 
-from __future__ import annotations
-
 import logging
-from typing import Any
+from typing import Any, override
 
+from aiohttp import ClientConnectorError
 from pygti.auth import GTI_DEFAULT_HOST
-from pygti.exceptions import CannotConnect, InvalidAuth
+from pygti.exceptions import GTIError, GTIUnauthorizedError
+from pygti.models import (
+    CNRequest,
+    DLRequest,
+    GTITime,
+    RegionalSDNameType,
+    SDName,
+    SDNameType,
+)
 import voluptuous as vol
 
-from homeassistant.config_entries import (
-    ConfigEntry,
-    ConfigFlow,
-    ConfigFlowResult,
-    OptionsFlow,
-)
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_HOST, CONF_OFFSET, CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import aiohttp_client, config_validation as cv
 
 from .const import CONF_FILTER, CONF_REAL_TIME, CONF_STATION, DOMAIN
-from .hub import GTIHub
+from .hub import GTIHub, HVVConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -55,6 +57,7 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
         """Initialize component."""
         self.stations: dict[str, Any] = {}
 
+    @override
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
@@ -73,10 +76,10 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
             try:
                 response = await self.hub.authenticate()
                 _LOGGER.debug("Init gti: %r", response)
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidAuth:
+            except GTIUnauthorizedError:
                 errors["base"] = "invalid_auth"
+            except GTIError, ClientConnectorError:
+                errors["base"] = "cannot_connect"
 
             if not errors:
                 self.data = user_input
@@ -94,15 +97,14 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
             errors = {}
 
             check_name = await self.hub.gti.checkName(
-                {"theName": {"name": user_input[CONF_STATION]}, "maxList": 20}
+                CNRequest(theName=SDName(name=user_input[CONF_STATION]), maxList=20)
             )
 
-            stations = check_name.get("results")
-
             self.stations = {
-                f"{station.get('name')}": station
-                for station in stations
-                if station.get("type") == "STATION"
+                station.name: station
+                for station in (check_name.results or [])
+                if station.type == RegionalSDNameType.STATION
+                and station.name is not None
             }
 
             if not self.stations:
@@ -128,7 +130,13 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(step_id="station_select", data_schema=schema)
 
-        self.data.update({"station": self.stations[user_input[CONF_STATION]]})
+        self.data.update(
+            {
+                "station": self.stations[user_input[CONF_STATION]].model_dump(
+                    mode="json", exclude_none=True
+                )
+            }
+        )
 
         title = self.data[CONF_STATION]["name"]
 
@@ -136,8 +144,9 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
-        config_entry: ConfigEntry,
+        config_entry: HVVConfigEntry,
     ) -> OptionsFlowHandler:
         """Get options flow."""
         return OptionsFlowHandler()
@@ -145,6 +154,8 @@ class HVVDeparturesConfigFlow(ConfigFlow, domain=DOMAIN):
 
 class OptionsFlowHandler(OptionsFlow):
     """Options flow handler."""
+
+    config_entry: HVVConfigEntry
 
     def __init__(self) -> None:
         """Initialize HVV Departures options flow."""
@@ -156,32 +167,30 @@ class OptionsFlowHandler(OptionsFlow):
         """Manage the options."""
         errors = {}
         if not self.departure_filters:
-            departure_list = {}
-            hub: GTIHub = self.hass.data[DOMAIN][self.config_entry.entry_id]
+            hub = self.config_entry.runtime_data
 
             try:
                 departure_list = await hub.gti.departureList(
-                    {
-                        "station": {
-                            "type": "STATION",
-                            "id": self.config_entry.data[CONF_STATION].get("id"),
-                        },
-                        "time": {"date": "heute", "time": "jetzt"},
-                        "maxList": 5,
-                        "maxTimeOffset": 200,
-                        "useRealtime": True,
-                        "returnFilters": True,
-                    }
+                    DLRequest(
+                        station=SDName(
+                            id=self.config_entry.data[CONF_STATION].get("id"),
+                            type=SDNameType.STATION,
+                        ),
+                        time=GTITime(date="heute", time="jetzt"),
+                        maxList=5,
+                        maxTimeOffset=200,
+                        useRealtime=True,
+                        returnFilters=True,
+                    )
                 )
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except InvalidAuth:
+            except GTIUnauthorizedError:
                 errors["base"] = "invalid_auth"
-
-            if not errors:
+            except GTIError, ClientConnectorError:
+                errors["base"] = "cannot_connect"
+            else:
                 self.departure_filters = {
-                    str(i): departure_filter
-                    for i, departure_filter in enumerate(departure_list["filter"])
+                    str(i): f.model_dump(mode="json", exclude_none=True)
+                    for i, f in enumerate(departure_list.filter or [])
                 }
 
         if user_input is not None and not errors:
@@ -211,8 +220,8 @@ class OptionsFlowHandler(OptionsFlow):
                     vol.Optional(CONF_FILTER, default=old_filter): cv.multi_select(
                         {
                             key: (
-                                f"{departure_filter['serviceName']},"
-                                f" {departure_filter['label']}"
+                                f"{departure_filter.get('serviceName', '')},"
+                                f" {departure_filter.get('label', '')}"
                             )
                             for key, departure_filter in self.departure_filters.items()
                         }

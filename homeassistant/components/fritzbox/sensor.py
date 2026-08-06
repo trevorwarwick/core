@@ -1,11 +1,9 @@
 """Support for AVM FRITZ!SmartHome temperature sensor only devices."""
 
-from __future__ import annotations
-
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Final
+from typing import Final, override
 
 from pyfritzhome.fritzhomedevice import FritzhomeDevice
 
@@ -34,21 +32,18 @@ from .coordinator import FritzboxConfigEntry
 from .entity import FritzBoxDeviceEntity
 from .model import FritzEntityDescriptionMixinBase
 
-
-@dataclass(frozen=True)
-class FritzEntityDescriptionMixinSensor(FritzEntityDescriptionMixinBase):
-    """Sensor description mixin for Fritz!Smarthome entities."""
-
-    native_value: Callable[[FritzhomeDevice], StateType | datetime]
+# Coordinator handles data updates, so we can allow unlimited parallel updates
+PARALLEL_UPDATES = 0
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class FritzSensorEntityDescription(
-    SensorEntityDescription, FritzEntityDescriptionMixinSensor
+    SensorEntityDescription, FritzEntityDescriptionMixinBase
 ):
     """Description for Fritz!Smarthome sensor entities."""
 
     entity_category_fn: Callable[[FritzhomeDevice], EntityCategory | None] | None = None
+    native_value: Callable[[FritzhomeDevice], StateType | datetime]
 
 
 def suitable_eco_temperature(device: FritzhomeDevice) -> bool:
@@ -73,7 +68,7 @@ def suitable_nextchange_time(device: FritzhomeDevice) -> bool:
 
 def suitable_temperature(device: FritzhomeDevice) -> bool:
     """Check suitablity for temperature sensor."""
-    return device.has_temperature_sensor and not device.has_thermostat
+    return bool(device.has_temperature_sensor)
 
 
 def entity_category_temperature(device: FritzhomeDevice) -> EntityCategory | None:
@@ -137,6 +132,7 @@ SENSOR_TYPES: Final[tuple[FritzSensorEntityDescription, ...]] = (
         key="battery",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
         suitable=lambda device: device.battery_level is not None,
         native_value=lambda device: device.battery_level,
@@ -259,11 +255,13 @@ class FritzBoxSensor(FritzBoxDeviceEntity, SensorEntity):
     entity_description: FritzSensorEntityDescription
 
     @property
+    @override
     def native_value(self) -> StateType | datetime:
         """Return the state of the sensor."""
         return self.entity_description.native_value(self.data)
 
     @property
+    @override
     def entity_category(self) -> EntityCategory | None:
         """Return the category of the entity, if any."""
         if self.entity_description.entity_category_fn is not None:

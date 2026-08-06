@@ -1,9 +1,7 @@
 """Config flow to configure the honeywell integration."""
 
-from __future__ import annotations
-
 from collections.abc import Mapping
-from typing import Any
+from typing import Any, override
 
 import aiosomecomfort
 import voluptuous as vol
@@ -12,11 +10,11 @@ from homeassistant.config_entries import (
     ConfigEntry,
     ConfigFlow,
     ConfigFlowResult,
-    OptionsFlow,
+    OptionsFlowWithReload,
 )
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 
 from .const import (
     CONF_COOL_AWAY_TEMPERATURE,
@@ -82,6 +80,7 @@ class HoneywellConfigFlow(ConfigFlow, domain=DOMAIN):
             description_placeholders={"name": "Honeywell"},
         )
 
+    @override
     async def async_step_user(self, user_input=None) -> ConfigFlowResult:
         """Create config entry. Show the setup form to the user."""
         errors: dict[str, str] = {}
@@ -114,10 +113,14 @@ class HoneywellConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def is_valid(self, **kwargs) -> bool:
         """Check if login credentials are valid."""
+        # Always create a new session for Honeywell to prevent cookie injection
+        # issues. Even with response_url handling in aiosomecomfort 0.0.33+,
+        # cookies can still leak into other integrations when using the shared
+        # session. See issue #147395.
         client = aiosomecomfort.AIOSomeComfort(
             kwargs[CONF_USERNAME],
             kwargs[CONF_PASSWORD],
-            session=async_get_clientsession(self.hass),
+            session=async_create_clientsession(self.hass),
         )
 
         await client.login()
@@ -125,6 +128,7 @@ class HoneywellConfigFlow(ConfigFlow, domain=DOMAIN):
 
     @staticmethod
     @callback
+    @override
     def async_get_options_flow(
         config_entry: ConfigEntry,
     ) -> HoneywellOptionsFlowHandler:
@@ -132,7 +136,7 @@ class HoneywellConfigFlow(ConfigFlow, domain=DOMAIN):
         return HoneywellOptionsFlowHandler()
 
 
-class HoneywellOptionsFlowHandler(OptionsFlow):
+class HoneywellOptionsFlowHandler(OptionsFlowWithReload):
     """Config flow options for Honeywell."""
 
     async def async_step_init(self, user_input=None) -> ConfigFlowResult:

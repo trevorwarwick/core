@@ -3,6 +3,7 @@
 import asyncio
 from datetime import timedelta
 import logging
+from typing import override
 
 from laundrify_aio import LaundrifyAPI, LaundrifyDevice
 from laundrify_aio.exceptions import ApiConnectionException, UnauthorizedException
@@ -15,6 +16,8 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from .const import DEFAULT_POLL_INTERVAL, DOMAIN, REQUEST_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
+
+type LaundrifyConfigEntry = ConfigEntry[LaundrifyUpdateCoordinator]
 
 
 class LaundrifyUpdateCoordinator(DataUpdateCoordinator[dict[str, LaundrifyDevice]]):
@@ -38,6 +41,7 @@ class LaundrifyUpdateCoordinator(DataUpdateCoordinator[dict[str, LaundrifyDevice
         )
         self.laundrify_api = laundrify_api
 
+    @override
     async def _async_update_data(self) -> dict[str, LaundrifyDevice]:
         """Fetch data from laundrify API."""
         try:

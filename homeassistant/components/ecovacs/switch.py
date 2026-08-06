@@ -1,7 +1,7 @@
 """Ecovacs switch module."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, override
 
 from deebot_client.capabilities import CapabilitySetEnable
 from deebot_client.events import EnableEvent
@@ -17,7 +17,7 @@ from .entity import (
     EcovacsDescriptionEntity,
     EcovacsEntity,
 )
-from .util import get_supported_entitites
+from .util import get_supported_entities
 
 
 @dataclass(kw_only=True, frozen=True)
@@ -99,6 +99,13 @@ ENTITY_DESCRIPTIONS: tuple[EcovacsSwitchEntityDescription, ...] = (
         entity_registry_enabled_default=False,
         entity_category=EntityCategory.CONFIG,
     ),
+    EcovacsSwitchEntityDescription(
+        capability_fn=lambda c: c.settings.border_spin,
+        key="border_spin",
+        translation_key="border_spin",
+        entity_registry_enabled_default=False,
+        entity_category=EntityCategory.CONFIG,
+    ),
 )
 
 
@@ -109,7 +116,7 @@ async def async_setup_entry(
 ) -> None:
     """Add entities for passed config_entry in HA."""
     controller = config_entry.runtime_data
-    entities: list[EcovacsEntity] = get_supported_entitites(
+    entities: list[EcovacsEntity] = get_supported_entities(
         controller, EcovacsSwitchEntity, ENTITY_DESCRIPTIONS
     )
     if entities:
@@ -126,6 +133,7 @@ class EcovacsSwitchEntity(
 
     _attr_is_on = False
 
+    @override
     async def async_added_to_hass(self) -> None:
         """Set up the event listeners now that hass is ready."""
         await super().async_added_to_hass()
@@ -136,10 +144,12 @@ class EcovacsSwitchEntity(
 
         self._subscribe(self._capability.event, on_event)
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
         await self._device.execute_command(self._capability.set(True))
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the entity off."""
         await self._device.execute_command(self._capability.set(False))

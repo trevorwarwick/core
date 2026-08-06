@@ -1,10 +1,8 @@
 """Support for switch entities."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass
 import logging
-from typing import Any
+from typing import Any, override
 
 from thinqconnect import DeviceType
 from thinqconnect.devices.const import Property as ThinQProperty
@@ -31,6 +29,15 @@ class ThinQSwitchEntityDescription(SwitchEntityDescription):
     off_key: str | None = None
 
 
+DRYER_OPERATION_SWITCH_DESC = ThinQSwitchEntityDescription(
+    key=ThinQProperty.DRYER_OPERATION_MODE, translation_key="operation_power"
+)
+
+WASHER_OPERATION_SWITCH_DESC = ThinQSwitchEntityDescription(
+    key=ThinQProperty.WASHER_OPERATION_MODE, translation_key="operation_power"
+)
+
+
 DEVICE_TYPE_SWITCH_MAP: dict[DeviceType, tuple[ThinQSwitchEntityDescription, ...]] = {
     DeviceType.AIR_CONDITIONER: (
         ThinQSwitchEntityDescription(
@@ -50,6 +57,13 @@ DEVICE_TYPE_SWITCH_MAP: dict[DeviceType, tuple[ThinQSwitchEntityDescription, ...
             translation_key=ThinQProperty.POWER_SAVE_ENABLED,
             on_key="true",
             off_key="false",
+            entity_category=EntityCategory.CONFIG,
+        ),
+        ThinQSwitchEntityDescription(
+            key=ThinQProperty.AIR_CLEAN_OPERATION_MODE,
+            translation_key=ThinQProperty.AIR_CLEAN_OPERATION_MODE,
+            on_key="on",
+            off_key="off",
             entity_category=EntityCategory.CONFIG,
         ),
     ),
@@ -84,6 +98,13 @@ DEVICE_TYPE_SWITCH_MAP: dict[DeviceType, tuple[ThinQSwitchEntityDescription, ...
             translation_key="operation_power",
         ),
     ),
+    DeviceType.DISH_WASHER: (
+        ThinQSwitchEntityDescription(
+            key=ThinQProperty.DISH_WASHER_OPERATION_MODE,
+            translation_key="operation_power",
+        ),
+    ),
+    DeviceType.DRYER: (DRYER_OPERATION_SWITCH_DESC,),
     DeviceType.HUMIDIFIER: (
         ThinQSwitchEntityDescription(
             key=ThinQProperty.HUMIDIFIER_OPERATION_MODE,
@@ -155,6 +176,27 @@ DEVICE_TYPE_SWITCH_MAP: dict[DeviceType, tuple[ThinQSwitchEntityDescription, ...
             entity_category=EntityCategory.CONFIG,
         ),
     ),
+    DeviceType.STYLER: (
+        ThinQSwitchEntityDescription(
+            key=ThinQProperty.STYLER_OPERATION_MODE, translation_key="operation_power"
+        ),
+    ),
+    DeviceType.VENTILATOR: (
+        ThinQSwitchEntityDescription(
+            key=ThinQProperty.VENTILATOR_OPERATION_MODE,
+            translation_key="operation_power",
+            entity_category=EntityCategory.CONFIG,
+        ),
+    ),
+    DeviceType.WASHCOMBO_MAIN: (WASHER_OPERATION_SWITCH_DESC,),
+    DeviceType.WASHCOMBO_MINI: (WASHER_OPERATION_SWITCH_DESC,),
+    DeviceType.WASHER: (WASHER_OPERATION_SWITCH_DESC,),
+    DeviceType.WASHTOWER: (
+        DRYER_OPERATION_SWITCH_DESC,
+        WASHER_OPERATION_SWITCH_DESC,
+    ),
+    DeviceType.WASHTOWER_DRYER: (DRYER_OPERATION_SWITCH_DESC,),
+    DeviceType.WASHTOWER_WASHER: (WASHER_OPERATION_SWITCH_DESC,),
     DeviceType.WINE_CELLAR: (
         ThinQSwitchEntityDescription(
             key=ThinQProperty.OPTIMAL_HUMIDITY,
@@ -186,7 +228,8 @@ async def async_setup_entry(
                 entities.extend(
                     ThinQSwitchEntity(coordinator, description, property_id)
                     for property_id in coordinator.api.get_active_idx(
-                        description.key, ActiveMode.READ_WRITE
+                        description.key,
+                        ActiveMode.WRITABLE,
                     )
                 )
 
@@ -200,6 +243,7 @@ class ThinQSwitchEntity(ThinQEntity, SwitchEntity):
     entity_description: ThinQSwitchEntityDescription
     _attr_device_class = SwitchDeviceClass.SWITCH
 
+    @override
     def _update_status(self) -> None:
         """Update status itself."""
         super()._update_status()
@@ -217,6 +261,7 @@ class ThinQSwitchEntity(ThinQEntity, SwitchEntity):
             self.is_on,
         )
 
+    @override
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         _LOGGER.debug(
@@ -234,6 +279,7 @@ class ThinQSwitchEntity(ThinQEntity, SwitchEntity):
                 self.coordinator.api.async_turn_on(self.property_id)
             )
 
+    @override
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
         _LOGGER.debug(

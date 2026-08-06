@@ -3,6 +3,7 @@
 import asyncio.exceptions
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import override
 
 from flexit_bacnet import FlexitBACnet
 from flexit_bacnet.bacnet import DecodingError
@@ -18,6 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import DOMAIN
 from .coordinator import FlexitConfigEntry, FlexitCoordinator
 from .entity import FlexitEntity
 
@@ -38,7 +40,8 @@ class FlexitNumberEntityDescription(NumberEntityDescription):
     set_native_value_fn: Callable[[FlexitBACnet], Callable[[int], Awaitable[None]]]
 
 
-# Setpoints for Away, Home and High are dependent of each other. Fireplace and Cooker Hood
+# Setpoints for Away, Home and High are dependent of each
+# other. Fireplace and Cooker Hood
 # have setpoints between 0 (MIN_FAN_SETPOINT) and 100 (MAX_FAN_SETPOINT).
 # See the table below for all the setpoints.
 #
@@ -205,6 +208,9 @@ async def async_setup_entry(
     )
 
 
+PARALLEL_UPDATES = 1
+
+
 class FlexitNumber(FlexitEntity, NumberEntity):
     """Representation of a Flexit Number."""
 
@@ -224,20 +230,24 @@ class FlexitNumber(FlexitEntity, NumberEntity):
         )
 
     @property
+    @override
     def native_value(self) -> float:
         """Return the state of the number."""
         return self.entity_description.native_value_fn(self.coordinator.device)
 
     @property
+    @override
     def native_max_value(self) -> float:
         """Return the native max value of the number."""
         return self.entity_description.native_max_value_fn(self.coordinator.device)
 
     @property
+    @override
     def native_min_value(self) -> float:
         """Return the native min value of the number."""
         return self.entity_description.native_min_value_fn(self.coordinator.device)
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         set_native_value_fn = self.entity_description.set_native_value_fn(
@@ -246,6 +256,12 @@ class FlexitNumber(FlexitEntity, NumberEntity):
         try:
             await set_native_value_fn(int(value))
         except (asyncio.exceptions.TimeoutError, ConnectionError, DecodingError) as exc:
-            raise HomeAssistantError from exc
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="set_value_error",
+                translation_placeholders={
+                    "value": str(value),
+                },
+            ) from exc
         finally:
             await self.coordinator.async_refresh()

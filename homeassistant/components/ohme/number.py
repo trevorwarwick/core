@@ -1,12 +1,13 @@
 """Platform for number."""
 
-from collections.abc import Awaitable, Callable
+from collections.abc import Callable, Coroutine
 from dataclasses import dataclass
+from typing import Any, override
 
 from ohme import ApiException, OhmeApiClient
 
 from homeassistant.components.number import NumberEntity, NumberEntityDescription
-from homeassistant.const import PERCENTAGE
+from homeassistant.const import PERCENTAGE, UnitOfTime
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -22,20 +23,44 @@ PARALLEL_UPDATES = 1
 class OhmeNumberDescription(OhmeEntityDescription, NumberEntityDescription):
     """Class describing Ohme number entities."""
 
-    set_fn: Callable[[OhmeApiClient, float], Awaitable[None]]
+    set_fn: Callable[[OhmeApiClient, float], Coroutine[Any, Any, bool]]
     value_fn: Callable[[OhmeApiClient], float]
 
 
 NUMBER_DESCRIPTION = [
     OhmeNumberDescription(
-        key="target_percentage",
-        translation_key="target_percentage",
-        value_fn=lambda client: client.target_soc,
-        set_fn=lambda client, value: client.async_set_target(target_percent=value),
+        key="state_of_charge_input",
+        translation_key="state_of_charge_input",
+        value_fn=lambda client: client.battery,
+        set_fn=lambda client, value: client.async_set_state_of_charge(int(value)),
         native_min_value=0,
         native_max_value=100,
         native_step=1,
         native_unit_of_measurement=PERCENTAGE,
+        entity_registry_enabled_default=False,
+        available_fn=lambda client: client.status.value != "unplugged",
+    ),
+    OhmeNumberDescription(
+        key="target_percentage",
+        translation_key="target_percentage",
+        value_fn=lambda client: client.target_soc,
+        set_fn=lambda client, value: client.async_set_target(target_percent=int(value)),
+        native_min_value=0,
+        native_max_value=100,
+        native_step=1,
+        native_unit_of_measurement=PERCENTAGE,
+    ),
+    OhmeNumberDescription(
+        key="preconditioning_duration",
+        translation_key="preconditioning_duration",
+        value_fn=lambda client: client.preconditioning,
+        set_fn=lambda client, value: client.async_set_target(
+            pre_condition_length=int(value)
+        ),
+        native_min_value=0,
+        native_max_value=60,
+        native_step=5,
+        native_unit_of_measurement=UnitOfTime.MINUTES,
     ),
 ]
 
@@ -62,10 +87,12 @@ class OhmeNumber(OhmeEntity, NumberEntity):
     entity_description: OhmeNumberDescription
 
     @property
+    @override
     def native_value(self) -> float:
         """Return the current value of the number."""
         return self.entity_description.value_fn(self.coordinator.client)
 
+    @override
     async def async_set_native_value(self, value: float) -> None:
         """Set the number value."""
         try:

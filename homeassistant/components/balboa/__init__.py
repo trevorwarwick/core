@@ -1,7 +1,5 @@
 """The Balboa Spa Client integration."""
 
-from __future__ import annotations
-
 from datetime import datetime, timedelta
 import logging
 
@@ -21,11 +19,13 @@ _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [
     Platform.BINARY_SENSOR,
     Platform.CLIMATE,
+    Platform.EVENT,
     Platform.FAN,
     Platform.LIGHT,
     Platform.SELECT,
+    Platform.SWITCH,
+    Platform.TIME,
 ]
-
 
 KEEP_ALIVE_INTERVAL = timedelta(minutes=1)
 SYNC_TIME_INTERVAL = timedelta(hours=1)

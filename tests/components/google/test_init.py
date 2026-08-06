@@ -1,7 +1,5 @@
 """The tests for the Google Calendar component."""
 
-from __future__ import annotations
-
 from collections.abc import Awaitable, Callable
 import datetime
 import http
@@ -11,16 +9,20 @@ from unittest.mock import Mock, patch
 import zoneinfo
 
 from aiohttp.client_exceptions import ClientError
+from freezegun.api import FrozenDateTimeFactory
 import pytest
 import voluptuous as vol
 
-from homeassistant.components.google import DOMAIN, SERVICE_ADD_EVENT
+from homeassistant.components.google import DOMAIN
 from homeassistant.components.google.calendar import SERVICE_CREATE_EVENT
 from homeassistant.components.google.const import CONF_CALENDAR_ACCESS
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_FRIENDLY_NAME, STATE_OFF
 from homeassistant.core import HomeAssistant, State
 from homeassistant.exceptions import HomeAssistantError, ServiceNotSupported
+from homeassistant.helpers.config_entry_oauth2_flow import (
+    ImplementationUnavailableError,
+)
 from homeassistant.setup import async_setup_component
 from homeassistant.util.dt import UTC, utcnow
 
@@ -61,12 +63,6 @@ def assert_state(actual: State | None, expected: State | None) -> None:
     params=[
         (
             DOMAIN,
-            SERVICE_ADD_EVENT,
-            {"calendar_id": CALENDAR_ID},
-            None,
-        ),
-        (
-            DOMAIN,
             SERVICE_CREATE_EVENT,
             {},
             {"entity_id": TEST_API_ENTITY},
@@ -78,7 +74,7 @@ def assert_state(actual: State | None, expected: State | None) -> None:
             {"entity_id": TEST_API_ENTITY},
         ),
     ],
-    ids=("google.add_event", "google.create_event", "calendar.create_event"),
+    ids=("google.create_event", "calendar.create_event"),
 )
 def add_event_call_service(
     hass: HomeAssistant,
@@ -454,6 +450,7 @@ async def test_add_event_date_in_x(
     end_timedelta: datetime.timedelta,
     aioclient_mock: AiohttpClientMocker,
     add_event_call_service: Callable[[dict[str, Any]], Awaitable[None]],
+    freezer: FrozenDateTimeFactory,
 ) -> None:
     """Test service call that adds an event with various time ranges."""
 
@@ -461,9 +458,13 @@ async def test_add_event_date_in_x(
     mock_events_list({})
     assert await component_setup()
 
-    now = datetime.datetime.now()
-    start_date = now + start_timedelta
-    end_date = now + end_timedelta
+    # Freeze at 2025-06-15 03:00 UTC which is 2025-06-14 21:00 in America/Regina
+    # (the test timezone). This ensures dt_util.now().date() returns June 14
+    # while a naive datetime.now().date() would return June 15 in UTC.
+    freezer.move_to("2025-06-15 03:00:00+00:00")
+    today = datetime.date(2025, 6, 14)
+    start_date = today + start_timedelta
+    end_date = today + end_timedelta
 
     aioclient_mock.clear_requests()
     mock_insert_event(
@@ -475,8 +476,8 @@ async def test_add_event_date_in_x(
     assert aioclient_mock.mock_calls[0][2] == {
         "summary": TEST_EVENT_SUMMARY,
         "description": TEST_EVENT_DESCRIPTION,
-        "start": {"date": start_date.date().isoformat()},
-        "end": {"date": end_date.date().isoformat()},
+        "start": {"date": start_date.isoformat()},
+        "end": {"date": end_date.isoformat()},
     }
 
 
@@ -536,7 +537,9 @@ async def test_add_event_date_time(
     mock_events_list({})
     assert await component_setup()
 
-    start_datetime = datetime.datetime.now(tz=zoneinfo.ZoneInfo("America/Regina"))
+    start_datetime = datetime.datetime.now(  # pylint: disable=home-assistant-enforce-now
+        tz=zoneinfo.ZoneInfo("America/Regina")
+    )
     delta = datetime.timedelta(days=3, hours=3)
     end_datetime = start_datetime + delta
 
@@ -599,7 +602,9 @@ async def test_unsupported_create_event(
     mock_events_list({})
     assert await component_setup()
 
-    start_datetime = datetime.datetime.now(tz=zoneinfo.ZoneInfo("America/Regina"))
+    start_datetime = datetime.datetime.now(  # pylint: disable=home-assistant-enforce-now
+        tz=zoneinfo.ZoneInfo("America/Regina")
+    )
     delta = datetime.timedelta(days=3, hours=3)
     end_datetime = start_datetime + delta
     entity_id = "calendar.backyard_light"
@@ -820,51 +825,6 @@ async def test_calendar_yaml_update(
     assert not hass.states.get(TEST_YAML_ENTITY)
 
 
-async def test_update_will_reload(
-    hass: HomeAssistant,
-    component_setup: ComponentSetup,
-    mock_calendars_list: ApiResult,
-    test_api_calendar: dict[str, Any],
-    mock_events_list: ApiResult,
-    config_entry: MockConfigEntry,
-) -> None:
-    """Test updating config entry options will trigger a reload."""
-    mock_calendars_list({"items": [test_api_calendar]})
-    mock_events_list({})
-    await component_setup()
-    assert config_entry.state is ConfigEntryState.LOADED
-    assert config_entry.options == {}  # read_write is default
-
-    with patch(
-        "homeassistant.config_entries.ConfigEntries.async_reload",
-        return_value=None,
-    ) as mock_reload:
-        # No-op does not reload
-        hass.config_entries.async_update_entry(
-            config_entry, options={CONF_CALENDAR_ACCESS: "read_write"}
-        )
-        await hass.async_block_till_done()
-        mock_reload.assert_not_called()
-
-        # Data change does not trigger reload
-        hass.config_entries.async_update_entry(
-            config_entry,
-            data={
-                **config_entry.data,
-                "example": "field",
-            },
-        )
-        await hass.async_block_till_done()
-        mock_reload.assert_not_called()
-
-        # Reload when options changed
-        hass.config_entries.async_update_entry(
-            config_entry, options={CONF_CALENDAR_ACCESS: "read_only"}
-        )
-        await hass.async_block_till_done()
-        mock_reload.assert_called_once()
-
-
 @pytest.mark.parametrize("config_entry_unique_id", [None])
 async def test_assign_unique_id(
     hass: HomeAssistant,
@@ -953,3 +913,20 @@ async def test_remove_entry(
 
     assert await hass.config_entries.async_remove(entry.entry_id)
     assert entry.state is ConfigEntryState.NOT_LOADED
+
+
+async def test_oauth_implementation_not_available(
+    hass: HomeAssistant,
+    config_entry: MockConfigEntry,
+) -> None:
+    """Test that unavailable OAuth implementation raises ConfigEntryNotReady."""
+    config_entry.add_to_hass(hass)
+
+    with patch(
+        "homeassistant.helpers.config_entry_oauth2_flow.async_get_config_entry_implementation",
+        side_effect=ImplementationUnavailableError,
+    ):
+        await hass.config_entries.async_setup(config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    assert config_entry.state is ConfigEntryState.SETUP_RETRY

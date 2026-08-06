@@ -2,6 +2,7 @@
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import override
 
 from onedrive_personal_sdk.const import DriveState
 from onedrive_personal_sdk.models.items import DriveQuota
@@ -36,7 +37,7 @@ DRIVE_STATE_ENTITIES: tuple[OneDriveSensorEntityDescription, ...] = (
         key="total_size",
         value_fn=lambda quota: quota.total,
         native_unit_of_measurement=UnitOfInformation.BYTES,
-        suggested_unit_of_measurement=UnitOfInformation.GIGABYTES,
+        suggested_unit_of_measurement=UnitOfInformation.GIBIBYTES,
         suggested_display_precision=0,
         device_class=SensorDeviceClass.DATA_SIZE,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -46,7 +47,7 @@ DRIVE_STATE_ENTITIES: tuple[OneDriveSensorEntityDescription, ...] = (
         key="used_size",
         value_fn=lambda quota: quota.used,
         native_unit_of_measurement=UnitOfInformation.BYTES,
-        suggested_unit_of_measurement=UnitOfInformation.GIGABYTES,
+        suggested_unit_of_measurement=UnitOfInformation.GIBIBYTES,
         suggested_display_precision=2,
         device_class=SensorDeviceClass.DATA_SIZE,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -55,7 +56,7 @@ DRIVE_STATE_ENTITIES: tuple[OneDriveSensorEntityDescription, ...] = (
         key="remaining_size",
         value_fn=lambda quota: quota.remaining,
         native_unit_of_measurement=UnitOfInformation.BYTES,
-        suggested_unit_of_measurement=UnitOfInformation.GIGABYTES,
+        suggested_unit_of_measurement=UnitOfInformation.GIBIBYTES,
         suggested_display_precision=2,
         device_class=SensorDeviceClass.DATA_SIZE,
         entity_category=EntityCategory.DIAGNOSTIC,
@@ -103,7 +104,7 @@ class OneDriveDriveStateSensor(
         self._attr_unique_id = f"{coordinator.data.id}_{description.key}"
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
-            name=coordinator.data.name,
+            name=coordinator.data.name or coordinator.config_entry.title,
             identifiers={(DOMAIN, coordinator.data.id)},
             manufacturer="Microsoft",
             model=f"OneDrive {coordinator.data.drive_type.value.capitalize()}",
@@ -111,12 +112,14 @@ class OneDriveDriveStateSensor(
         )
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the state of the sensor."""
         assert self.coordinator.data.quota
         return self.entity_description.value_fn(self.coordinator.data.quota)
 
     @property
+    @override
     def available(self) -> bool:
         """Availability of the sensor."""
         return super().available and self.coordinator.data.quota is not None

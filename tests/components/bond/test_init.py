@@ -11,7 +11,11 @@ from homeassistant.components.fan import DOMAIN as FAN_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import ATTR_ASSUMED_STATE, CONF_ACCESS_TOKEN, CONF_HOST
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import (
+    area_registry as ar,
+    device_registry as dr,
+    entity_registry as er,
+)
 from homeassistant.setup import async_setup_component
 
 from .common import (
@@ -201,8 +205,35 @@ async def test_old_identifiers_are_removed(
     assert device_registry.async_get_device(identifiers={new_identifiers}) is not None
 
 
+async def test_device_via_device_links(
+    hass: HomeAssistant,
+    entity_registry: er.EntityRegistry,
+    device_registry: dr.DeviceRegistry,
+) -> None:
+    """Test that child devices link to the hub via via_device_id."""
+    config_entry = await setup_platform(
+        hass,
+        FAN_DOMAIN,
+        ceiling_fan("name-1"),
+        bond_version={"bondid": "test-hub-id"},
+        bond_device_id="test-device-id",
+    )
+
+    hub_device = device_registry.async_get_device_by_identifier(
+        (DOMAIN, "test-hub-id"), config_entry.entry_id
+    )
+    assert hub_device is not None
+
+    entity = entity_registry.entities["fan.name_1"]
+    child_device = device_registry.async_get(entity.device_id)
+    assert child_device is not None
+    assert child_device.via_device_id == hub_device.id
+
+
 async def test_smart_by_bond_device_suggested_area(
-    hass: HomeAssistant, device_registry: dr.DeviceRegistry
+    hass: HomeAssistant,
+    area_registry: ar.AreaRegistry,
+    device_registry: dr.DeviceRegistry,
 ) -> None:
     """Test we can setup a smart by bond device and get the suggested area."""
     config_entry = MockConfigEntry(
@@ -241,11 +272,13 @@ async def test_smart_by_bond_device_suggested_area(
 
     device = device_registry.async_get_device(identifiers={(DOMAIN, "KXXX12345")})
     assert device is not None
-    assert device.suggested_area == "Den"
+    assert device.area_id == area_registry.async_get_area_by_name("Den").id
 
 
 async def test_bridge_device_suggested_area(
-    hass: HomeAssistant, device_registry: dr.DeviceRegistry
+    hass: HomeAssistant,
+    area_registry: ar.AreaRegistry,
+    device_registry: dr.DeviceRegistry,
 ) -> None:
     """Test we can setup a bridge bond device and get the suggested area."""
     config_entry = MockConfigEntry(
@@ -289,7 +322,7 @@ async def test_bridge_device_suggested_area(
 
     device = device_registry.async_get_device(identifiers={(DOMAIN, "ZXXX12345")})
     assert device is not None
-    assert device.suggested_area == "Office"
+    assert device.area_id == area_registry.async_get_area_by_name("Office").id
 
 
 async def test_device_remove_devices(

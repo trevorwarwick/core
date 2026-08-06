@@ -1,11 +1,9 @@
 """Calendar platform for a Local Calendar."""
 
-from __future__ import annotations
-
 import asyncio
 from datetime import date, datetime, timedelta
 import logging
-from typing import Any
+from typing import Any, override
 
 from ical.calendar import Calendar
 from ical.calendar_stream import IcsCalendarStream
@@ -23,13 +21,13 @@ from homeassistant.components.calendar import (
     CalendarEntityFeature,
     CalendarEvent,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.util import dt as dt_util
 
-from .const import CONF_CALENDAR_NAME, DOMAIN
+from . import LocalCalendarConfigEntry
+from .const import CONF_CALENDAR_NAME
 from .store import LocalCalendarStore
 
 _LOGGER = logging.getLogger(__name__)
@@ -39,11 +37,11 @@ PRODID = "-//homeassistant.io//local_calendar 1.0//EN"
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: LocalCalendarConfigEntry,
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     """Set up the local calendar platform."""
-    store = hass.data[DOMAIN][config_entry.entry_id]
+    store = config_entry.runtime_data
     ics = await store.async_load()
     calendar: Calendar = await hass.async_add_executor_job(
         IcsCalendarStream.calendar_from_ics, ics
@@ -81,34 +79,44 @@ class LocalCalendarEntity(CalendarEntity):
         self._attr_unique_id = unique_id
 
     @property
+    @override
     def event(self) -> CalendarEvent | None:
         """Return the next upcoming event."""
         return self._event
 
+    @override
     async def async_get_events(
         self, hass: HomeAssistant, start_date: datetime, end_date: datetime
     ) -> list[CalendarEvent]:
         """Get all events in a specific time frame."""
-        events = self._calendar.timeline_tz(start_date.tzinfo).overlapping(
-            start_date,
-            end_date,
-        )
-        return [_get_calendar_event(event) for event in events]
+
+        def events_in_range() -> list[CalendarEvent]:
+            events = self._calendar.timeline_tz(start_date.tzinfo).overlapping(
+                start_date,
+                end_date,
+            )
+            return [_get_calendar_event(event) for event in events]
+
+        return await self.hass.async_add_executor_job(events_in_range)
 
     async def async_update(self) -> None:
         """Update entity state with the next upcoming event."""
-        now = dt_util.now()
-        events = self._calendar.timeline_tz(now.tzinfo).active_after(now)
-        if event := next(events, None):
-            self._event = _get_calendar_event(event)
-        else:
-            self._event = None
+
+        def next_event() -> CalendarEvent | None:
+            now = dt_util.now()
+            events = self._calendar.timeline_tz(now.tzinfo).active_after(now)
+            if event := next(events, None):
+                return _get_calendar_event(event)
+            return None
+
+        self._event = await self.hass.async_add_executor_job(next_event)
 
     async def _async_store(self) -> None:
         """Persist the calendar to disk."""
         content = IcsCalendarStream.calendar_to_ics(self._calendar)
         await self._store.async_store(content)
 
+    @override
     async def async_create_event(self, **kwargs: Any) -> None:
         """Add a new event to calendar."""
         event = _parse_event(kwargs)
@@ -118,6 +126,7 @@ class LocalCalendarEntity(CalendarEntity):
             await self._async_store()
         await self.async_update_ha_state(force_refresh=True)
 
+    @override
     async def async_delete_event(
         self,
         uid: str,
@@ -140,6 +149,7 @@ class LocalCalendarEntity(CalendarEntity):
             await self._async_store()
         await self.async_update_ha_state(force_refresh=True)
 
+    @override
     async def async_update_event(
         self,
         uid: str,
@@ -190,6 +200,12 @@ def _parse_event(event: dict[str, Any]) -> Event:
             and value.tzinfo is not None
         ):
             event[key] = dt_util.as_local(value).replace(tzinfo=None)
+    # UNTIL in the rrule must be floating (timezone-naive) to match the
+    # floating dtstart used by the ical library. Strip tzinfo from UNTIL
+    # if present, converting to local time first.
+    if (rrule_obj := event.get(EVENT_RRULE)) and isinstance(rrule_obj, Recur):
+        if isinstance(rrule_obj.until, datetime) and rrule_obj.until.tzinfo is not None:
+            rrule_obj.until = dt_util.as_local(rrule_obj.until).replace(tzinfo=None)
 
     try:
         return Event(**event)
@@ -214,7 +230,7 @@ def _get_calendar_event(event: Event) -> CalendarEvent:
             end = start + timedelta(days=1)
 
     return CalendarEvent(
-        summary=event.summary,
+        summary=event.summary or "",
         start=start,
         end=end,
         description=event.description,
